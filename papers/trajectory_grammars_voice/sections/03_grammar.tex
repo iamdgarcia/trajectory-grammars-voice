@@ -35,7 +35,7 @@ non-terminal state.
     \input{figures/fig_grammar}%
   }
   \caption{The trajectory grammar $G$.
-           Progress states (rounded) form the service spine; typed transitions ( labelled
+           Progress states (rounded) form the service spine; typed transitions (labelled
            arrows) carry the eight event classes of Table~\ref{tab:transitions};
            regression types open cycles back into earlier states;
            terminal classes (squares) absorb every well-formed run.}
@@ -106,14 +106,14 @@ orchestration stack, and channel events never mutate conversation state by thems
 A \emph{run} of $G$ is a finite alternating sequence
 $\sigma = q_0\, t_1\, q_1\, \cdots\, t_n\, q_n$ with $q_0 = q_{greet}$, $q_n \in T$, and each
 $(t_i, q_i)$ permitted by $\delta$.
+$\sigma$ is \emph{well-formed} if every terminal class is absorbing, i.e., no transition departs
+from a state in $T$.
 A \emph{partial run} is any proper prefix $\sigma_{\leq j}$ of a well-formed run that ends in a
 non-terminal state.
 The \emph{true outcome} of $\sigma_{\leq j}$ is the terminal class of the well-formed run that
 extends it, which is unique by absorption but unobserved while the conversation runs.
 Early outcome prediction is exactly the problem of guessing this unobserved terminal class from
 $\sigma_{\leq j}$, and Section~4 states when that guess may be acted on.
-$\sigma$ is \emph{well-formed} if every terminal class is absorbing, i.e., no transition departs
-from a state in $T$.
 Well-formedness is a safety property of the orchestration policy, not of the data: a run that
 continues after a terminal class is a policy bug, and the grammar makes such bugs detectable by
 inspection of $\delta$.
@@ -147,8 +147,6 @@ There exist well-formed runs $\sigma_L$ and $\sigma_D$ of equal length $n$ with
 $D(\sigma_L) = 0$ and $D(\sigma_D) \geq 1$.
 Hence run length alone determines neither drift nor the terminal class, and any outcome detector
 keyed to conversation duration confuses the two.
-The distinction has direct operational value: a long call that is merely tool-heavy should not
-page a supervisor, while a short call with two clarification cycles may already be failing.
 \end{proposition}
 
 \begin{proof}
@@ -162,6 +160,9 @@ of \texttt{tool-call} iterations to hold length fixed; this sub-run departs from
 $q_{confirm}$, so $D(\sigma_D) \geq 1$.
 Both runs are well-formed and of length $n$, which proves the claim.
 \end{proof}
+
+The distinction has direct operational value: a long call that is merely tool-heavy should not
+page a supervisor, while a short call with two clarification cycles may already be failing.
 
 \begin{figure}[t]
   \centering
