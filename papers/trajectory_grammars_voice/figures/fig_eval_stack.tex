@@ -13,7 +13,7 @@
 % grammar layer
 \node[layer, below=of sens] (gram) {trajectory grammar $G=(Q,\Sigma,\delta)$: state estimate + cycle depth $D$};
 % stopping layer
-\node[layer, below=of gram] (stop) {stopping rule over $P(\theta\mid x_{1:k})$: decide at $k_{\mathrm{dec}}\leq k^\ast$, confidence $1-\delta$};
+\node[layer, below=of gram] (stop) {stopping rule over $P(\theta\mid o_{1:k})$: decide at $k_{\mathrm{dec}}$, expected $\leq K(\varepsilon,c)$, confidence $1-\varepsilon$};
 % KPI classes
 \node[kpi, below left=0.8cm and -1.2cm of stop] (cont) {contained};
 \node[kpi, right=of cont] (aban) {abandoned};

@@ -1,6 +1,6 @@
 % §5 Banking KPI-Tuned Evaluation Protocol
 This section specifies how the trajectory grammar and the stopping rule are evaluated against the operational reality of a production voice channel.
-The protocol is tuned to banking KPIs: every terminal class in the outcome set $\mathcal{T} = \{\text{contained}, \text{abandoned}, \text{handoff}, \text{compliance\_escape}\}$ is wired to a metric that a contact-centre operator already tracks.
+The protocol is tuned to banking KPIs: every terminal class in the outcome set $T = \{\theta_{cont}, \theta_{aban}, \theta_{hand}, \theta_{esc}\}$ of Section~\ref{sec:grammar} --- contained, abandoned, handoff, compliance-escape --- is wired to a metric that a contact-centre operator already tracks.
 Figure~\ref{fig:eval_stack} summarises the wiring from grammar states and terminal classes to telephony telemetry and per-turn decision signals.
 
 \begin{figure}[t]
@@ -16,6 +16,7 @@ Figure~\ref{fig:eval_stack} summarises the wiring from grammar states and termin
 \end{figure}
 
 \subsection{KPI-to-Terminal-Class Mapping}
+\label{subsec:classes}
 The terminal classes of the grammar are formalisations of existing operational metrics, not new quantities.
 Containment rate counts calls terminating in $\theta = \text{contained}$, the resolution-without-human-help target tracked in industrial deployments \citep{nubank2026}.
 Abandonment rate counts $\theta = \text{abandoned}$: the caller disconnects before resolution.
@@ -34,20 +35,20 @@ Splits are campaign-disjoint: leave-one-campaign-out validation holds out each c
 Class imbalance is handled by reporting per-class and macro-averaged metrics; headline accuracy is never reported, because rare classes (abandonment, compliance escape) carry the operational cost.
 
 \subsection{Metrics}
-Two metrics are reused with credit from TRACER \citep{nourbakhsh2026tracer}: the Early Detection Score, $\mathrm{EDS}_i = (T_i - t_i^*)/T_i$, and the mean detection turn $\bar{t}^{\,*}$, computed here per terminal class rather than for a single binary outcome.
+Two metrics are reused with credit from TRACER \citep{nourbakhsh2026tracer}: the Early Detection Score, $\mathrm{EDS}_i = (L_i - t_i^*)/L_i$ with $L_i$ the dialogue length in turns, and the mean detection turn $\bar{t}^{\,*}$, computed here per terminal class rather than for a single binary outcome.
 For calibration, TRACER reports EDS 0.727 at AUC 0.741 under oracle belief states on MultiWOZ \citep{nourbakhsh2026tracer}; these numbers anchor the text-chat regime that our protocol extends to voice.
 The cost-weighted detection latency extends both with the banking cost model, weighting each misclassification by how early it was committed:
 \begin{equation}
-  \mathcal{L}_{\mathrm{cwd}} \;=\; \sum_{\theta \in \mathcal{T}} \pi_\theta \;
+  \mathcal{L}_{\mathrm{cwd}} \;=\; \sum_{\theta \in T} \pi_\theta \;
   \mathbb{E}_{k_{\mathrm{dec}}}\!\left[\, c(\hat{\theta}_{k_{\mathrm{dec}}}, \theta) \cdot
   w(k_{\mathrm{dec}}) \,\right],
-  \qquad w(k) = (T - k)/T,
+  \qquad w(k) = (L - k)/L,
   \label{eq:cost_weighted_latency}
 \end{equation}
 mirroring the early-prediction reward that TRACER uses at training time \citep{nourbakhsh2026tracer}.
 The cost model $c(\hat{\theta}, \theta)$ encodes the operational asymmetries: a false containment (predicting resolution while the call was abandoned or escaped) costs more than a false handoff, which only spends agent-minutes; compliance escape has unbounded cost and is therefore reported separately, never averaged into a scalar.
 Detection-latency distributions are reported as p50/p90/p99, matching the dual-environment latency reporting of the program's prior work.
-Calibration of the stopping rule is checked empirically: the realised error rate at confidence level $1-\delta$ must not exceed $\delta$, and the realised $\mathbb{E}[k_{\mathrm{dec}}]$ must meet the bound $k^*(\delta)$ of the Trajectory Stopping Theorem.
+Calibration of the stopping rule is checked empirically: the realised error rate at confidence level $1-\varepsilon$ must not exceed $\varepsilon$, and the realised $\mathbb{E}[k_{\mathrm{dec}}]$ must meet the bound $K(\varepsilon, c)$ of the Trajectory Stopping Theorem.
 
 \subsection{Decision-Latency Accounting}
 The trajectory monitor is itself a pipeline stage: per turn it consumes the interim transcript, the tool-event log, and the turn flags, and updates the posterior and the sequential test statistic.
@@ -56,7 +57,7 @@ Placement off the critical path hides the update under the user's speech, provid
 The sensing substrate is already measured: the Spanish partial-transcript pipeline used for semantic VAD decides in p99 178--268~ms in the cloud configuration \citep{garcia2026asking}, which bounds the per-turn observation update.
 Interventions inherit a second floor: taking the floor mid-drift is a barge-in against the agent's own audio, so every intervention must clear the cessation floor (detect, decide, cease, resume) \citep{garcia2026cessationfloor}.
 The protocol therefore reports decision latency in both currencies: in turns, the stopping theorem's unit, and in milliseconds, the floors' unit, joined by the per-turn floor arithmetic.
-The $k$-step ReAct bound \citep{garcia2026latencyfloor} doubles as a drift alarm threshold in evaluation: any run exceeding $k^*$ tool-loop cycles is scored off-path, and the alarm's own decision latency is measured against the same floors.
+The $k$-step ReAct bound \citep{garcia2026latencyfloor} doubles as a drift alarm threshold in evaluation: any run segment exceeding $k_{\mathrm{cyc}}$ \texttt{tool-call} iterations is scored off-path, and the alarm's own decision latency is measured against the same floors.
 
 \subsection{Baselines}
 Five baselines cover the design space without conversation-internal trajectory structure.

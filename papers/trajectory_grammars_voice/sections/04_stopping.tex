@@ -6,39 +6,39 @@ The centerpiece is the Trajectory Stopping Theorem, which bounds the expected de
 
 \subsection{From Grammar Emissions to an Outcome Posterior}
 \label{subsec:posterior}
-At turn $k$ the monitor observes the partial transcript $x_{1:k}$ together with the typed tool-event log (tool-call, tool-fail, endpoint-error, user-bargein, disclosure) defined in Section~\ref{sec:grammar}.
-Together these channels induce the outcome-class posterior $p(\theta \mid x_{1:k})$ over the terminal set $T = \{\textit{contained}, \textit{abandoned}, \textit{handoff}, \textit{compliance\_escape}\}$.
+At turn $k$ the monitor observes the multi-channel tuple $o_k$ of Definition~\ref{def:observation}: the partial transcript, the turn-state sequence, the tool-event log, and the acoustic flags.
+Together these channels induce the outcome-class posterior $p(\theta \mid o_{1:k})$ over the terminal set $T = \{\theta_{cont}, \theta_{aban}, \theta_{hand}, \theta_{esc}\}$.
 The posterior is deliberately abstract: any calibrated estimator over grammar emissions suffices, and every guarantee below attaches to the stopping layer rather than to a particular model.
 That partial trajectories carry outcome signal at all is established for offline evaluation pruning \citep{earlyeval2026} and for text-chat failure forecasting \citep{nourbakhsh2026tracer}; our contribution is a live decision layer with guarantees, not another estimator.
 Two design constraints come from our published results rather than from new evidence.
-First, text-only turn signals are near chance on Spanish hard cuts \citep{garcia2026asking}, so the posterior must condition on the multi-channel emission stream, not on the transcript alone.
-Second, the cycle depth $D(\sigma)$ of the grammar is its drift statistic, and it enters the posterior as a covariate: each return to a previously visited non-terminal state shifts probability mass toward the action classes.
-Deep tool-loop cycles are precisely where banking conversations drift, and the $k$-step analysis of cascade agents makes the cost of such cycles formal \citep{garcia2026latencyfloor}.
+First, text-only turn signals are near chance on Spanish hard cuts \citep{garcia2026asking}, so the posterior must condition on the multi-channel observation $o_{1:k}$, not on the transcript alone.
+Second, the cycle depth $D(\sigma)$ of the grammar is its drift statistic, and it enters the posterior as a covariate: each regression transition shifts probability mass toward the action classes.
+Deep tool episodes are precisely where banking conversations drift, and the $k$-step analysis of cascade agents makes the cost of such episodes formal \citep{garcia2026latencyfloor}.
 
 \subsection{Sequential Stopping over the Posterior}
 \label{subsec:rule}
-The sequential probability ratio test (SPRT) is the canonical likelihood-ratio procedure with type-I and type-II error control, recently transposed to early-stopping of LLM reasoning paths \citep{consol2025}.
+The sequential probability ratio test (SPRT) is the canonical likelihood-ratio procedure with type-I and type-II error control \citep{wald1947sprt}, recently transposed to early-stopping of LLM reasoning paths \citep{consol2025}.
 We transpose it once more, from reasoning paths to conversation turns.
 
 \begin{definition}[Sequential outcome decision rule]
 \label{def:rule}
-Fix the benign class $\theta_0 = \textit{contained}$ and, for each action class $\theta_a \in T \setminus \{\theta_0\}$, let
+Fix the benign class $\theta_0 = \theta_{cont}$ and, for each action class $\theta_a \in T \setminus \{\theta_0\}$, let
 \begin{equation}
   \label{eq:llr}
-  \Lambda_k^{a} \;=\; \log \frac{p(x_{1:k} \mid \theta_a)}{p(x_{1:k} \mid \theta_0)}
+  \ell_k^{a} \;=\; \log \frac{p(o_{1:k} \mid \theta_a)}{p(o_{1:k} \mid \theta_0)}
 \end{equation}
 denote the log-likelihood ratio of the observed emission stream under $\theta_a$ versus $\theta_0$.
 With target false-alarm rate $\alpha_a$ and miss rate $\beta_a$ for class $\theta_a$, set the upper and lower boundaries
 \begin{equation}
   \label{eq:boundaries}
-  A_a = \log \frac{1-\beta_a}{\alpha_a}, \qquad B_a = \log \frac{\beta_a}{1-\alpha_a}.
+  A_a = \log \frac{1}{\alpha_a}, \qquad B_a = \log \beta_a .
 \end{equation}
 The decision time is
 \begin{equation}
   \label{eq:kdec}
   k_{\mathrm{dec}} \;=\; \min\Bigl(\;
-    \min\{k : \exists\, a,\; \Lambda_k^{a} \geq A_a \;\text{(declare } \theta_a)\},\;\;
-    \min\{k : \forall\, a,\; \Lambda_k^{a} \leq B_a \;\text{(declare } \theta_0)\},\;\;
+    \min\{k : \exists\, a,\; \ell_k^{a} \geq A_a \;\text{(declare } \theta_a)\},\;\;
+    \min\{k : \forall\, a,\; \ell_k^{a} \leq B_a \;\text{(declare } \theta_0)\},\;\;
     k_{\mathrm{term}}
   \Bigr),
 \end{equation}
@@ -47,44 +47,61 @@ where $k_{\mathrm{term}}$ is the turn at which the grammar walk reaches a termin
 
 The rule is one-sided per action class and jointly conservative: declaring \emph{no action} requires every class-wise ratio to fall below its lower boundary, so a conversation cannot be written off as contained while any action hypothesis retains evidence.
 This asymmetry is deliberate and is priced in Section~\ref{subsec:economics}.
+The boundary form \eqref{eq:boundaries} is the Ville-style parametrization rather than the classical Wald form $\log\frac{1-\beta}{\alpha}$: because the rule monitors each class ratio past its own lower boundary (another class may still be above its $B$), the operative error event for declaring $\theta_a$ under $\theta_0$ is \emph{ever crossing} $A_a$, and Ville's inequality prices exactly that event, at the cost of slightly wider boundaries than the two-sided classical SPRT.
 
 \subsection{The Trajectory Stopping Theorem}
 \label{subsec:theorem}
-We now state the guarantee under the standard Wald conditions, adapted to the grammar.
-Assume (i) emissions are conditionally independent given the terminal class, and (ii) the expected per-turn log-likelihood-ratio increment is strictly separated: under $\theta_a$ it is at least $\mu_1^{a} > 0$, and under $\theta_0$ at most $\mu_0^{a} < 0$, for every action class $a$.
+We now state the guarantee.
+The assumptions are explicit because each is load-bearing.
+(i) \emph{Correct specification}: the emission densities used in \eqref{eq:llr} coincide with the true data-generating densities given the terminal class.
+(ii) \emph{Increment separation}: emissions are conditionally independent given the terminal class, the per-turn log-ratio increments are integrable and bounded, $|Z_k^{a}| \leq c$ for a known constant $c$, and their conditional means are strictly separated: under $\theta_a$ at least $\mu_1^{a} > 0$, and under $\theta_0$ at most $\mu_0^{a} < 0$, for every action class $a$.
+(iii) \emph{Termination}: the grammar walk reaches a terminal state in bounded expected time, $\mathbb{E}[k_{\mathrm{term}}] < \infty$; this is a property of the orchestration policy (Definition~\ref{def:run} makes non-terminating runs a policy bug), not of the theorem --- note that the \texttt{tool-call} self-loop makes unbounded runs representable, so the assumption must be checked against the deployed policy.
 
 \begin{theorem}[Trajectory Stopping]
 \label{thm:stopping}
-Under conditions (i)--(ii), the decision rule of Definition~\ref{def:rule} satisfies, for every action class $a$:
+Under conditions (i)--(iii), the decision rule of Definition~\ref{def:rule} satisfies, for every action class $a$:
 \begin{align}
-  \Pr\bigl[\text{declare } \theta_0 \mid \theta_a\bigr] &\leq \beta_a,
-  &
   \Pr\bigl[\text{declare } \theta_a \mid \theta_0\bigr] &\leq \alpha_a,
+  &
+  \Pr\bigl[\text{declare } \theta_0 \mid \theta_a\bigr] &\leq \beta_a,
   \label{eq:errors}\\
   \mathbb{E}\bigl[k_{\mathrm{dec}} \mid \theta_a\bigr]
-    &\leq \frac{(1-\beta_a)\, A_a + \beta_a\, B_a}{\mu_1^{a}},
+    &\leq \frac{(1-\beta_a)\, A_a + \beta_a\, B_a + c}{\mu_1^{a}},
   &
   \mathbb{E}\bigl[k_{\mathrm{dec}} \mid \theta_0\bigr]
-    &\leq \frac{\alpha_a\, A_a + (1-\alpha_a)\, B_a}{|\mu_0^{a}|}.
+    &\leq \frac{\alpha_a\, A_a + (1-\alpha_a)\, B_a - c}{\mu_0^{a}}.
   \label{eq:times}
 \end{align}
-Consequently, choosing $(\alpha_a, \beta_a)$ from the banking cost model yields an expected decision time
-$\mathbb{E}[k_{\mathrm{dec}}] \leq k^{\ast}(\delta, c)$
-at confidence at least $1-\delta$, where $\delta$ bounds the total error budget across classes.
+Consequently, since the conditional bounds hold for every terminal class, for any prior $\pi$ over $T$,
+\begin{equation}
+  \label{eq:unconditional}
+  \mathbb{E}[k_{\mathrm{dec}}] \;=\; \textstyle\sum_{\theta \in T} \pi_\theta\, \mathbb{E}[k_{\mathrm{dec}} \mid \theta] \;\leq\; K(\varepsilon, c) \;:=\; \max_{a}\Bigl(\max\Bigl\{ \tfrac{(1-\beta_a) A_a + \beta_a B_a + c}{\mu_1^{a}},\; \tfrac{\alpha_a A_a + (1-\alpha_a) B_a - c}{\mu_0^{a}} \Bigr\}\Bigr),
+\end{equation}
+and by the union bound the total error probability obeys $\Pr[\text{error}] \leq \sum_{a} (\alpha_a + \beta_a) = \varepsilon$, so decisions are delivered in at most $K(\varepsilon, c)$ expected turns at confidence at least $1 - \varepsilon$.
 \end{theorem}
 
 \begin{proof}[Proof sketch]
-Under the true class, the log-likelihood ratio \eqref{eq:llr} is a martingale in the turn index, since the emission at turn $k$ is conditionally independent of the past given the class.
-Optional stopping at $k_{\mathrm{dec}}$ preserves the martingale property because $k_{\mathrm{dec}}$ is a stopping time and the walk terminates almost surely by reaching a terminal state.
-The error bounds \eqref{eq:errors} follow because stopping above $A_a$ under $\theta_0$ requires the martingale to cross the level that $\alpha_a$ tail mass permits, and symmetrically below $B_a$ under $\theta_a$.
-The time bounds \eqref{eq:times} are Wald's first identity applied to the stopped ratio: the expected total log-ratio at stopping equals the expected per-turn increment times the expected number of turns, and the stopped value is confined between the boundaries up to the standard excess-over-boundary term, which the idealized continuous treatment absorbs into the inequalities.
-Dividing the boundary distance by the per-turn increment $|\mu|$ converts information to turns, giving \eqref{eq:times}.
+Fix an action class $a$.
+Under $\theta_0$ and correct specification, the likelihood ratio of conditionally independent emissions makes $\exp(\ell_k^{a})$ a non-negative supermartingale with expected increment $e^{\mu_0^{a}} \leq 1$.
+Ville's inequality then prices the ever-crossing event directly:
+$\Pr_{\theta_0}[\exists k \leq k_{\mathrm{term}}: \ell_k^{a} \geq A_a] \leq e^{-A_a} = \alpha_a$,
+which is the first bound of \eqref{eq:errors}; the second follows symmetrically by applying Ville's inequality to $\exp(-\ell_k^{a})$ under $\theta_a$, whose crossing level $-B_a$ yields $e^{B_a} = \beta_a$.
+For the time bounds, Wald's first identity for stopped sums of integrable, conditionally independent increments gives
+$\mathbb{E}[\ell_{k_{\mathrm{dec}}}^{a} \mid \theta] = \mu^{a}\, \mathbb{E}[k_{\mathrm{dec}} \mid \theta]$ with $\mu^{a} \in \{\mu_0^{a}, \mu_1^{a}\}$.
+Under $\theta_0$, the stopped ratio is confined to $[B_a - c,\; A_a + c]$ by the increment bound, and decomposing on the two stopping events,
+$\mathbb{E}[\ell_{k_{\mathrm{dec}}}^{a} \mid \theta_0] \;\geq\; \alpha_a A_a + (1-\alpha_a)(B_a - c)$.
+Since $\mu_0^{a} < 0$, dividing the lower bound on $\mathbb{E}[\ell_{k_{\mathrm{dec}}}^{a}]$ by $\mu_0^{a}$ yields an upper bound on $\mathbb{E}[k_{\mathrm{dec}} \mid \theta_0]$, which is the second display of \eqref{eq:times} (numerator and denominator are both negative, so the bound is positive).
+The $\theta_a$ case is symmetric: the stopped ratio lies in $[B_a - c, A_a + c]$, its expectation is at most $(1-\beta_a)(A_a + c) + \beta_a B_a$, and division by the positive $\mu_1^{a}$ gives the first display of \eqref{eq:times}.
+Absorbing the slack into the constants (and noting $e^{B_a} = \beta_a$ makes the accept branch exact in the idealized continuous limit where the overshoot $c \to 0$) recovers the displayed forms.
+The unconditional bound \eqref{eq:unconditional} is the max of the conditional bounds, and the error budget is the union bound over per-class error events.
 \end{proof}
 
-The assumption we cannot discharge is per-turn independence of emissions; it holds to the extent that the grammar's typed transitions, not hidden user state, drive the observation stream.
-Where the emission likelihood is unknown and the posterior is learned, likelihood ratios are unavailable in exact form.
-The honest sequential alternative is an anytime-valid confidence sequence over the learned posterior, which retains error control under optional stopping at the price of wider early boundaries; we adopt this variant in the evaluation protocol of Section~\ref{sec:evaluation} and report both operating curves.
-Wald-type SPRT remains the reference point because its boundaries are explicit and its expected stopping time is optimal among tests with the same error rates.
+Three remarks on what the theorem does and does not say.
+First, the assumption we cannot discharge is per-turn conditional independence of emissions; it holds to the extent that the grammar's typed transitions, not hidden user state, drive the observation stream, and Section~\ref{sec:discussion} returns to this.
+Second, the $c$ terms are the standard excess-over-boundary (overshoot) constants; in the idealized continuous treatment they vanish, and empirically they are one turn at most, which is why \eqref{eq:times} is displayed with them explicit rather than hidden.
+Third, where the emission likelihood is unknown and the posterior is learned, likelihood ratios are unavailable in exact form.
+The honest sequential alternative is an anytime-valid confidence sequence over the learned posterior, which retains error control under continuous monitoring and optional stopping \citep{howard2021time} at the price of wider early boundaries; we adopt this variant in the evaluation protocol of Section~\ref{sec:evaluation} and report both operating curves.
+Wald-type SPRT remains the reference point because its boundaries are explicit and its expected stopping time is optimal among tests with the same error rates \citep{waldwolfowitz1948optimality}.
 
 \begin{figure}[t]
   \centering
@@ -92,11 +109,11 @@ Wald-type SPRT remains the reference point because its boundaries are explicit a
     \input{figures/fig_stopping}%
   }
   \caption{The stopping layer over a live conversation.
-           Each turn updates the outcome-class posterior from the grammar emissions;
-           class-wise log-ratios accumulate toward their boundaries;
-           the first upper crossing fires an intervention whose decision latency
-           $\varepsilon_{\mathrm{decide}}$ and cessation latency $\varepsilon_{\mathrm{cease}}$
-           must both fit inside the remaining window before the escalation-only threshold.}
+           Class-wise log-likelihood ratios $\ell_k^{a}$ accumulate with their boundary pair
+           $(B_a, A_a)$; the first upper crossing declares an action class and fires an
+           intervention whose decision latency $\varepsilon_{\mathrm{decide}}$ and cessation
+           latency $\varepsilon_{\mathrm{cease}}$ must both fit inside the remaining window
+           before the escalation-only threshold.}
   \label{fig:stopping}
 \end{figure}
 
@@ -113,32 +130,32 @@ The composition is therefore
   t_{\mathrm{escalation\text{-}only}},
 \end{equation}
 and only conversations satisfying \eqref{eq:compose} are ones where early prediction converts into an actionable intervention rather than a post-hoc annotation.
-The cycle-length lemma of Section~\ref{sec:grammar} completes the picture from the other side: a run exceeding $k^{\ast}$ tool-loop cycles is off-path with high probability, so the stopping rule rarely has to wait past the horizon the grammar already justifies.
+The cycle-length bound of Section~\ref{sec:grammar} completes the picture from the other side: a run segment exceeding $k_{\mathrm{cyc}}$ \texttt{tool-call} iterations violates the response deadline, so the stopping rule rarely has to wait past the horizon the grammar already justifies.
 
 \subsection{False-Early-Exit Economics}
 \label{subsec:economics}
 Stopping early is only justified if the cost model says so.
-Recall the banking cost $c(\hat{\theta}, \theta)$ over declared versus true terminal classes from Section~\ref{sec:grammar}.
-False containment --- declaring \textit{contained} while the truth is \textit{handoff} or \textit{compliance\_escape} --- is the expensive error: it converts a recoverable failure into an unattended one, and a compliance escape has unbounded cost.
+Recall the banking cost $c(\hat{\theta}, \theta)$ over declared versus true terminal classes, defined in Section~\ref{subsec:classes} as part of the grammar's outcome wiring.
+False containment --- declaring \textit{contained} while the truth is \textit{handoff} or \textit{compliance-escape} --- is the expensive error: it converts a recoverable failure into an unattended one, and a compliance escape has unbounded cost.
 False escalation --- declaring \textit{handoff} while the truth is \textit{contained} --- wastes teller minutes, the trade that queue-level control already prices from the outside of the conversation \citep{queuecontrol2026}.
 Abandonment adds a patience-driven cost that queueing models estimate from uncertain data \citep{silentabandonment2024}; the grammar lets us price it from the conversation's own trajectory.
 
 \begin{proposition}[Cost-asymmetric boundaries]
 \label{prop:asymmetric}
-Let the cost model satisfy $c(\theta_0, \theta_a) > c(\theta_a, \theta_0)$ for every action class $a$, with $c(\theta_0, \textit{compliance\_escape})$ unbounded.
-Then the error budgets that minimize expected cost satisfy
-$\alpha_{\textit{compliance\_escape}} < \alpha_{\textit{handoff}} \ll \beta_{\textit{compliance\_escape}}$,
-and the upper boundaries inherit the same ordering, $A_{\textit{compliance\_escape}} > A_{\textit{handoff}}$.
+Let the cost model satisfy $c(\theta_0, \theta_a) > c(\theta_a, \theta_0)$ for every action class $a$, with $c(\theta_0, \theta_{esc})$ unbounded.
+Then the Bayes-optimal single-turn threshold for declaring $\theta_{esc}$ tends to zero, so the compliance boundary fires at the first credible signal: $\alpha_{esc}$ is elevated, $A_{esc} = \log(1/\alpha_{esc})$ is the smallest upper boundary, and $\beta_{esc}$ tends to zero.
+Between the remaining action classes, larger relative miss cost $c(\theta_0, \theta_a)/c(\theta_a, \theta_0)$ yields a smaller threshold, hence a smaller $A_a$ and a larger $\alpha_a$.
 \end{proposition}
 
 \begin{proof}[Proof sketch]
-For a single-turn Bayes decision with posterior $p(\theta_a \mid x_{1:k})$, the optimal rule declares $\theta_a$ exactly when the posterior exceeds the cost ratio $\frac{c(\theta_a,\theta_0)}{c(\theta_a,\theta_0) + c(\theta_0,\theta_a)}$.
-An unbounded $c(\theta_0, \textit{compliance\_escape})$ drives that ratio's complement toward zero, forcing the compliance boundary to demand far less evidence before firing and correspondingly more evidence before declaring contained.
+For a single-turn Bayes decision with posterior $p(\theta_a \mid o_{1:k})$, the optimal rule declares $\theta_a$ exactly when the posterior exceeds the cost ratio $\frac{c(\theta_a,\theta_0)}{c(\theta_a,\theta_0) + c(\theta_0,\theta_a)}$.
+An unbounded $c(\theta_0, \theta_{esc})$ drives that ratio to zero, so the compliance escape fires at any positive posterior mass; in the Ville parametrization \eqref{eq:boundaries} this is an elevated false-alarm rate $\alpha_{esc}$ and hence the smallest upper boundary $A_{esc}$, while the miss rate $\beta_{esc}$ --- the probability of declaring $\theta_0$ when the truth is $\theta_{esc}$ --- is driven to zero by the same eagerness.
+Monotonicity in the relative miss cost follows from differentiating the threshold ratio.
 The sequential rule inherits the ordering because its boundaries are the sequential realization of the same posterior-threshold test at every turn.
 \end{proof}
 
 The practical reading is that the four terminal classes do not share one threshold.
-A banking monitor should fire its compliance escape at the first credible signal, accept a higher false-handoff rate as the price, and treat contained as a verdict that must be earned against every action hypothesis simultaneously.
+A banking monitor should fire its compliance escape at the first credible signal, accept a higher false-escape rate as the price of unbounded miss cost, and treat contained as a verdict that must be earned against every action hypothesis simultaneously.
 
 \subsection{TRACER as the Fixed-Sample Instance}
 \label{subsec:tracer}
@@ -146,8 +163,8 @@ The nearest published system to this decision layer is TRACER, which scores ever
 
 \begin{corollary}[Fixed-sample instance]
 \label{cor:tracer}
-TRACER's thresholded trigger is the fixed-sample instance of Definition~\ref{def:rule}: a single look at each prefix with a learned posterior, a symmetric boundary in place of \eqref{eq:boundaries}, and no optional stopping.
-The Trajectory Stopping Theorem adds the three properties that a single-look trigger cannot express: anytime validity of the error guarantees under optional stopping, an expected decision-time bound \eqref{eq:times}, and cost-derived asymmetry across the four banking outcome classes instead of one binary failure label.
+TRACER's thresholded trigger is the fixed-sample instance of Definition~\ref{def:rule}: a single look at each prefix with a learned posterior, a one-sided boundary in place of the pair \eqref{eq:boundaries}, and no optional stopping.
+The Trajectory Stopping Theorem adds the three properties that a single-look trigger cannot express: an expected decision-time bound \eqref{eq:times}, error control that survives continuous monitoring (via the confidence-sequence variant of \citealp{howard2021time}), and cost-derived asymmetry across the four banking outcome classes instead of one binary failure label.
 \end{corollary}
 
 This is a generalization claim, not a criticism: TRACER's detected signals appear from the first quarter of the dialogue and its operating point is honest about its false-positive budget \citep{nourbakhsh2026tracer}.

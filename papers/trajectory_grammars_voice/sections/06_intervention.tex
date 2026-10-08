@@ -9,8 +9,8 @@ We assume the production setting of our companion papers: a cascade voice agent 
 turn-taking, tool calls, and delivery are orchestrated by a directed graph
 \citep{garcia2026latencyfloor,garcia2026cessationfloor}.
 Concretely, the trajectory monitor runs alongside the orchestrator
-(in our deployment, a LangGraph event loop): at each turn it updates the outcome posterior
-$p(\theta \mid x_{1:k})$ over terminal classes $\theta \in \mathcal{T}$
+(in our deployment, a LangGraph event loop \citep{langgraph2024}): at each turn it updates the outcome posterior
+$p(\theta \mid o_{1:k})$ over terminal classes $\theta \in T$
 and exposes the grammar state $q_k \in Q$ to the policy layer.
 When the stopping rule of Section~\ref{sec:stopping} fires for a class whose action set is
 non-empty, the monitor emits an \emph{intervention token} naming one of three actions,
@@ -59,7 +59,10 @@ The clarify action has the mildest constraint, because the agent can often finis
 sentence and absorb the clarification as the next turn.
 The escalate and fraud-flag actions bind hardest: a handoff that starts while the agent is
 still promising a transfer, or a step-up authentication demanded over an un-yielded audio
-stream, produces exactly the mixed-authority audio the cessation analysis warns against.
+stream, produces exactly the mixed-authority audio the cessation analysis warns against; how
+recoveries degrade under such interruptions is measured by IHBench for workflow voice agents
+\citep{salimi2026ihbench}, and the protocol of Section~\ref{sec:evaluation} adopts its
+recovery metrics for the post-intervention leg.
 
 \subsection{Fraud Signatures as Trajectory Anomalies}
 The grammar turns fraud detection from a per-turn classifier into a shape test over the walk.
@@ -69,7 +72,8 @@ tool-fail and user-answer transitions without progress into \texttt{intent} --- 
 social-engineering signature in which a coerced caller cannot produce the credential
 the legitimate account holder knows.
 The k-step bound of \citet{garcia2026latencyfloor} makes this test cheap:
-any run exceeding $k^\ast$ tool-loop cycles is off-path with high probability, so the fraud
+any run segment exceeding $k_{\mathrm{cyc}}$ tool-call iterations violates the response
+deadline, so the fraud
 monitor is a threshold on cycle depth plus a class-conditional posterior check, not a
 full-sequence re-scoring.
 A second signature is the silent detour: a walk that reaches \texttt{confirm} while never
@@ -78,9 +82,12 @@ fraud variant of the false-success pattern \citep{falsesuccess2026}.
 Because the signature is a property of the walk and not of any single utterance, it survives
 paraphrase: the attacker controls what is said, not which states the conversation passes
 through.
-False positives here are costly in customer trust, so the fraud-flag action calibrates
-conservatively --- the cost model of Section~\ref{sec:evaluation} prices a false fraud
-intervention above a false clarify, and the stopping rule inherits that asymmetry.
+False positives here are costly in customer trust, but the cost model still prices the miss
+higher: a missed fraud intervention can enable an unauthorized transfer, whose cost dominates
+any trust repair, so the fraud-flag inherits the compliance-escape asymmetry of
+Proposition~\ref{prop:asymmetric} rather than calibrating conservatively --- what stays
+conservative is the autonomous \emph{action} (step-up authentication, not account closure),
+not the detection.
 
 \subsection{Escalation Economics}
 The escalation decision inherits a cost model with three currencies: agent-minutes,
@@ -108,10 +115,13 @@ intervention regardless of queue state.
 This ordering --- containment failure worse than handoff waste, compliance worst of all ---
 is the operational reading of the outcome taxonomy wired to telephony KPIs in
 Section~\ref{sec:evaluation}.
+The fraud-flag action inherits the same accounting: elevated false-escape tolerance is the
+price of unbounded miss cost, so the flag fires on the first confident posterior rather than
+calibrating conservatively.
 
 \subsection{Compliance Escapes as Trajectory Events}
 Per-turn guardrails classify individual utterances before they are spoken or after
-\citep{garcia2026cessationfloor}; some failures are not utterance-local at all.
+\citep{rebedea2023nemo,dong2024building}; some failures are not utterance-local at all.
 An unauthorized commitment emerges from the \emph{sequence} --- an assurance given in
 \texttt{confirm} after a tool-fail the agent never surfaced --- and a disclosure omission is
 a missing transition: the \texttt{close} state reached without the required
@@ -136,7 +146,7 @@ That mechanism --- an escalation floor decomposing handoff into detect, decide, 
 queue-connect, and read-in, with read-in reducible only by agent-pushed context --- is future
 work beyond this paper's scope.
 The interface, however, is fixed by this paper: the escalation decision timestamp $t_k$, the
-confidence $1-\delta$ at which it fired, and the agent-authored context package that the
+confidence $1-\varepsilon$ at which it fired, and the agent-authored context package that the
 trajectory state already maintains are exactly the inputs a formal escalation floor will
 consume.
 We leave the composition --- bounding time-to-first-human-audio as a third floor, with

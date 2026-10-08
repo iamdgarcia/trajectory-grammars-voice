@@ -6,7 +6,7 @@ We group them into six directions.
 The state space $Q$ and the typed transition set $\Sigma$ are language-independent by construction, but the observation model is not.
 Endpointing behaviour, ASR error profiles, and turn-state emission probabilities all shift across languages and channels.
 Multilingual voice-agent benchmarks are arriving \citep{tauvoice2026}, yet they score task quality on full episodes and define no trajectory classes.
-Text-only turn-end decisions are near chance in Spanish \citep{garcia2026asking}, and utterance-scale turn-state models are only now appearing \citep{x2turn2026}, so the emissions that feed the posterior $p(\theta \mid x_{1:k})$ may degrade unevenly across locales.
+Text-only turn-end decisions are near chance in Spanish \citep{garcia2026asking}, and utterance-scale turn-state models are only now appearing \citep{x2turn2026}, so the emissions that feed the posterior $p(\theta \mid o_{1:k})$ may degrade unevenly across locales.
 Whether the terminal classes --- contained, abandoned, handoff, compliance-escape --- retain their cost structure and their detectability outside Spanish is open.
 Code-switching callers add a further complication: a mid-conversation language switch changes both the acoustic and the lexical channels that the stopping rule consumes.
 A per-class, per-language turn-policy benchmark would supply the labelled emissions the grammar needs, and building it is the prerequisite for claiming the stopping constants beyond Spanish.
@@ -39,13 +39,13 @@ The open problem is a deadline calculus for obligations --- which deadlines are 
 \paragraph{False success and outcome verification.}
 The grammar supervises on terminal labels, and terminal labels are themselves unreliable.
 Agents assert task completion while the environment state disagrees, and the behaviour is systematic: across $9{,}876$ $\tau^2$-bench trajectories, false success appears as confident closing over silent failure \citep{falsesuccess2026}.
-If the labels are wrong, the posterior $p(\theta \mid x_{1:k})$ learns the wrong outcome distribution, and the stopping theorem inherits the bias.
+If the labels are wrong, the posterior $p(\theta \mid o_{1:k})$ learns the wrong outcome distribution, and the stopping theorem inherits the bias.
 Classical evaluation theory already warned that task success underspecifies dialogue quality \citep{walker1997paradise}; false success sharpens the warning from measurement noise to adversarial mislabelling.
 Trajectory-level outcome verification --- auditing the asserted completion against the tool-event log and the grammar before the labels enter training --- is an open loop that would make the outcome taxonomy self-correcting.
 
 \paragraph{Cross-domain transfer of grammars.}
 Partial-dialogue forecasting does not transfer for free: TRACER moves from MultiWOZ to ABCD with AUC $0.771$ but collapses to $0.494$ on SGD \citep{nourbakhsh2026tracer}.
-The open question is which layer of the framework carries the transfer burden: the state space $Q$, the transition typing $\Sigma$, or the stopping constants $k^*$ and $\delta$.
+The open question is which layer of the framework carries the transfer burden: the state space $Q$, the transition typing $\Sigma$, or the stopping constants $K(\varepsilon, c)$ and the error budget $\varepsilon$.
 Recovered dialog workflows are a candidate prior over $Q$ and $\Sigma$ in a new domain \citep{salesforce2025workflows}, but they are extracted from completed conversations and carry no outcome labels.
 Banking may fragment further: card blocks, transfers, and fraud reports are distinct campaigns whose grammars may share states but not costs.
 Leave-one-campaign-out evaluation measures the damage empirically; a theory of when grammars transfer is missing.

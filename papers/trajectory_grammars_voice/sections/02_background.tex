@@ -1,10 +1,10 @@
-% §2 Background — taxonomy of adjacent work in four strands
+% §2 Background — taxonomy of adjacent work in five strands
 \subsection{Scope and Taxonomy}
 
 Our previous work analyzed the voice-agent conversation one turn at a time: the latency floor bounds how fast a response can begin \citep{garcia2026latencyfloor}, the cessation floor bounds how fast a response can stop after barge-in \citep{garcia2026cessationfloor}, and the semantic-VAD study supplies a measured Spanish partial-transcript sensing layer \citep{garcia2026asking}.
 This paper moves the analysis one level up, from the turn to the complete conversation, treating each call as a trajectory through a grammar of dialogue states whose terminal classes are banking outcomes.
 We call the witnessed prefix of a conversation a \emph{partial trajectory} and its eventual terminal class the \emph{outcome}.
-The literature that bears on this object sits in four strands that barely touch: agent-trajectory benchmarks, dialogue process structure, early outcome prediction, and escalation practice from call-center operations.
+The literature that bears on this object sits in five strands that barely touch: agent-trajectory benchmarks, dialogue process structure, partial-observation dialogue management, early outcome prediction, and escalation practice from call-center operations.
 We review each strand in turn and close with the delta our grammar adds.
 
 \subsection{Agent-Trajectory Benchmarks: the Full-Episode Paradigm}
@@ -32,6 +32,14 @@ Closest in spirit, \citet{chang2019derailment} forecast derailment in open-domai
 Their signals, however, are social cues in online forums; there is no task, no tool state, and no action taken on the forecast.
 The delta of our paper relative to this strand is that it offers either structure without outcomes or forecasting without decisions, and none of it models voice-agent states such as authentication, tool loops, or barge-ins.
 
+\subsection{Partial-Observation Dialogue Management: the POMDP Lineage}
+
+The classical formal home of "belief over conversation state from noisy partial observations" is the POMDP dialogue-management lineage \citep{young2013pomdp}.
+There, a belief over \emph{dialogue state} --- slot values, user goals, dialogue act --- is maintained under ASR noise, and a policy acts on the belief to maximize expected reward.
+Our posterior over terminal business outcomes shares this mathematical skeleton but moves the object: terminal banking classes (contained, abandoned, handoff, compliance-escape) are properties of the whole run, not of a turn-level state, and they are only revealed at call teardown.
+The POMDP lineage also carries no decision-time guarantee --- its policy optimizes long-run reward, not when a decision may be safely taken --- and it predates LLM tool-calling pipelines, so its state spaces have no tool-event or barge-in channels.
+Our grammar keeps the belief-update discipline but attaches it to typed grammar runs, and our stopping theorem adds what the lineage lacks: an explicit bound on when acting on the belief is justified.
+
 \subsection{Early Outcome Prediction: the Nearest Neighbors}
 
 The nearest neighbor is TRACER \citep{nourbakhsh2026tracer}, which formulates task-oriented dialogue failure prediction as partial-dialogue forecasting.
@@ -48,7 +56,7 @@ Its qualitative failure taxonomy (information incompleteness, contradiction, sta
 EarlyEval \citep{earlyeval2026} shares the prefix-observation insight but applies it offline, predicting episode outcomes early in order to prune expensive agent evaluation rather than to intervene in a running conversation.
 At the utterance scale beneath our grammar, X2-Turn \citep{x2turn2026} predicts frame-synchronous turn states jointly with streaming ASR, and ConSol \citep{consol2025} applies sequential probability ratio testing to stop reasoning paths within a single model call.
 Neither operates at conversation scale: turn states and reasoning paths are observation signals, not outcome decisions.
-The delta of our paper relative to this strand is to keep what it proves (partial transcripts carry outcome signal) and supply what it lacks: a sequential stopping rule with expected decision time bounded at confidence $1-\delta$, multi-class banking outcomes, voice and tool-event observation channels, and intervention latency accounted against published floors.
+The delta of our paper relative to this strand is to keep what it proves (partial transcripts carry outcome signal) and supply what it lacks: a sequential stopping rule with expected decision time bounded at confidence $1-\varepsilon$, multi-class banking outcomes, voice and tool-event observation channels, and intervention latency accounted against published floors.
 
 \subsection{Escalation and Queueing Practice: Decisions Outside the Conversation}
 

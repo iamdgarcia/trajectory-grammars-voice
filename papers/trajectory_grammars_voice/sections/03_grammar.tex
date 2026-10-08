@@ -27,6 +27,13 @@ and $\delta : Q \times \Sigma \rightharpoonup Q$ is a partial transition functio
 Each transition type carries a direction label: \emph{progress} types advance the conversation
 toward a service goal, and \emph{regression} types return the run to a previously visited
 non-terminal state.
+Three transition types are \emph{terminal-entering}: \texttt{service-complete} (from $q_{close}$ to
+$\theta_{cont}$), \texttt{hangup} (from any $q_p$ to $\theta_{aban}$), and \texttt{escalation}
+(from any $q_p$ to $\theta_{hand}$).
+The fourth terminal class, $\theta_{esc}$, is deliberately not entered by a type of $\Sigma$:
+it is an \emph{audit overlay} on runs that reach $\theta_{cont}$ without a prior \texttt{disclosure}
+transition, so the same close event can be re-labelled at audit time without a second grammar
+(Section~\ref{sec:intervention} uses this for compliance monitoring).
 \end{definition}
 
 \begin{figure}[t]
@@ -47,15 +54,15 @@ intent capture, tool execution, clarification, confirmation, and closing.
 The terminal classes are not generic success labels but the four production KPIs of conversational
 banking: containment rate, abandonment rate, handoff rate, and compliance-escape rate.
 Each class has an operational definition in telephony terms.
-$\theta_{cont}$ (contained) holds when the run reaches a terminal through $q_{close}$ after a
-confirmed service goal.
+$\theta_{cont}$ (contained) holds when the run terminates through \texttt{service-complete}
+from $q_{close}$ after a confirmed service goal.
 $\theta_{aban}$ (abandoned) holds when the caller disconnects before any terminal confirmation,
-which in production surfaces as a hang-up event.
+observed as the \texttt{hangup} type.
 $\theta_{hand}$ (handoff) holds when an \texttt{escalation} transition fires, transferring the
 caller to a human teller.
-$\theta_{esc}$ (compliance-escape) holds when the run reaches a terminal confirmation without the
-guarded \texttt{disclosure} transition having fired, which is precisely the false-success pattern
-reported for tool agents \citep{falsesuccess2026}.
+$\theta_{esc}$ (compliance-escape) holds when an audit overlay re-labels a \texttt{service-complete}
+termination on which the guarded \texttt{disclosure} transition never fired, which is precisely the
+false-success pattern reported for tool agents \citep{falsesuccess2026}.
 Industrial practice measures these quantities post hoc from telephony telemetry
 \citep{nubank2026,silentabandonment2024}; under the grammar they become properties of runs.
 This matters because final labels themselves mislead: agents can assert success while the task
@@ -65,7 +72,8 @@ rather than from the agent's own closing statement.
 \begin{table}[t]
 \centering
 \caption{Typed transitions of the trajectory grammar.
-         Emitters are production components; regression types increment cycle depth.}
+         Emitters are production components; regression types increment cycle depth; the
+         compliance-escape class is an audit overlay on disclosure-free complete runs.}
 \label{tab:transitions}
 \small
 \begin{tabular}{lllll}
@@ -79,7 +87,9 @@ Type & Direction & Source $\to$ Target & Emitter & Class \\
 \texttt{endpoint-error}& regression & $q_{intent/confirm} \to q_{intent}$                    & ASR endpointer       & voice \\
 \texttt{user-bargein}  & event      & any $q_p \to q_p$ (audio channel)                      & barge-in detector    & voice \\
 \texttt{disclosure}    & progress   & $q_{confirm} \to q_{close}$ (guarded)                  & compliance layer     & compliance \\
-\texttt{escalation}    & progress   & any $q_p \to \theta_{hand}$                            & policy layer         & dialogue \\
+\texttt{service-complete} & terminal & $q_{close} \to \theta_{cont}$                         & telephony teardown   & dialogue \\
+\texttt{hangup}        & terminal   & any $q_p \to \theta_{aban}$                            & telephony teardown   & voice \\
+\texttt{escalation}    & terminal   & any $q_p \to \theta_{hand}$                            & policy layer         & dialogue \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -123,9 +133,15 @@ inspection of $\delta$.
 
 \begin{definition}[Cycle and cycle depth]
 \label{def:cycledepth}
-A \emph{cycle} of a run $\sigma$ is a maximal sub-run that departs from a state $q$ and later
-returns to $q$, where $q$ is non-terminal.
-The \emph{cycle depth} $D(\sigma)$ is the number of cycles in $\sigma$.
+A \emph{cycle} of a run $\sigma$ is a transition of regression type (Table~\ref{tab:transitions}):
+\texttt{tool-fail}, \texttt{endpoint-error}, or an \texttt{agent-clarify} that re-opens a settled
+state.
+The \emph{cycle depth} $D(\sigma)$ is the number of regression-typed transitions in $\sigma$.
+Iteration-typed \texttt{tool-call} self-loops are progress by construction and never increment
+$D$.
+The monitor maintains $D$ by event counting; the orchestrator may reset the counter after a
+successful repair (a \texttt{disclosure} or a confirmed resolution), so $D$ as observed by the
+stopping layer is a policy-controlled statistic, not a state invariant.
 \end{definition}
 
 The intuition is operational: one clarification after a failed balance lookup is normal service,
@@ -133,10 +149,10 @@ whereas a third return to $q_{clarify}$ is a conversation going in circles.
 Cycle depth turns this intuition into a countable statistic that separates two failure modes that
 conversation-length measures conflate.
 Three properties fix the statistic's behaviour.
-First, $D(\sigma)$ counts returns, not repetitions: iterating \texttt{tool-call} inside
+First, $D(\sigma)$ counts regressions, not repetitions: iterating \texttt{tool-call} inside
 $q_{tool}$ is spine progress, while returning to $q_{intent}$ after having confirmed is drift.
-Second, $D$ is monotone along a run, so the monitor maintains it online at zero detection cost
-beyond event counting.
+Second, $D$ is non-decreasing along a run except where policy resets it, so the monitor maintains
+it online at zero detection cost beyond event counting.
 Third, $D$ is defined identically for real and simulated runs, which makes it portable to the
 protocols of \citet{sierra2024taubench} and the workflow corpora of
 \citet{salesforce2025workflows} without re-labelling.
@@ -152,12 +168,12 @@ keyed to conversation duration confuses the two.
 \begin{proof}
 Construct $\sigma_L$ as the direct spine
 $q_{greet} \to q_{auth} \to q_{intent} \to q_{tool} \to q_{confirm} \to q_{close} \to \theta_{cont}$
-padded with $n - 6$ \texttt{tool-call} iterations inside $q_{tool}$; no state is departed and
-revisited, so $D(\sigma_L) = 0$.
+padded with $n - 6$ \texttt{tool-call} iterations inside $q_{tool}$; iterations are progress and
+never increment $D$, so $D(\sigma_L) = 0$.
 Construct $\sigma_D$ with the same number of transitions but routing two of them through
-$q_{confirm} \to q_{clarify} \to q_{confirm}$ via \texttt{agent-clarify}, removing an equal number
-of \texttt{tool-call} iterations to hold length fixed; this sub-run departs from and returns to
-$q_{confirm}$, so $D(\sigma_D) \geq 1$.
+$q_{confirm} \to q_{clarify} \to q_{confirm}$ via re-opening \texttt{agent-clarify} transitions,
+removing an equal number of \texttt{tool-call} iterations to hold length fixed; this sub-run
+re-opens a settled state, so it is a regression and $D(\sigma_D) \geq 1$.
 Both runs are well-formed and of length $n$, which proves the claim.
 \end{proof}
 
@@ -185,41 +201,47 @@ supplies one.
 Fix a per-response deadline $\tau_{resp}$ and the latency parameters of the cascade pipeline, and
 let $\Lambda_k = \lambda_{asr} + k \cdot \lambda_{lm} + (k-1) \cdot \lambda_{tool} + \lambda_{tts}$
 be the $k$-step silence gap of \citet{garcia2026latencyfloor}.
-Let $k^* = \max\{k : \Lambda_k \leq \tau_{resp}\}$.
-Then:
-(i) any run segment between two consecutive user turns that emits more than $k^*$
+Let $k_{\mathrm{cyc}} = \max\{k : \Lambda_k \leq \tau_{resp}\}$.
+Then any run segment between two consecutive user turns that emits more than $k_{\mathrm{cyc}}$
 \texttt{tool-call} transitions violates the response deadline, and is therefore off-path for every
-deadline-conforming policy;
-(ii) under the patience-hazard model of \citet{silentabandonment2024}, the probability that the
-caller remains on the line decays with each deadline breach, so runs far beyond $k^*$ terminate
-in $\theta_{aban}$ with high probability.
+deadline-conforming policy.
 \end{lemma}
 
 \begin{proof}
-For (i), each \texttt{tool-call} iteration inside one orchestrated turn adds one LM step and one
+Each \texttt{tool-call} iteration inside one orchestrated turn adds one LM step and one
 tool round-trip to the user-perceived silence gap, which grows linearly in $k$ by the compounding
-result of \citet{garcia2026latencyfloor}; emitting more than $k^*$ such transitions therefore
-produces a silence gap exceeding $\tau_{resp}$, which no deadline-conforming policy permits.
-For (ii), each breached deadline raises the instantaneous hang-up hazard estimated from
-contact-center patience data \citep{silentabandonment2024}; iterating the hazard over repeated
-breaches drives the survival probability to zero, which yields the high-probability claim.
+result of \citet{garcia2026latencyfloor}; emitting more than $k_{\mathrm{cyc}}$ such transitions
+therefore produces a silence gap exceeding $\tau_{resp}$, which no deadline-conforming policy
+permits.
 \end{proof}
+
+\begin{remark}[Abandonment hazard]
+Deadline breaches also shorten conversations: under the patience-estimation lens of
+\citet{silentabandonment2024}, each breached deadline raises the instantaneous hang-up hazard, so
+runs far beyond $k_{\mathrm{cyc}}$ tend to terminate in $\theta_{aban}$.
+We state this as a remark rather than a lemma: the hazard model of that work concerns queue
+waiting, not mid-call silence, so transporting it needs an empirical hazard estimate that
+Section~\ref{sec:evaluation}'s protocol measures rather than assumes.
+\end{remark}
 
 \begin{remark}
 \label{rem:drift_trigger}
 Lemma~\ref{lem:cyclebound} makes drift detection an event-counting rule, not a timeout: the
-monitor raises a drift alarm at the $(k^*{+}1)$-th \texttt{tool-call} event, in real time and
-without waiting for the response to complete.
-Because \texttt{tool-call} events are emitted by the orchestrator itself, the count is exact; the
-only probabilistic component is the caller-patience channel in claim (ii).
+monitor raises a drift alarm at the $(k_{\mathrm{cyc}}{+}1)$-th \texttt{tool-call} event, in real
+time and without waiting for the response to complete.
+Because \texttt{tool-call} events are emitted by the orchestrator itself, the count is exact.
 The alarm's own detection latency is the monitor's decision time, which Section~4 bounds by a
 stopping rule and Section~5 accounts against the published floors.
-Two properties make $k^*$ usable in production rather than merely in theory.
-It is monotone in the deadline: relaxing $\tau_{resp}$ raises $k^*$, so the drift trigger adapts
-to policy rather than being hard-coded.
-And it is auditable: given the latency table of the deployed cascade, $k^*$ is a one-line
-computation that a reviewer can re-derive from the floor arithmetic of
+Two properties make $k_{\mathrm{cyc}}$ usable in production rather than merely in theory.
+It is monotone in the deadline: relaxing $\tau_{resp}$ raises $k_{\mathrm{cyc}}$, so the drift
+trigger adapts to policy rather than being hard-coded.
+And it is auditable: given the latency table of the deployed cascade, $k_{\mathrm{cyc}}$ is a
+one-line computation that a reviewer can re-derive from the floor arithmetic of
 \citet{garcia2026latencyfloor} alone.
+Note the unit discipline: $k_{\mathrm{cyc}}$ bounds \texttt{tool-call} \emph{iterations within one
+inter-turn segment} --- a wall-clock quantity --- whereas cycle depth $D$ counts \emph{regression
+events across turns}; clarification cycles are cheap in wall-clock and deliberately not bounded by
+the latency argument.
 \end{remark}
 
 \subsection{Multi-Channel Observation Model}

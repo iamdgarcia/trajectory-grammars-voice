@@ -1,26 +1,29 @@
-% fig_stopping.tex — stopping rule timeline over the outcome-class posterior
-\begin{tikzpicture}[xscale=1.05, yscale=1.0]
+% fig_stopping.tex — class-wise LLR trajectories against their SPRT boundaries
+\begin{tikzpicture}[xscale=1.05, yscale=1.0, scale=0.95]
 % time axis: turns
 \draw[-Stealth, thick] (0,0) -- (11,0) node[below right, font=\small] {turn $k$};
 \foreach \k/\lbl in {1/{auth}, 3/{intent}, 5/{tool-loop}, 7/{clarify}, 9/{confirm}} {
   \draw (\k,0.08) -- (\k,-0.08) node[below, font=\scriptsize] {\lbl};
 }
-% posterior curves (stylized) for two classes
-\draw[thick, blue!70!black] (0,1.0) .. controls (2,1.15) and (4,1.6) .. (6,2.3)
-  .. controls (8,2.9) and (9.4,3.3) .. (10.6,3.45)
-  node[right, font=\scriptsize, blue!70!black] {$P(\textit{contained}\mid x_{1:k})$};
-\draw[thick, red!70!black] (0,1.0) .. controls (2,0.95) and (3.5,1.05) .. (5,1.5)
-  .. controls (6.5,2.0) and (8.5,2.6) .. (10.6,3.1)
-  node[right, font=\scriptsize, red!70!black] {$P(\textit{handoff}\mid x_{1:k})$};
-% SPRT boundaries
-\draw[dashed, thick, gray] (0,3.3) -- (10.6,3.3) node[above, font=\scriptsize, pos=0.85] {accept $H_1$ ($\geq 1-\delta$)};
-\draw[dashed, thick, gray] (0,0.5) -- (10.6,0.5) node[below, font=\scriptsize, pos=0.85] {accept $H_0$};
-% crossing point: contained class crosses upper boundary at k*
-\fill[blue!70!black] (7.4,3.3) circle (2.2pt);
-\draw[-Stealth, blue!70!black] (7.4,3.3) -- (7.4,0) node[below, font=\scriptsize, blue!70!black] {$k_{\mathrm{dec}}$};
+% joint theta_0 acceptance region: all ell_k^a <= B_a (shaded low band)
+\fill[green!12] (0,-0.2) rectangle (10.6,0.55);
+\node[font=\scriptsize, green!40!black, anchor=west] at (0.15,0.18) {joint $\theta_0$-acceptance: $\forall a,\ \ell_k^{a} \leq B_a$};
+% boundaries: A_a (upper) and B_a (lower) for one action class
+\draw[dashed, thick, gray] (0,3.2) -- (10.6,3.2) node[above, font=\scriptsize, pos=0.5] {$A_{hand} = \log(1/\alpha_{hand})$ --- declare \textit{handoff}};
+\draw[dashed, thick, gray] (0,0.55) -- (10.6,0.55);
+% LLR trajectory for handoff class (stylized random walk with drift, crossing at k_dec)
+\draw[thick, red!70!black]
+  (0,1.4) -- (1,1.1) -- (2,1.5) -- (3,1.2) -- (4,1.7) -- (5,1.4) -- (6,1.9) -- (7,2.3) -- (7.4,3.2)
+  node[font=\scriptsize, red!70!black, above left] {$\ell_k^{hand}$};
+% crossing point
+\fill[red!70!black] (7.4,3.2) circle (2.2pt);
+\draw[-Stealth, red!70!black] (7.4,3.2) -- (7.4,0) node[below, font=\scriptsize, red!70!black] {$k_{\mathrm{dec}}$};
+% second class LLR staying low (compliance stays quiet in this call)
+\draw[thick, blue!60!black] (0,1.2) -- (1,1.0) -- (2,1.25) -- (3,0.95) -- (4,1.1) -- (5,0.9) -- (6,1.05) -- (7,0.85) -- (8,0.95) -- (9,0.8) -- (10.6,0.9)
+  node[right, font=\scriptsize, blue!60!black] {$\ell_k^{esc} \leq B_{esc}$};
 % intervention window vs escalation-only threshold
-\draw[decorate, decoration={brace, mirror, amplitude=5pt}, thick, olive!70!black] (7.4,4.1) -- (10.6,4.1)
+\draw[decorate, decoration={brace, mirror, amplitude=5pt}, thick, olive!70!black] (7.4,3.9) -- (10.6,3.9)
   node[midway, above, font=\scriptsize, olive!70!black] {intervention window};
-\node[font=\scriptsize, olive!70!black, align=left, anchor=west] at (0.1,4.55)
-  {decision must land early enough to act: $t_{k_{\mathrm{dec}}} + \varepsilon$ before the escalation-only threshold, and the intervention itself must clear the cessation floor};
+\node[font=\scriptsize, olive!70!black, align=left, anchor=west] at (0.1,4.35)
+  {first upper crossing fires the intervention: $t_{k_{\mathrm{dec}}} + \varepsilon_{\mathrm{decide}} + \varepsilon_{\mathrm{cease}} < t_{\mathrm{esc\text{-}only}}$};
 \end{tikzpicture}

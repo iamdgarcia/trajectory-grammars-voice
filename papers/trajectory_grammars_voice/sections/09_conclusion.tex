@@ -1,7 +1,7 @@
 % §9 Conclusion
-We have presented the first formal trajectory layer for voice-agent conversations: a grammar over conversation states with terminal outcome classes, a sequential stopping rule with a decision-time guarantee, and an evaluation protocol wired to banking KPIs.
+We have presented a formal trajectory layer for voice-agent conversations: a grammar over conversation states with terminal outcome classes, a sequential stopping rule with a decision-time guarantee, and an evaluation protocol wired to banking KPIs.
 The trajectory grammar (Definition~\ref{def:grammar}) models a conversation as a typed state space in which regressions become measurable cycles, and its cycle-depth statistic separates conversations that are merely long from conversations that are off-path.
-The Trajectory Stopping Theorem (Theorem~\ref{thm:stopping}) supplies what prior early-warning systems lack: an expected decision time bounded at $k^*$ turns at confidence $1-\delta$, with TRACER's tuned threshold \citep{nourbakhsh2026tracer} recovered as the fixed-sample instance of the rule.
+The Trajectory Stopping Theorem (Theorem~\ref{thm:stopping}) supplies what prior early-warning systems lack: an expected decision time bounded by $K(\varepsilon, c)$ turns at confidence $1-\varepsilon$, with TRACER's tuned threshold \citep{nourbakhsh2026tracer} recovered as the fixed-sample instance of the rule.
 The banking KPI protocol (Section~\ref{sec:evaluation}) maps the terminal classes---containment, abandonment, handoff, compliance escape---to the production telemetry that contact centers already report \citep{nubank2026,silentabandonment2024}, with cost-weighted detection latency in place of aggregate accuracy.
 The intervention layer (Section~\ref{sec:intervention}) makes the prediction actionable: escalation, proactive clarification, and fraud-flag routing fire inside the conversation, and every intervention action is itself bounded by the published cessation floor \citep{garcia2026cessationfloor}.
 
@@ -14,6 +14,6 @@ Component benchmarks score voice agents on task quality \citep{sierra2024taubenc
 Closing that distance is what turns containment, abandonment, and compliance escape from monthly reports into live decision variables.
 
 Artifacts follow the release plan of the factory.
-The Spanish trajectory benchmark and the frozen evaluation splits will be published on Hugging Face, the grammar and stopping-rule reference implementation will be released on GitHub alongside the paper source, and any scaling experiments will run in the project's lab environment.
+A frozen, schema-identical synthetic Spanish trajectory benchmark and the evaluation splits will be published on Hugging Face, the grammar and stopping-rule reference implementation will be released on GitHub alongside the paper source, and any scaling experiments will run in the project's lab environment.
 Future work proceeds on the interfaces already opened: escalation as a cost-aware floor, multilingual outcome classes, simulation-calibrated drift, and compliance escapes as first-class trajectory events \citep{queuecontrol2026}.
 As voice agents take over the routine work of the branch, the discipline that keeps them accountable is the one this program has argued for throughout: formal floors at the turn scale, and now, formal trajectories at the conversation scale.

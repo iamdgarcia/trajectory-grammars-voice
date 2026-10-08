@@ -71,8 +71,9 @@ We showed that text-only turn-end detection in Spanish is near chance on hard cu
 which forces any conversation-level state estimator to condition on intent and tool
 state rather than on the transcript alone \citep{garcia2026asking}.
 These three results are load-bearing here.
-The $k$-step ReAct bound becomes the cycle-length constraint of the grammar:
-a run that exceeds $k^*$ tool-loop cycles is off-path with high probability.
+The $k$-step ReAct bound \citep{yao2023react} becomes the cycle-length constraint of the grammar:
+a run segment that exceeds $k_{\mathrm{cyc}}$ tool-call iterations is off-path for every
+deadline-conforming policy.
 The latency floor and cessation floor convert ``early enough to act'' from a slogan
 into an accounting identity: an intervention trigger fires through the same pipeline
 whose components have measured latencies, and the intervention itself must clear
@@ -97,10 +98,10 @@ bounded by the published $k$-step ReAct constraint \citep{garcia2026latencyfloor
 
 \item \textbf{Trajectory Stopping Theorem} (\S\ref{sec:stopping}).
 We cast early outcome prediction as partial-observation sequential decision-making.
-Given the posterior $p(\theta \mid x_{1:k})$ over outcome classes
-$\theta \in \mathcal{T}$ induced by the partial transcript and tool-event log,
+Given the posterior $p(\theta \mid o_{1:k})$ over outcome classes
+$\theta \in T$ induced by the multi-channel observation stream,
 a confidence-sequence stopping rule achieves expected decision time
-$\mathbb{E}[k_{dec}] \leq k^*(\delta, \text{costs})$ at confidence $1-\delta$.
+$\mathbb{E}[k_{\mathrm{dec}}] \leq K(\varepsilon, c)$ at confidence $1-\varepsilon$.
 We derive false-early-exit economics from a banking cost model in which false
 containment costs more than false handoff and compliance escape has unbounded cost,
 and we show that TRACER's fixed threshold is the fixed-sample instance of this rule \citep{nourbakhsh2026tracer}.

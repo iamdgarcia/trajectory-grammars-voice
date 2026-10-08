@@ -1,43 +1,46 @@
 % fig_grammar.tex — the trajectory grammar: states, typed transitions, terminal classes
+% Every drawn edge is a row of Table 1 (sections/03_grammar.tex). Audit overlay: compliance-escape.
 \begin{tikzpicture}[
-  node distance=1.15cm and 1.35cm,
-  state/.style={circle, draw, minimum size=1.05cm, font=\small, fill=blue!5},
-  terminal/.style={rectangle, rounded corners, draw, minimum width=1.5cm, minimum height=0.62cm, font=\small\itshape},
+  node distance=1.05cm and 1.05cm,
+  state/.style={circle, draw, minimum size=1.0cm, font=\small, fill=blue!5},
+  terminal/.style={rectangle, rounded corners, draw, minimum width=1.6cm, minimum height=0.6cm, font=\small\itshape},
   every edge/.append style={-Stealth, font=\scriptsize},
   looplabel/.style={font=\scriptsize, align=center},
+  scale=0.85,
 ]
 \node[state] (gr) {gr};
 \node[state, right=of gr] (au) {au};
 \node[state, right=of au] (in) {in};
 \node[state, right=of in] (tl) {tl};
-\node[state, right=of tl] (cl) {cf};
-\node[state, right=of cl] (co) {cl};
+\node[state, right=of tl] (cfy) {cfy};
+\node[state, right=of cfy] (cf) {cf};
+\node[state, right=of cf] (cl) {cl};
 
-\node[terminal, below=2.1cm of in] (cont) {contained};
-\node[terminal, left=1.1cm of cont] (aban) {abandoned};
-\node[terminal, right=1.1cm of cont] (hand) {handoff};
-\node[terminal, below=0.7cm of cont] (comp) {compliance-escape};
+\node[terminal, above=1.5cm of in] (aban) {abandoned};
+\node[terminal, below=2.0cm of tl] (cont) {contained};
+\node[terminal, below=2.0cm of cfy] (hand) {handoff};
+\node[terminal, right=1.0cm of cont, dashed] (comp) {compliance-escape};
 
-\draw (gr) edge[bend left=18] node[above]{answer} (au);
-\draw (au) edge[bend left=18] node[above]{verify} (in);
-\draw (in) edge[bend left=18] node[above]{request} (tl);
-\draw (tl) edge[bend left=18] node[above]{result} (cl);
-\draw (cl) edge[bend left=18] node[above]{confirm} (co);
-\draw (co) edge node[right]{close} (cont);
+% progress spine
+\draw (gr) edge[bend left=14] node[above]{user-answer} (au);
+\draw (au) edge[bend left=14] node[above]{user-answer} (in);
+\draw (in) edge[bend left=14] node[above]{tool-call} (tl);
+\draw (tl) edge[bend left=14] node[above]{user-answer} (cfy);
+\draw (cfy) edge[bend left=14] node[above]{user-answer} (cf);
+\draw (cf) edge node[above]{disclosure (guarded)} (cl);
+\draw (cl) edge node[right]{service-complete} (cont);
 
-% regression (cycle) edges
-\draw (tl) edge[bend left=30] node[looplabel, below]{tool-fail$\to$retry} (in);
-\draw (cl) edge[bend left=30] node[looplabel, below]{mismatch$\to$clarify} (in);
-\draw (au) edge[bend right=35, looseness=1.4] node[looplabel, below left]{re-auth} (au);
-\draw (co) edge[bend left=22] node[looplabel, above, sloped]{regress} (tl);
+% regressions (cycle types)
+\draw (tl) edge[bend left=30] node[looplabel, below]{tool-fail (retry)} (tl.west);
+\draw (in) edge[bend right=30] node[looplabel, above]{endpoint-error} (in.south west);
+\draw (cfy.west) edge[bend right=40] node[looplabel, below]{agent-clarify (re-open)} (in.south);
 
-% terminal edges
-\draw (cl) edge node[right]{no-confirm} (aban);
-\draw (cl) edge node[left]{defer} (hand);
-\draw (tl) edge node[looplabel, right]{policy breach} (comp);
+% terminal-entering types
+\draw (au) edge node[left]{hangup} (aban);
+\draw (cfy) edge node[left]{hangup} (aban.south);
+\draw (cfy) edge node[right]{escalation} (hand);
+\draw (cf) edge[bend left=14] node[above]{escalation} (hand.north east);
 
-% drift annotations
-\begin{scope}[on background layer]
-  \node[fit=(in)(tl), draw, dashed, rounded corners, inner sep=6pt, label={[font=\scriptsize]below:drift zone: cycle depth $D$ counted here}] {};
-\end{scope}
+% audit overlay (not a type of Sigma)
+\draw[-Stealth, dashed] (cont) -- node[font=\scriptsize, below, sloped]{audit: no prior disclosure} (comp);
 \end{tikzpicture}
