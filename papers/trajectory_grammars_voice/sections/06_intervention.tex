@@ -18,7 +18,14 @@ each of which is a first-class graph transition rather than a side channel.
 The \emph{escalate} action transitions the graph to the \texttt{handoff} terminal class:
 the agent bridges the caller to a human teller with a context package.
 The \emph{clarify} action injects a targeted clarification turn and re-enters the
-\texttt{clarify} grammar state, resetting the drift statistic $D(\sigma)$ for the current cycle.
+\texttt{clarify} grammar state.
+Two limits bind it.
+The drift counter is reset only on \emph{user-confirmed} resolution (the caller answers the
+clarification and the walk exits \texttt{clarify} via a progress transition), never on the
+intervention itself --- otherwise each token would erase the very evidence the posterior used.
+And interventions are budgeted: a per-call budget (three tokens in the deployment defaults)
+caps monitor-initiated clarify loops, after which the only available actions are escalate or
+close, so the monitor cannot talk in circles on its own account.
 The \emph{fraud-flag} action marks the conversation and routes subsequent tool calls through
 step-up authentication; it does not by itself terminate the conversation.
 Each action consumes the same event bus the orchestrator already uses for tool completions
@@ -38,7 +45,7 @@ to the agent's audio actually stopping.
 Composition is therefore immediate: the trajectory decision supplies the trigger, and the
 intervention's audible effect cannot precede the cessation floor of the pipeline it interrupts.
 Formally, an intervention decided at turn $k$ becomes perceptible no earlier than
-$t_k + \Delta_{\mathrm{cess}}$, where $\Delta_{\mathrm{cess}}$ is the pipeline's cessation
+$t_k + \lambda_{\mathrm{cease}}$, where $\lambda_{\mathrm{cease}}$ is the pipeline's cessation
 bound, on top of the per-turn decision latency already accounted against the onset floor
 $\Lambda^*$ \citep{garcia2026latencyfloor}.
 This couples the two published floors to the trajectory layer: the stopping theorem of
@@ -67,15 +74,28 @@ recovery metrics for the post-intervention leg.
 \subsection{Fraud Signatures as Trajectory Anomalies}
 The grammar turns fraud detection from a per-turn classifier into a shape test over the walk.
 The canonical banking pattern is repeated authentication failure:
-a trajectory that cycles on the \texttt{auth} state --- $D(\sigma)$ growing across
-tool-fail and user-answer transitions without progress into \texttt{intent} --- is the
-social-engineering signature in which a coerced caller cannot produce the credential
-the legitimate account holder knows.
+a trajectory that cycles on the \texttt{auth} state --- repeated \texttt{auth} re-visits with
+\texttt{tool-fail} regressions between them and no progress into \texttt{intent} --- is the
+credential-failure signature in which the caller cannot produce the credential the legitimate
+account holder knows.
+Formally, the monitor counts \emph{re-visits of $q_{auth}$} (a decidable prefix statistic) and
+the \texttt{tool-fail} transitions between them; these, not \texttt{user-answer} (which is
+progress and never increments $D$), are the events the signature reads.
 The k-step bound of \citet{garcia2026latencyfloor} makes this test cheap:
 any run segment exceeding $k_{\mathrm{cyc}}$ tool-call iterations violates the response
 deadline, so the fraud
-monitor is a threshold on cycle depth plus a class-conditional posterior check, not a
+monitor is a threshold on the re-visit count plus a class-conditional posterior check, not a
 full-sequence re-scoring.
+Two scope conditions are stated explicitly because the base rates demand it.
+First, \texttt{auth}-cycling is dominated by benign causes --- forgotten credentials, undelivered
+one-time codes, assisted callers --- so the signature is a routing signal for step-up
+authentication, never by itself a fraud verdict, and the protocol of
+Section~\ref{sec:evaluation} measures the benign cycling base rate before any firing policy is
+tuned.
+Second, walk-shape detection is blind to fraud that walks the normal spine: account takeover
+with passed authentication (SIM-swap, coached credentials) produces a well-formed spine, so this
+layer complements --- and never replaces --- per-transaction and device-side fraud controls
+\citep{falsesuccess2026}.
 A second signature is the silent detour: a walk that reaches \texttt{confirm} while never
 touching \texttt{tool\_loop}, promising outcomes the tool history cannot support, which is the
 fraud variant of the false-success pattern \citep{falsesuccess2026}.

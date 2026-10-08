@@ -37,13 +37,18 @@ The delta of our paper relative to this strand is that it offers either structur
 The classical formal home of "belief over conversation state from noisy partial observations" is the POMDP dialogue-management lineage \citep{young2013pomdp}.
 There, a belief over \emph{dialogue state} --- slot values, user goals, dialogue act --- is maintained under ASR noise, and a policy acts on the belief to maximize expected reward.
 Our posterior over terminal business outcomes shares this mathematical skeleton but moves the object: terminal banking classes (contained, abandoned, handoff, compliance-escape) are properties of the whole run, not of a turn-level state, and they are only revealed at call teardown.
-The POMDP lineage also carries no decision-time guarantee --- its policy optimizes long-run reward, not when a decision may be safely taken --- and it predates LLM tool-calling pipelines, so its state spaces have no tool-event or barge-in channels.
+The dialogue-management instantiation of that lineage optimizes long-run reward and offers no
+bound on \emph{when} acting on the belief is justified --- optimal stopping is classical POMDP
+material, but the dialogue instantiation does not import it --- and the classical pipelines
+predate LLM tool-calling, so their state spaces have no tool-event or barge-in channels; our
+stopping theorem is exactly that import, transposed to grammar runs.
 Our grammar keeps the belief-update discipline but attaches it to typed grammar runs, and our stopping theorem adds what the lineage lacks: an explicit bound on when acting on the belief is justified.
+The voice-physics emissions the grammar consumes have their own sensing lineage --- endpointing-threshold tradeoffs \citep{raux2008optimizing} and the turn-taking survey that documents the field's missing evaluation standard \citep{skantze2021turn} --- which the observation model of Section~ef{sec:grammar} treats as first-class channels rather than diagnostics.
 
 \subsection{Early Outcome Prediction: the Nearest Neighbors}
 
 The nearest neighbor is TRACER \citep{nourbakhsh2026tracer}, which formulates task-oriented dialogue failure prediction as partial-dialogue forecasting.
-Every visible prefix of a dialogue becomes one supervised instance whose label is the terminal outcome, so a dialogue of length $T$ contributes $T$ instances sharing a single label.
+Every visible prefix of a dialogue becomes one supervised instance whose label is the terminal outcome, so a dialogue of length $L$ contributes $L$ instances sharing a single label.
 The model is dual-stream: a trajectory stream encodes five hand-built features of belief-state evolution (oscillation score, coverage rate, conflict count, fill velocity, and domain shifts) with a small temporal Transformer, while a text stream encodes serialized belief states with RoBERTa.
 The two streams are fused by a multilayer perceptron into a failure probability $\hat{p}_{i,t}$ for dialogue $i$ at turn $t$.
 On MultiWOZ~2.4 with oracle belief states, TRACER reaches an AUC of 0.741 and an F1 of 0.463, degrading to 0.617 AUC with generated belief states.
@@ -74,7 +79,12 @@ Per-turn guardrail systems classify individual utterances before or after they a
 
 \subsection{Positioning}
 
-Across the five strands, no work defines a formal state space for voice-agent conversations with terminal banking outcomes, predicts those outcomes from partial observations with a calibrated decision time, or couples the prediction to intervention machinery with measured latency.
+Across the five strands, and to our knowledge, no work defines a formal state space for
+voice-agent conversations whose terminal classes are banking outcomes, predicts those outcomes
+from partial observations with a calibrated decision time, or couples the prediction to
+intervention machinery with measured latency; finite-state dialogue managers formalized phases
+without business outcomes, and optimal stopping exists in POMDP theory without a
+dialogue-management instantiation that bounds when to act on the belief.
 Benchmarks score finished episodes, structure mining ignores outcomes, forecasters offer learned scores without guarantees, and operations decisions ignore the conversation.
 This intersection, not any single strand, is the contribution space of the paper.
 The trajectory grammar, the stopping theorem, and the banking evaluation protocol presented in the remainder of the paper close it.

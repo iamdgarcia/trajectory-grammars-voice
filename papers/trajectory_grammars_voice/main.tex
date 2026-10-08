@@ -74,7 +74,7 @@ cycles and cycle depth is a first-class drift statistic that distinguishes \emph
 \emph{off-path}.
 On top of the grammar we define a partial-observation decision layer: a sequential stopping rule
 (SPRT / confidence sequences) over the outcome-class posterior that achieves expected decision
-time at most $K(\varepsilon, c)$ turns at confidence $1-\varepsilon$, with false-early-exit economics derived
+time at most $K(\varepsilon, c)$ turns at confidence $1-\varepsilon$ under standard sequential-analysis assumptions on the emission model, with false-early-exit economics derived
 from a banking cost model; we show that a recent learned early-failure detector is the
 fixed-sample instance of this rule.
 We wire the outcome classes to production telephony KPIs, define a leave-one-campaign-out

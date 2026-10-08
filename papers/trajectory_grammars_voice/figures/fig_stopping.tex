@@ -1,38 +1,39 @@
 % fig_stopping.tex — class-wise LLR trajectories against their SPRT boundaries
 % Geometry per eq:boundaries: A_a = log(1/alpha_a) > 0, B_a = log(beta_a) < 0.
-% theta_0 accepted only in the joint region where ALL ell_k^a <= B_a (shaded band, below zero).
-% Each class has its own boundary pair; the quiet class lives inside its (B_esc, A_esc) corridor.
+% Each action class has its own boundary pair; the quiet class drifts NEGATIVE inside its own
+% corridor (assumption (ii): mu_0^a < 0 under the benign truth) and never crosses either boundary.
+% theta_0 is accepted only in the joint region where ALL ell_k^a <= B_a (green band).
 \begin{tikzpicture}[xscale=1.05, yscale=1.0]
 % axes
-\draw[-Stealth, thick] (0,-1.2) -- (0,3.9) node[left, font=\small] {$\ell_k^{a}$};
+\draw[-Stealth, thick] (0,-2.6) -- (0,3.9) node[left, font=\small] {$\ell_k^{a}$};
 \draw[-Stealth, thick] (0,0) -- (11,0) node[below right, font=\small] {turn $k$};
 \foreach \k/\lbl in {1/{auth}, 3/{intent}, 5/{tool-loop}, 7/{clarify}, 9/{confirm}} {
   \draw (\k,0.06) -- (\k,-0.06) node[below, font=\scriptsize] {\lbl};
 }
-% joint theta_0 acceptance region: all ell_k^a <= B_a < 0 (shaded band below the B line)
-\fill[green!12] (0,-1.2) rectangle (10.6,-0.45);
-\draw[dashed, thick, gray] (0,-0.45) -- (10.6,-0.45)
-  node[below, font=\scriptsize, pos=0.28] {$B_{hand} = \log \beta_{hand} < 0$};
-\node[font=\scriptsize, green!40!black, align=left, anchor=west] at (0.15,-0.95)
-  {joint $\theta_0$-acceptance: $\forall a,\ \ell_k^{a} \leq B_a$};
-% upper boundary
+% ---- handoff class boundaries ----
 \draw[dashed, thick, gray] (0,3.0) -- (10.6,3.0)
   node[above, font=\scriptsize, pos=0.5] {$A_{hand} = \log (1/\alpha_{hand})$ --- declare \textit{handoff}};
+\draw[dashed, thick, gray] (0,-1.3) -- (10.6,-1.3)
+  node[below, font=\scriptsize, pos=0.22] {$B_{hand} = \log \beta_{hand} < 0$};
+% ---- esc class boundaries (its own pair, lower corridor) ----
+\draw[dashed, thick, gray!60] (0,-0.3) -- (10.6,-0.3)
+  node[above, font=\scriptsize, pos=0.62, gray!60] {$B_{esc}$};
+% joint theta_0 acceptance region: all ell_k^a <= their B_a (below the LOWEST B drawn)
+\fill[green!12] (0,-2.6) rectangle (10.6,-1.3);
+\node[font=\scriptsize, green!40!black, align=left, anchor=west] at (0.15,-2.15)
+  {joint $\theta_0$-acceptance: $\forall a,\ \ell_k^{a} \leq B_a$};
 % LLR trajectory for handoff class: drifts up, crosses A at k_dec
 \draw[thick, red!70!black]
-  (0,-0.5) -- (1,-0.3) -- (2,0.1) -- (3,-0.1) -- (4,0.5) -- (5,0.4) -- (6,1.2) -- (7,2.1) -- (7.4,3.0);
+  (0,-0.2) -- (1,0.1) -- (2,0.5) -- (3,0.4) -- (4,0.9) -- (5,0.8) -- (6,1.5) -- (7,2.3) -- (7.4,3.0)
+  node[font=\scriptsize, red!70!black, above left, pos=0.98] {$\ell_k^{hand}$};
 \fill[red!70!black] (7.4,3.0) circle (2.2pt);
 \draw[-Stealth, red!70!black] (7.4,3.0) -- (7.4,0) node[below, font=\scriptsize, red!70!black] {$k_{\mathrm{dec}}$};
-\node[font=\scriptsize, red!70!black, anchor=west] at (0.2,1.9) {$\ell_k^{hand}$};
-% compliance class stays quiet: above its lower boundary B_esc (i.e., inside the no-decision
-% corridor), never crossing A_esc either — but note the label says "in (B_esc, A_esc)" while
-% the drawn y-values (-0.6..-0.25) sit mostly BELOW B_hand=-0.45. Fix: label the corridor
-% relative to its own B_esc and draw B_esc explicitly at a level the curve respects.
-\draw[thick, blue!60!black] (0,0.6) -- (1,0.7) -- (2,0.85) -- (3,0.7) -- (4,0.9) -- (5,0.75) -- (6,0.95) -- (7,0.8) -- (8,0.9) -- (9,0.75) -- (10.6,0.85)
-  node[right, font=\scriptsize, blue!60!black] {$\ell_k^{esc}$ stays in $(B_{esc}, A_{esc})$};
+% esc class: NEGATIVE drift inside its corridor (B_esc, A_esc), never crossing either
+\draw[thick, blue!60!black] (0,0.15) -- (1,0.0) -- (2,-0.12) -- (3,-0.2) -- (4,-0.16) -- (5,-0.22) -- (6,-0.25) -- (7,-0.21) -- (8,-0.26) -- (9,-0.24) -- (10.6,-0.27)
+  node[right, font=\scriptsize, blue!60!black, align=left] {$\ell_k^{esc}$ drifts inside\\ $(B_{esc}, A_{esc})$};
 % intervention window vs escalation-only threshold
 \draw[decorate, decoration={brace, mirror, amplitude=5pt}, thick, olive!70!black] (7.4,3.7) -- (10.6,3.7)
   node[midway, above, font=\scriptsize, olive!70!black] {intervention window};
 \node[font=\scriptsize, olive!70!black, align=left, anchor=west] at (0.1,4.35)
-  {first upper crossing fires the intervention: $t_{k_{\mathrm{dec}}} + \varepsilon_{\mathrm{decide}} + \varepsilon_{\mathrm{cease}} < t_{\mathrm{esc\_only}}$};
+  {first upper crossing fires the intervention: $t_{k_{\mathrm{dec}}} + \lambda_{\mathrm{decide}} + \lambda_{\mathrm{cease}} < t_{\mathrm{esc\_only}}$};
 \end{tikzpicture}

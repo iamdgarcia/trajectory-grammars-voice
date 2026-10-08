@@ -15,7 +15,7 @@ A per-class, per-language turn-policy benchmark would supply the labelled emissi
 The program now holds two floors: the onset floor $\Lambda^*$ \citep{garcia2026latencyfloor} and the cessation floor \citep{garcia2026cessationfloor}.
 A third suggests itself: the escalation floor, the minimum latency and reliability with which a conversation-internal decision to defer to a human can be executed.
 Queue-level control decides which tasks a bot should attempt, outside the conversation \citep{queuecontrol2026}; the grammar decides when to defer, inside it.
-Learning to defer under a hard latency budget is unformalized, and deferral that fires too late is observationally equivalent to no deferral at all.
+Learning to defer under a hard latency budget is unformalised, and deferral that fires too late is observationally equivalent to no deferral at all.
 The cost model makes the asymmetry explicit: a false handoff wastes agent-minutes, while a missed escalation converts containment failures into abandonments or compliance escapes with unbounded cost.
 A deferral policy must also respect its own deadline: a handoff announcement that cannot clear the cessation floor cannot barge in on the agent mid-drift.
 Composing the three floors --- onset, cessation, escalation --- into a single schedulability condition for conversational control actions is, in our view, the next theorem of this program.
@@ -31,7 +31,7 @@ Until such a protocol exists, containment numbers measured against simulated cal
 \paragraph{Compliance escapes and regulatory deadlines.}
 The compliance-escape terminal class carries unbounded cost $c(\theta_{dec}, \theta_{true})$, which makes it qualitatively different from the other three outcomes.
 Regulation imposes deadlines inside the conversation rather than after it: disclosure timing, consent capture, and the right to escalate to a human are obligations with their own clocks.
-No work schedules legal deadlines inside the conversation DAG; the guardrail-placement analogue --- obligations as stages with reducible and irreducible latency --- is unformalized.
+No work schedules legal deadlines inside the conversation DAG; the guardrail-placement analogue --- obligations as stages with reducible and irreducible latency --- is unformalised.
 A trajectory monitor offers the natural mechanism: a deadline that will be missed is predictable from the partial trajectory, exactly the quantity the stopping rule estimates.
 Production evaluation practice at scale remains engineering reportage \citep{nubank2026}, with compliance scored post-hoc if at all.
 The open problem is a deadline calculus for obligations --- which deadlines are schedulable, which are maskable, and which force immediate escalation --- with the same rigour the latency floor applied to perceptual thresholds.

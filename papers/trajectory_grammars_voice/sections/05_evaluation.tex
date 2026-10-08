@@ -22,16 +22,19 @@ Containment rate counts calls terminating in $\theta = \text{contained}$, the re
 Abandonment rate counts $\theta = \text{abandoned}$: the caller disconnects before resolution.
 Abandonment has been modelled as a queueing phenomenon, estimated from waiting data rather than from the conversation itself \citep{silentabandonment2024}.
 Handoff rate counts $\theta = \text{handoff}$, the transfer to a human agent; queue-level control optimises this rate from outside the conversation \citep{queuecontrol2026}.
-Compliance-escape rate counts $\theta = \text{compliance\_escape}$: unauthorised commitments, disclosure omissions, or data-handling violations established by post-call audit.
+Compliance-escape rate counts $\theta = \text{compliance\_escape}$: unauthorised commitments, AI-disclosure omissions, or data-handling violations established by post-call audit.
 Ground truth comes from call teardown signals, agent disposition codes, and audit sampling, with inter-annotator agreement reported for audit-derived labels.
+Because audit capacity is finite, the audit selection rule is part of the protocol: a random audit stratum (ten per cent of contained calls; all handoffs and all fraud-flagged calls in the deployment defaults) estimates the escape base rate unbiasedly, calls outside the audited strata are treated as unlabelled rather than negative, and per-class precision for $\theta_{esc}$ is reported with a sensitivity analysis under negative-by-default labelling.
+Explicit caller requests for a human agent are honoured unconditionally --- they route to \texttt{handoff} regardless of the posterior and are excluded from the fraud-signature channel, so insisting on a human is never read as a fraud signal.
 The grammar moves abandonment and escalation inside the conversation: both become predictable at turn granularity, converting reporting KPIs into actionable ones.
-Fraud signatures enter the same accounting: repeated authentication failures and escalation-seeking patterns appear as cycle-deep trajectories, and are flagged through the same terminal-class channel.
+Fraud signatures enter the same accounting: repeated authentication failures appear as re-visit-heavy trajectories and are flagged through the same terminal-class channel.
 
 \subsection{Dataset Schema and Splits}
 The corpus is production Spanish call logs from the cascade deployment (streaming ASR, orchestration graph, streaming TTS).
 Each call is a record with a pseudonymised identifier, a campaign identifier, turn-indexed partial transcripts $x_{1:k}$, per-turn timestamps, a tool-event log (type and round-trip time), endpointing and barge-in flags, the terminal class, and pipeline telemetry.
-The schema is GDPR-safe by construction: identifiers are pseudonymised, transcripts are minimised to the turn level, audio is excluded from the research extract, and retention follows the channel's data-minimisation policy.
-Splits are campaign-disjoint: leave-one-campaign-out validation holds out each collection cycle and trains on the remainder, testing cross-campaign generalisation rather than within-campaign memorisation.
+The schema is data-protection-accountable rather than "safe by construction": pseudonymised records with transcripts and timestamps remain personal data under GDPR (Recital 26), processing rests on the documented legal bases for service security and fraud prevention (Art.~6(1)(f)) under the bank's DPIA for the conversational channel, transcripts are minimised to the turn level, audio is excluded from the research extract, and retention follows the bank's records schedule with a twelve-month research-extract bound.
+Splits are defined on two distinct axes to avoid a seasonality leak: campaigns (disjoint caller populations and scenario mixes) and collection cycles (calendar windows within a campaign).
+Leave-one-campaign-out is the headline validation because it tests cross-population generalisation; temporal blocking (train past, test future) is reported alongside it for the within-campaign drift axis, and per-campaign prevalence tables are published with the splits so shift is visible rather than absorbed.
 Class imbalance is handled by reporting per-class and macro-averaged metrics; headline accuracy is never reported, because rare classes (abandonment, compliance escape) carry the operational cost.
 
 \subsection{Metrics}
@@ -39,16 +42,44 @@ Two metrics are reused with credit from TRACER \citep{nourbakhsh2026tracer}: the
 For calibration, TRACER reports EDS 0.727 at AUC 0.741 under oracle belief states on MultiWOZ \citep{nourbakhsh2026tracer}; these numbers anchor the text-chat regime that our protocol extends to voice.
 The cost-weighted detection latency extends both with the banking cost model, weighting each misclassification by how early it was committed:
 \begin{equation}
-  \mathcal{L}_{\mathrm{cwd}} \;=\; \sum_{\theta \in T} \pi_\theta \;
+  \mathcal{L}_{\mathrm{cwe}} \;=\; \sum_{\theta \in T \setminus \{\theta_{esc}\}} \pi_\theta \;
   \mathbb{E}_{k_{\mathrm{dec}}}\!\left[\, c(\hat{\theta}_{k_{\mathrm{dec}}}, \theta) \cdot
   w(k_{\mathrm{dec}}) \,\right],
-  \qquad w(k) = (L - k)/L,
+  \qquad w(k) = (H - k)/H,
   \label{eq:cost_weighted_latency}
 \end{equation}
 mirroring the early-prediction reward that TRACER uses at training time \citep{nourbakhsh2026tracer}.
-The cost model $c(\hat{\theta}, \theta)$ encodes the operational asymmetries: a false containment (predicting resolution while the call was abandoned or escaped) costs more than a false handoff, which only spends agent-minutes; compliance escape has unbounded cost and is therefore reported separately, never averaged into a scalar.
+Three definitions make the metric runnable.
+The normalisation uses a fixed per-scenario horizon $H$ (the campaign's 90th-percentile call length), not the realised length, so the weight is computable at decision time and the length bias shared with EDS is bounded.
+The prior $\pi_\theta$ is the per-fold empirical class distribution, so the metric tracks each test fold's operating mix rather than the global one.
+And the metric is a \emph{cost-weighted error} measure ($\mathcal{L}_{\mathrm{cwe}}$): correct decisions contribute zero regardless of timing, which is why decision-time quantiles are reported alongside it and baseline dominance is claimed at per-class matched false-alarm budgets, never pooled ones.
+The cost model $c(\hat{\theta}, \theta)$ encodes the operational asymmetries with published constants (Table~\ref{tab:costmodel}): a false containment (predicting resolution while the call was abandoned or escaped) costs more than a false handoff, which only spends agent-minutes.
+Compliance escape is excluded from the scalar because its cost is unbounded; it is reported separately as detection rate at audit-precision, never averaged in.
 Detection-latency distributions are reported as p50/p90/p99, matching the dual-environment latency reporting of the program's prior work.
-Calibration of the stopping rule is checked empirically: the realised error rate at confidence level $1-\varepsilon$ must not exceed $\varepsilon$, and the realised $\mathbb{E}[k_{\mathrm{dec}}]$ must meet the bound $K(\varepsilon, c)$ of the Trajectory Stopping Theorem.
+Calibration of the stopping rule is checked empirically, per class and per campaign (never pooled, or the common class absorbs the check): the realised error rate at confidence level $1-\varepsilon$ must not exceed $\varepsilon$ with exact binomial bounds, reliability diagrams are reported per class, and the realised $\mathbb{E}[k_{\mathrm{dec}}]$ of the SPRT variant must meet the bound $K(\varepsilon, c)$ of the Trajectory Stopping Theorem.
+For the confidence-sequence variant, which carries no closed-form time bound, decision-time distributions are reported as empirical observations rather than checked against $K$.
+Every reported metric states which variant (SPRT or confidence sequence) produced it.
+
+\begin{table}[t]
+\centering
+\caption{Banking cost-model constants used in $\mathcal{L}_{\mathrm{cwe}}$ and in the stopping
+         boundaries (deployment-accounted values; relative to a false handoff $= 1$).
+         Provenance: audited deployment accounting for repeat-contact and handling costs;
+         the escape row is a floor, not a finite price.}
+\label{tab:costmodel}
+\small
+\begin{tabular}{lll}
+\toprule
+Error (declared $\to$ truth) & Cost & Provenance \\
+\midrule
+false handoff (handoff $\to$ contained) & 1 (reference) & teller-minutes \\
+false containment (contained $\to$ abandoned) & 4 & repeat-contact + AHT accounting \\
+false containment (contained $\to$ handoff-truth) & 2 & delayed-resolution accounting \\
+false escape flag (escape $\to$ contained truth) & 0.5 & friction/trust-repair accounting \\
+missed escape (contained $\to$ escape truth) & $\infty$ (floor 20) & regulatory event \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Decision-Latency Accounting}
 The trajectory monitor is itself a pipeline stage: per turn it consumes the interim transcript, the tool-event log, and the turn flags, and updates the posterior and the sequential test statistic.
@@ -62,10 +93,10 @@ The $k$-step ReAct bound \citep{garcia2026latencyfloor} doubles as a drift alarm
 \subsection{Baselines}
 Five baselines cover the design space without conversation-internal trajectory structure.
 The no-intervention and fixed-schedule triggers reproduce TRACER's heuristic baseline families \citep{nourbakhsh2026tracer}.
-A TRACER-style dual-stream predictor, retrained for multi-class outcomes on our schema, is the nearest learned baseline \citep{nourbakhsh2026tracer}.
+A TRACER-style dual-stream predictor, retrained for multi-class outcomes on our schema from the authors' public implementation \citep{nourbakhsh2026tracer}, is the nearest learned baseline; its hyperparameters, backbone, and feature spec ship in the release configs.
 Queue-only escalation decides from queue state alone, without any conversation-internal signal \citep{queuecontrol2026}.
 An EarlyEval-style offline predictor, trained on completed episodes and applied as a live trigger, tests whether offline early prediction transfers to in-conversation decisioning \citep{earlyeval2026}.
-The stopping rule must dominate all five under the cost-weighted metric at matched false-alarm budgets, not merely under ranking metrics.
+The stopping rule must dominate all five under the cost-weighted error metric $\mathcal{L}_{\mathrm{cwe}}$ at per-class matched false-alarm budgets, not merely under ranking metrics.
 
 \subsection{Ablations}
 The emissions-channel ablation compares text-only emissions against text plus turn states \citep{x2turn2026}, plus tool events, plus endpointing and barge-in flags.
@@ -75,6 +106,9 @@ The stopping-rule ablation compares TRACER's fixed threshold, $\tau = 0.7788$ un
 
 \subsection{Reproducibility and Honest Scope}
 Results on private production logs are not publicly reproducible; we state this as a property of the evidence class, not of the protocol.
-A frozen, schema-identical synthetic Spanish benchmark, stratified by scenario class and terminal label, will be released on Hugging Face so that the protocol, the baselines, and the stopping rule can be re-run end to end.
-Wherever both corpora exist, protocol numbers are reported on both, and the synthetic-to-private gap is reported rather than smoothed.
+A frozen, schema-identical synthetic Spanish benchmark, stratified by scenario class and terminal label, will be released on Hugging Face under a CC-BY-4.0 license with a datasheet, so that the protocol, the baselines, and the stopping rule can be re-run end to end.
+The release is concrete: schema version and row/call counts, the scenario-class taxonomy, the terminal-label distribution, split manifests as SHA-256 checksums, and the generator code with seeds.
+The generator replays schema-conformant templates with timing and tool-RTT distributions fitted to the private corpus; preservation is measured per field and per class with two-sample distributional tests, and the synthetic-to-private gap is reported rather than smoothed.
+Because synthetic data derived from personal data is not automatically anonymous, the release ships only after a re-identification check (membership-inference and singularity screening over the released rows), and the datasheet documents both the check and its results.
+The cost-model constants of Table~\ref{tab:costmodel} and the $\pi_\theta$ convention ship with the release so the headline metric is reproducible.
 This mirrors the evaluation-driven industrial practice documented by \citet{nubank2026}, which publishes frameworks at scale without corpus release.

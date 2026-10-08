@@ -22,8 +22,11 @@ of analysis \citep{sierra2024taubench}.
 Workflow-extraction methods recover the structure of completed service conversations,
 but structure without outcomes \citep{salesforce2025workflows}.
 Escalation policy is decided from queue-level state, outside the conversation \citep{queuecontrol2026}.
-No formal model connects the partial transcript of an in-flight voice conversation
-to the terminal outcome that the business will record when the call ends.
+To our knowledge, no formal model connects the partial, multi-channel observation stream of an
+in-flight voice conversation to the terminal business outcome --- and no prior formalism composes
+that connection with a decision-time guarantee and KPI-aligned outcome classes; classical
+finite-state and ATN dialogue managers formalized dialogue phases, but with neither terminal
+business classes nor decision-time bounds.
 
 Meanwhile, the failures that matter in production emerge progressively, not abruptly.
 Recent work on task-oriented dialogue shows that breakdowns accumulate through

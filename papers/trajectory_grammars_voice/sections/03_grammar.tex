@@ -31,9 +31,13 @@ Three transition types are \emph{terminal-entering}: \texttt{service-complete} (
 $\theta_{cont}$), \texttt{hangup} (from any $q_p$ to $\theta_{aban}$), and \texttt{escalation}
 (from any $q_p$ to $\theta_{hand}$).
 The fourth terminal class, $\theta_{esc}$, is deliberately not entered by a type of $\Sigma$:
-it is an \emph{audit overlay} on runs that reach $\theta_{cont}$ without a prior \texttt{disclosure}
-transition, so the same close event can be re-labelled at audit time without a second grammar
-(Section~\ref{sec:intervention} uses this for compliance monitoring).
+it is an \emph{audit overlay} on runs that reach $\theta_{cont}$ without a successful prior
+\texttt{disclosure}, so the same close event can be re-labelled at audit time without a second
+grammar (Section~\ref{sec:intervention} uses this for compliance monitoring).
+The overlay is satisfiable because $q_{close}$ is reachable by two paths (Table~\ref{tab:transitions}):
+the guarded \texttt{disclosure} edge from $q_{confirm}$, and the unguarded \texttt{user-answer}
+path on which the caller closes the conversation directly; only the latter can be re-labelled as
+an escape at audit time.
 \end{definition}
 
 \begin{figure}[t]
@@ -61,8 +65,9 @@ observed as the \texttt{hangup} type.
 $\theta_{hand}$ (handoff) holds when an \texttt{escalation} transition fires, transferring the
 caller to a human teller.
 $\theta_{esc}$ (compliance-escape) holds when an audit overlay re-labels a \texttt{service-complete}
-termination on which the guarded \texttt{disclosure} transition never fired, which is precisely the
-false-success pattern reported for tool agents \citep{falsesuccess2026}.
+termination reached via the unguarded close path --- that is, the guarded \texttt{disclosure}
+transition never succeeded --- which is precisely the false-success pattern reported for tool
+agents \citep{falsesuccess2026}.
 Industrial practice measures these quantities post hoc from telephony telemetry
 \citep{nubank2026,silentabandonment2024}; under the grammar they become properties of runs.
 This matters because final labels themselves mislead: agents can assert success while the task
@@ -82,6 +87,7 @@ rather than from the agent's own closing statement.
 Type & Direction & Source $\to$ Target & Emitter & Class \\
 \midrule
 \texttt{user-answer} & progress & $q_{auth/\ldots} \to$ next spine & orchestrator LM & dialogue \\
+\texttt{user-answer} & progress & $q_{confirm} \to q_{close}$ (unguarded path) & orchestrator LM & dialogue \\\
 \texttt{agent-clarify} & either & $q_{intent/confirm} \leftrightarrow q_{clarify}$ & orchestrator LM & dialogue \\
 \texttt{tool-call} & progress & $q_{tool} \to q_{tool}$ (iteration) & orchestrator & system \\
 \texttt{tool-fail} & regression & $q_{tool} \to q_{tool}$ (retry) & backend tool & system \\
@@ -122,9 +128,12 @@ from a state in $T$.
 A \emph{partial run} is any proper prefix $\sigma_{\leq j}$ of a well-formed run that ends in a
 non-terminal state.
 The \emph{true outcome} of $\sigma_{\leq j}$ is the terminal class of the well-formed run that
-extends it, which is unique by absorption but unobserved while the conversation runs.
-Early outcome prediction is exactly the problem of guessing this unobserved terminal class from
-$\sigma_{\leq j}$, and Section~4 states when that guess may be acted on.
+actually extends it --- final by absorption once $T$ is entered, but unobserved while the
+conversation runs.
+From a given prefix, several terminal classes generally remain reachable (from $q_{tool}$:
+\texttt{hangup}, \texttt{escalation}, or continue to \texttt{service-complete}); that
+non-uniqueness of \emph{abstract} extensions is exactly why prediction is needed, and the
+posterior of Definition~\ref{def:posterior} measures it.
 Well-formedness is a safety property of the orchestration policy, not of the data: a run that
 continues after a terminal class is a policy bug, and the grammar makes such bugs detectable by
 inspection of $\delta$.
@@ -140,9 +149,13 @@ state.
 The \emph{cycle depth} $D(\sigma)$ is the number of regression-typed transitions in $\sigma$.
 Iteration-typed \texttt{tool-call} self-loops are progress by construction and never increment
 $D$.
+The re-opening test for \texttt{agent-clarify} is decidable from the run prefix alone: a clarify
+event increments $D$ if and only if its target state was previously visited and subsequently
+exited via a progress transition (equivalently, the conversation had moved on and was pulled
+back).
 The monitor maintains $D$ by event counting; the orchestrator may reset the counter after a
-successful repair (a \texttt{disclosure} or a confirmed resolution), so $D$ as observed by the
-stopping layer is a policy-controlled statistic, not a state invariant.
+\emph{user-confirmed} repair (a \texttt{disclosure} or a confirmed resolution), so $D$ as
+observed by the stopping layer is a policy-controlled statistic, not a state invariant.
 \end{definition}
 
 The intuition is operational: one clarification after a failed balance lookup is normal service,

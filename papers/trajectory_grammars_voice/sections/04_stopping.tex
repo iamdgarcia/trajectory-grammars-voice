@@ -47,7 +47,7 @@ where $k_{\mathrm{term}}$ is the turn at which the grammar walk reaches a termin
 
 The rule is one-sided per action class and jointly conservative: declaring \emph{no action} requires every class-wise ratio to fall below its lower boundary, so a conversation cannot be written off as contained while any action hypothesis retains evidence.
 This asymmetry is deliberate and is priced in Section~\ref{subsec:economics}.
-The boundary form \eqref{eq:boundaries} is the Ville-style parametrization rather than the classical Wald form $\log\frac{1-\beta}{\alpha}$: because the rule monitors each class ratio past its own lower boundary (another class may still be above its $B$), the operative error event for declaring $\theta_a$ under $\theta_0$ is \emph{ever crossing} $A_a$, and Ville's inequality prices exactly that event, at the cost of slightly wider boundaries than the two-sided classical SPRT.
+The boundary form \eqref{eq:boundaries} is the Ville-style parametrisation rather than the classical Wald form $\log\frac{1-\beta}{\alpha}$: because the rule monitors each class ratio past its own lower boundary (another class may still be above its $B$), the operative error event for declaring $\theta_a$ under $\theta_0$ is \emph{ever crossing} $A_a$, and Ville's inequality prices exactly that event, at the cost of slightly wider boundaries than the two-sided classical SPRT.
 
 \subsection{The Trajectory Stopping Theorem}
 \label{subsec:theorem}
@@ -66,42 +66,82 @@ Under conditions (i)--(iii), the decision rule of Definition~\ref{def:rule} sati
   \Pr\bigl[\text{declare } \theta_0 \mid \theta_a\bigr] &\leq \beta_a,
   \label{eq:errors}\\
   \mathbb{E}\bigl[k_{\mathrm{dec}} \mid \theta_a\bigr]
-    &\leq \frac{(1-\beta_a)\, A_a + \beta_a\, B_a + c}{\mu_1^{a}},
+    &\leq \frac{A_a + c}{\mu_1^{a}},
   &
   \mathbb{E}\bigl[k_{\mathrm{dec}} \mid \theta_0\bigr]
-    &\leq \frac{\alpha_a\, A_a + (1-\alpha_a)\, B_a - c}{\mu_0^{a}}.
+    &\leq \min\Biggl(\mathbb{E}\bigl[k_{\mathrm{term}}\bigr],\;
+      \sum_{j \in A} \frac{|B_j| + c}{|\mu_0^{\,j}|}\Biggr),
   \label{eq:times}
 \end{align}
-Consequently, since the conditional bounds hold for every terminal class, for any prior $\pi$ over $T$,
-\begin{equation}
+where $A = T \setminus \{\theta_0\}$ is the action-class set.
+The $\theta_0$-side bound aggregates over classes because declaring \emph{no action} requires
+\emph{every} class-wise ratio to fall below its own lower boundary (Definition~\ref{def:rule}),
+so $k_{\mathrm{dec}}$ under $\theta_0$ is gated by the slowest class-wise descent, not by any
+single class.
+Consequently, for any prior $\pi$ over $T$,
+\begin{align}
   \label{eq:unconditional}
   \mathbb{E}[k_{\mathrm{dec}}] \;=\; \textstyle\sum_{\theta \in T} \pi_\theta\, \mathbb{E}[k_{\mathrm{dec}} \mid \theta] \;\leq\; K(\varepsilon, c),
-\end{equation}
-where $K(\varepsilon, c)$ is the largest of the per-class bounds in \eqref{eq:times}, and by the union bound the total error probability obeys $\Pr[\text{error}] \leq \sum_{a} (\alpha_a + \beta_a) = \varepsilon$, so decisions are delivered in at most $K(\varepsilon, c)$ expected turns at confidence at least $1 - \varepsilon$.
+\\[2pt]
+  K(\varepsilon, c) \;:=\; \max\Biggl(\max_{a \in A} \tfrac{A_a + c}{\mu_1^{a}},\;
+  \min\bigl(\mathbb{E}[k_{\mathrm{term}}], \textstyle\sum_{j \in A} \tfrac{|B_j| + c}{|\mu_0^{\,j}|}\bigr)\Biggr),
+\end{align}
+and by the union bound the error probability against the budgeted error events obeys
+$\varepsilon := \sum_{a} (\alpha_a + \beta_a)$, so decisions are delivered in at most
+$K(\varepsilon, c)$ expected turns at confidence at least $1 - \varepsilon$ against those events,
+under a calibrated emission model.
 \end{theorem}
 
 \begin{proof}[Proof sketch]
 Fix an action class $a$.
-Under $\theta_0$ and correct specification, the likelihood ratio of conditionally independent emissions makes $\exp(\ell_k^{a})$ a non-negative supermartingale with expected increment $e^{\mu_0^{a}} \leq 1$.
+Under $\theta_0$ and correct specification, the likelihood ratio of the emissions makes
+$\exp(\ell_k^{a})$ a mean-one non-negative martingale: conditional independence is not needed
+here, only that $\exp(\ell_k^{a})$ is the density ratio of the true conditional law, so
+$\mathbb{E}_{\theta_0}[e^{Z_k^{a}} \mid \mathcal{F}_{k-1}] = 1$ exactly.
 Ville's inequality then prices the ever-crossing event directly:
 $\Pr_{\theta_0}[\exists k \leq k_{\mathrm{term}}: \ell_k^{a} \geq A_a] \leq e^{-A_a} = \alpha_a$,
-which is the first bound of \eqref{eq:errors}; the second follows symmetrically by applying Ville's inequality to $\exp(-\ell_k^{a})$ under $\theta_a$, whose crossing level $-B_a$ yields $e^{B_a} = \beta_a$.
-For the time bounds, Wald's first identity for stopped sums of integrable, conditionally independent increments gives
-$\mathbb{E}[\ell_{k_{\mathrm{dec}}}^{a} \mid \theta] = \mu^{a}\, \mathbb{E}[k_{\mathrm{dec}} \mid \theta]$ with $\mu^{a} \in \{\mu_0^{a}, \mu_1^{a}\}$.
-Under $\theta_0$, the stopped ratio is confined to $[B_a - c,\; A_a + c]$ by the increment bound, and decomposing on the two stopping events,
-$\mathbb{E}[\ell_{k_{\mathrm{dec}}}^{a} \mid \theta_0] \;\geq\; \alpha_a A_a + (1-\alpha_a)(B_a - c)$.
-Since $\mu_0^{a} < 0$, dividing the lower bound on $\mathbb{E}[\ell_{k_{\mathrm{dec}}}^{a}]$ by $\mu_0^{a}$ yields an upper bound on $\mathbb{E}[k_{\mathrm{dec}} \mid \theta_0]$, which is the second display of \eqref{eq:times} (numerator and denominator are both negative, so the bound is positive).
-The $\theta_a$ case is symmetric: the stopped ratio lies in $[B_a - c, A_a + c]$, its expectation is at most $(1-\beta_a)(A_a + c) + \beta_a B_a$, and division by the positive $\mu_1^{a}$ gives the first display of \eqref{eq:times}.
-Absorbing the slack into the constants (and noting $e^{B_a} = \beta_a$ makes the accept branch exact in the idealized continuous limit where the overshoot $c \to 0$) recovers the displayed forms.
-The unconditional bound \eqref{eq:unconditional} is the max of the conditional bounds, and the error budget is the union bound over per-class error events.
+which is the first bound of \eqref{eq:errors}; the second follows symmetrically by applying
+Ville's inequality to $\exp(-\ell_k^{a})$ under $\theta_a$, whose crossing level $-B_a$ yields
+$e^{B_a} = \beta_a$.
+For the $\theta_a$-side time bound, use $a$'s \emph{own} upper crossing as the envelope: on the
+event that $a$ is declared, $k_{\mathrm{dec}}$ is at most the first time $\ell_k^{a}$ reaches
+$A_a$, and Wald's first identity (which presupposes $\mathbb{E}[k_{\mathrm{dec}}] < \infty$;
+truncating at $k_{\mathrm{term}}$ and passing to the limit discharges this under assumption (iii))
+gives $\mathbb{E}[\ell_k^{a} \wedge A_a] \leq A_a + c$ after $\lceil (A_a+c)/\mu_1^{a} \rceil$
+turns in expectation, with Lorden-type overshoot bounds keeping the excess within $c$
+\citep{lorden1970excess}.
+Under $\theta_0$, declaring $\theta_0$ requires all $|A|$ ratios to descend below their $B_j$;
+the expected time for the slowest descent is bounded by the sum of the per-class expected
+descent times, $\sum_j (|B_j| + c)/|\mu_0^{\,j}|$, and the observed-termination mode is bounded
+by $\mathbb{E}[k_{\mathrm{term}}]$ via assumption (iii), giving the second display of
+\eqref{eq:times}.
+The unconditional bound \eqref{eq:unconditional} takes the max of the conditional envelopes,
+and the error budget is the union bound over the per-class error events
+\eqref{eq:errors}.
 \end{proof}
+
+\begin{remark}[What the budget prices]
+\label{rem:budget_scope}
+The budget $\varepsilon = \sum_a (\alpha_a + \beta_a)$ prices two error families: declaring an
+action class under the benign truth ($\theta_a \mid \theta_0$) and writing the conversation off
+under an action truth ($\theta_0 \mid \theta_a$).
+It does not price \emph{cross-action} misdeclarations (declaring $\theta_b$ when the truth is
+$\theta_a$, $b \neq a$): $e^{\ell^b}$ is not a martingale under $\theta_a$, so Ville on
+$\ell^b$ alone says nothing there; the pairwise likelihood-ratio martingale $e^{\ell^b - \ell^a}$
+gives $\Pr_{\theta_a}[\text{declare } \theta_b] \leq \alpha_b / \alpha_a$ when $A_b > A_a$.
+Since handoff-versus-escape confusion is economically real (Section~\ref{subsec:economics}), a
+deployment that must price it adds pairwise boundaries on $\ell^a - \ell^j$ with a per-pair
+budget; we leave that extension to the protocol of Section~\ref{sec:evaluation} as an operating
+curve, not a theorem.
+\end{remark}
 
 Three remarks on what the theorem does and does not say.
 First, the assumption we cannot discharge is per-turn conditional independence of emissions; it holds to the extent that the grammar's typed transitions, not hidden user state, drive the observation stream, and Section~\ref{sec:discussion} returns to this.
-Second, the $c$ terms are the standard excess-over-boundary (overshoot) constants; in the idealized continuous treatment they vanish, and empirically they are one turn at most, which is why \eqref{eq:times} is displayed with them explicit rather than hidden.
+Second, the $c$ terms are the standard excess-over-boundary (overshoot) constants; in the idealised continuous treatment they vanish, and as design guidance they are one turn at most (the protocol of Section~
+ef{sec:evaluation} measures them), which is why \eqref{eq:times} is displayed with them explicit rather than hidden.
 Third, where the emission likelihood is unknown and the posterior is learned, likelihood ratios are unavailable in exact form.
 The honest sequential alternative is an anytime-valid confidence sequence over the learned posterior, which retains error control under continuous monitoring and optional stopping \citep{howard2021time} at the price of wider early boundaries; we adopt this variant in the evaluation protocol of Section~\ref{sec:evaluation} and report both operating curves.
-Wald-type SPRT remains the reference point because its boundaries are explicit and its expected stopping time is optimal among tests with the same error rates \citep{waldwolfowitz1948optimality}.
+Wald-type SPRT remains the reference point because its boundaries are explicit and its expected stopping time is optimal among two-hypothesis tests with the same error rates \citep{waldwolfowitz1948optimality}; that optimality is a property of the classical two-sided test, not of the wider-boundary three-exit rule deployed here.
 
 \begin{figure}[t]
   \centering
@@ -111,8 +151,8 @@ Wald-type SPRT remains the reference point because its boundaries are explicit a
   \caption{The stopping layer over a live conversation.
            Class-wise log-likelihood ratios $\ell_k^{a}$ accumulate with their boundary pair
            $(B_a, A_a)$; the first upper crossing declares an action class and fires an
-           intervention whose decision latency $\varepsilon_{\mathrm{decide}}$ and cessation
-           latency $\varepsilon_{\mathrm{cease}}$ must both fit inside the remaining window
+           intervention whose decision latency $\lambda_{\mathrm{decide}}$ and cessation
+           latency $\lambda_{\mathrm{cease}}$ must both fit inside the remaining window
            before the escalation-only threshold.}
   \label{fig:stopping}
 \end{figure}
@@ -120,12 +160,12 @@ Wald-type SPRT remains the reference point because its boundaries are explicit a
 \subsection{Floor Composition: Early Enough to Act}
 \label{subsec:floors}
 A turn index is not an intervention guarantee, so we convert $k_{\mathrm{dec}}$ to wall-clock using the published floor arithmetic.
-The per-turn decision latency $\varepsilon_{\mathrm{decide}}$ of the monitor must fit inside the inter-turn budget that the onset floor leaves unfilled \citep{garcia2026latencyfloor}, and the measured decision latencies of the Spanish interim-transcript pipeline (p99 178--268~ms, cloud) show this budget exists in production \citep{garcia2026asking}.
+The per-turn decision latency $\lambda_{\mathrm{decide}}$ of the monitor must fit inside the inter-turn budget that the onset floor leaves unfilled \citep{garcia2026latencyfloor}, and the measured decision latencies of the Spanish interim-transcript pipeline (p99 178--268~ms, cloud) show this budget exists in production \citep{garcia2026asking}.
 Executing the intervention is a second bound: taking the floor from an agent mid-utterance is a barge-in, and it must clear the cessation floor's detect--decide--cease--resume decomposition \citep{garcia2026cessationfloor}.
 The composition is therefore
 \begin{equation}
   \label{eq:compose}
-  t_{k_{\mathrm{dec}}} + \varepsilon_{\mathrm{decide}} + \varepsilon_{\mathrm{cease}}
+  t_{k_{\mathrm{dec}}} + \lambda_{\mathrm{decide}} + \lambda_{\mathrm{cease}}
   \;<\;
   t_{\mathrm{escalation\text{-}only}},
 \end{equation}
@@ -149,7 +189,7 @@ Between the remaining action classes, larger relative miss cost $c(\theta_0, \th
 
 \begin{proof}[Proof sketch]
 For a single-turn Bayes decision with posterior $p(\theta_a \mid o_{1:k})$, the optimal rule declares $\theta_a$ exactly when the posterior exceeds the cost ratio $\frac{c(\theta_a,\theta_0)}{c(\theta_a,\theta_0) + c(\theta_0,\theta_a)}$.
-An unbounded $c(\theta_0, \theta_{esc})$ drives that ratio to zero, so the compliance escape fires at any positive posterior mass; in the Ville parametrization \eqref{eq:boundaries} this is an elevated false-alarm rate $\alpha_{esc}$ and hence the smallest upper boundary $A_{esc}$, while the miss rate $\beta_{esc}$ --- the probability of declaring $\theta_0$ when the truth is $\theta_{esc}$ --- is driven to zero by the same eagerness.
+An unbounded $c(\theta_0, \theta_{esc})$ drives that ratio to zero, so the compliance escape fires at any positive posterior mass; in the Ville parametrisation \eqref{eq:boundaries} this is an elevated false-alarm rate $\alpha_{esc}$ and hence the smallest upper boundary $A_{esc}$, while the miss rate $\beta_{esc}$ --- the probability of declaring $\theta_0$ when the truth is $\theta_{esc}$ --- is driven to zero by the same eagerness.
 Monotonicity in the relative miss cost follows from differentiating the threshold ratio.
 The sequential rule inherits the ordering because its boundaries are the sequential realization of the same posterior-threshold test at every turn.
 \end{proof}

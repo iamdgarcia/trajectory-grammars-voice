@@ -1,5 +1,7 @@
 % fig_grammar.tex — the trajectory grammar: states, typed transitions, terminal classes
 % Every drawn edge is a row of Table 1 (sections/03_grammar.tex). Audit overlay: compliance-escape.
+% q_close is reachable by TWO paths (guarded disclosure, unguarded user-answer) — the audit
+% overlay re-labelling to compliance-escape is therefore satisfiable.
 \begin{tikzpicture}[
   node distance=1.05cm and 1.05cm,
   state/.style={circle, draw, minimum size=1.0cm, font=\small, fill=blue!5},
@@ -30,7 +32,9 @@
 % tool-call / user-bargein are channel self-loops on tl / any state respectively
 \draw[-Stealth, gray!70!black] (tl) edge[loop above, distance=0.32cm, looseness=5.5] node[above, font=\scriptsize]{tool-call (iter.)} (tl);
 \draw[-Stealth, gray!70!black] (au) edge[loop left, distance=0.28cm, looseness=5.5] node[left, font=\scriptsize, align=right]{user-bargein\\(channel event)} (au);
+% two paths into q_close: guarded + unguarded (Table 1 rows disclosure / user-answer)
 \draw (cf) edge node[above]{disclosure (guarded)} (cl);
+\draw (cf) edge[bend right=42, looseness=1.1] node[looplabel, below, pos=0.45]{user-answer (unguarded path)} (cl.south west);
 \draw (cl) edge node[right]{service-complete} (cont);
 
 % regressions (cycle types)
@@ -47,6 +51,6 @@
 % channel event (state unchanged, Table 1 row user-bargein)
 \draw (in) edge[loop above] node[looplabel, above]{user-bargein} (in);
 
-% audit overlay (not a type of Sigma)
-\draw[-Stealth, dashed] (cont) -- node[font=\scriptsize, below, sloped]{audit: no prior disclosure} (comp);
+% audit overlay (not a type of Sigma): re-labelling of unguarded-path completions only
+\draw[-Stealth, dashed] (cont) -- node[font=\scriptsize, below, sloped]{audit: close was unguarded} (comp);
 \end{tikzpicture}
