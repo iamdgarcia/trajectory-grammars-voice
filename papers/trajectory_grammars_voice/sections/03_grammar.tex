@@ -17,11 +17,11 @@ Section~5 measures it, and Section~6 acts on it.
 \begin{definition}[Trajectory Grammar]
 \label{def:grammar}
 A \emph{trajectory grammar} is a triple $G = (Q, \Sigma, \delta)$ where the state set
-$Q = Q_p \cup T$ partitions into progress states
-$Q_p = \{q_{greet}, q_{auth}, q_{intent}, q_{tool}, q_{clarify}, q_{confirm}, q_{close}\}$
-and terminal outcome classes
+$Q = Q_p \cup T$ partitions into progress states and terminal outcome classes.
+The terminal classes are
 $T = \{\theta_{cont}, \theta_{aban}, \theta_{hand}, \theta_{esc}\}$
-(contained, abandoned, handoff, compliance-escape).
+(contained, abandoned, handoff, compliance-escape), and the progress states are
+$Q_p = \{q_{greet},$ $q_{auth}, q_{intent}, q_{tool}, q_{clarify}, q_{confirm},$ $q_{close}\}$.
 The alphabet $\Sigma$ is a finite set of \emph{typed} transitions (Table~\ref{tab:transitions}),
 and $\delta : Q \times \Sigma \rightharpoonup Q$ is a partial transition function.
 Each transition type carries a direction label: \emph{progress} types advance the conversation
@@ -76,22 +76,23 @@ rather than from the agent's own closing statement.
          compliance-escape class is an audit overlay on disclosure-free complete runs.}
 \label{tab:transitions}
 \small
+\resizebox{\linewidth}{!}{%
 \begin{tabular}{lllll}
 \toprule
 Type & Direction & Source $\to$ Target & Emitter & Class \\
 \midrule
-\texttt{user-answer}   & progress   & $q_{auth/intent/clarify/confirm} \to$ next spine state & orchestrator LM      & dialogue \\
-\texttt{agent-clarify} & either     & $q_{intent/confirm} \leftrightarrow q_{clarify}$       & orchestrator LM      & dialogue \\
-\texttt{tool-call}     & progress   & $q_{tool} \to q_{tool}$ (iteration)                    & orchestrator         & system \\
-\texttt{tool-fail}     & regression & $q_{tool} \to q_{tool}$ (retry)                        & backend tool         & system \\
-\texttt{endpoint-error}& regression & $q_{intent/confirm} \to q_{intent}$                    & ASR endpointer       & voice \\
-\texttt{user-bargein}  & event      & any $q_p \to q_p$ (audio channel)                      & barge-in detector    & voice \\
-\texttt{disclosure}    & progress   & $q_{confirm} \to q_{close}$ (guarded)                  & compliance layer     & compliance \\
-\texttt{service-complete} & terminal & $q_{close} \to \theta_{cont}$                         & telephony teardown   & dialogue \\
-\texttt{hangup}        & terminal   & any $q_p \to \theta_{aban}$                            & telephony teardown   & voice \\
-\texttt{escalation}    & terminal   & any $q_p \to \theta_{hand}$                            & policy layer         & dialogue \\
+\texttt{user-answer} & progress & $q_{auth/\ldots} \to$ next spine & orchestrator LM & dialogue \\
+\texttt{agent-clarify} & either & $q_{intent/confirm} \leftrightarrow q_{clarify}$ & orchestrator LM & dialogue \\
+\texttt{tool-call} & progress & $q_{tool} \to q_{tool}$ (iteration) & orchestrator & system \\
+\texttt{tool-fail} & regression & $q_{tool} \to q_{tool}$ (retry) & backend tool & system \\
+\texttt{endpoint-error} & regression & $q_{intent/confirm} \to q_{intent}$ & ASR endpointer & voice \\
+\texttt{user-bargein} & event & any $q_p \to q_p$ (audio channel) & barge-in detector & voice \\
+\texttt{disclosure} & progress & $q_{confirm} \to q_{close}$ (guarded) & compliance layer & compliance \\
+\texttt{service-complete} & terminal & $q_{close} \to \theta_{cont}$ & telephony teardown & dialogue \\
+\texttt{hangup} & terminal & any $q_p \to \theta_{aban}$ & telephony teardown & voice \\
+\texttt{escalation} & terminal & any $q_p \to \theta_{hand}$ & policy layer & dialogue \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
 Table~\ref{tab:transitions} assigns every transition type to the component that emits it, which

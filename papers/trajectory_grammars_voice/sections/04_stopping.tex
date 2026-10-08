@@ -75,9 +75,9 @@ Under conditions (i)--(iii), the decision rule of Definition~\ref{def:rule} sati
 Consequently, since the conditional bounds hold for every terminal class, for any prior $\pi$ over $T$,
 \begin{equation}
   \label{eq:unconditional}
-  \mathbb{E}[k_{\mathrm{dec}}] \;=\; \textstyle\sum_{\theta \in T} \pi_\theta\, \mathbb{E}[k_{\mathrm{dec}} \mid \theta] \;\leq\; K(\varepsilon, c) \;:=\; \max_{a}\Bigl(\max\Bigl\{ \tfrac{(1-\beta_a) A_a + \beta_a B_a + c}{\mu_1^{a}},\; \tfrac{\alpha_a A_a + (1-\alpha_a) B_a - c}{\mu_0^{a}} \Bigr\}\Bigr),
+  \mathbb{E}[k_{\mathrm{dec}}] \;=\; \textstyle\sum_{\theta \in T} \pi_\theta\, \mathbb{E}[k_{\mathrm{dec}} \mid \theta] \;\leq\; K(\varepsilon, c),
 \end{equation}
-and by the union bound the total error probability obeys $\Pr[\text{error}] \leq \sum_{a} (\alpha_a + \beta_a) = \varepsilon$, so decisions are delivered in at most $K(\varepsilon, c)$ expected turns at confidence at least $1 - \varepsilon$.
+where $K(\varepsilon, c)$ is the largest of the per-class bounds in \eqref{eq:times}, and by the union bound the total error probability obeys $\Pr[\text{error}] \leq \sum_{a} (\alpha_a + \beta_a) = \varepsilon$, so decisions are delivered in at most $K(\varepsilon, c)$ expected turns at confidence at least $1 - \varepsilon$.
 \end{theorem}
 
 \begin{proof}[Proof sketch]
