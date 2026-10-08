@@ -24,7 +24,9 @@ step-up authentication; it does not by itself terminate the conversation.
 Each action consumes the same event bus the orchestrator already uses for tool completions
 and barge-in signals, so no new delivery path is introduced.
 Two guards make the action layer safe to attach to a live graph.
-First, actions are hysteresis-gated: once an intervention fires for a class, the monitor suppresses conflicting actions for a window, so a conversation cannot flap between escalate and clarify as the posterior hovers near the boundary.
+First, actions are hysteresis-gated:
+once an intervention fires for a class, the monitor suppresses conflicting actions for a window,
+so a conversation cannot flap between escalate and clarify as the posterior hovers near the boundary.
 Second, at most one intervention token is outstanding at a time; a new token preempts only after the previous action has reached a committed graph state, preserving the atomicity the decoupled-clock runtime already guarantees for tool batches \citep{garcia2026cessationfloor}.
 
 \subsection{Intervention Is an Interruption: the Cessation Constraint}
@@ -122,7 +124,7 @@ them: it catches the conversation-level failure modes that are invisible one tur
 in the same way that trajectory-level outcome labels correct final-state labels that mislead
 \citep{falsesuccess2026}.
 In deployment this makes the grammar the conversation-scale layer of a defence-in-depth stack:
-per-turn guardrails vet content, the trajectory monitor vet \emph{conduct}.
+per-turn guardrails vet content, the trajectory monitor vets \emph{conduct}.
 This division of labour matches the production practice reported at scale, where outcome-level
 evaluation of support agents exists but remains informal in exactly these conversation-level
 terms \citep{nubank2026}.
