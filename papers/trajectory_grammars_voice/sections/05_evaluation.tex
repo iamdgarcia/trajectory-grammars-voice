@@ -1,0 +1,79 @@
+% §5 Banking KPI-Tuned Evaluation Protocol
+This section specifies how the trajectory grammar and the stopping rule are evaluated against the operational reality of a production voice channel.
+The protocol is tuned to banking KPIs: every terminal class in the outcome set $\mathcal{T} = \{\text{contained}, \text{abandoned}, \text{handoff}, \text{compliance\_escape}\}$ is wired to a metric that a contact-centre operator already tracks.
+Figure~\ref{fig:eval_stack} summarises the wiring from grammar states and terminal classes to telephony telemetry and per-turn decision signals.
+
+\begin{figure}[t]
+  \centering
+  \resizebox{\linewidth}{!}{%
+    \input{figures/fig_eval_stack}%
+  }
+  \caption{Banking KPI wiring of the trajectory grammar.
+           Terminal classes (contained, abandoned, handoff, compliance escape) map one-to-one
+           onto production telephony metrics; the trajectory monitor consumes partial transcripts,
+           tool events, and turn flags; every intervention action must clear the cessation floor.}
+  \label{fig:eval_stack}
+\end{figure}
+
+\subsection{KPI-to-Terminal-Class Mapping}
+The terminal classes of the grammar are formalisations of existing operational metrics, not new quantities.
+Containment rate counts calls terminating in $\theta = \text{contained}$, the resolution-without-human-help target tracked in industrial deployments \citep{nubank2026}.
+Abandonment rate counts $\theta = \text{abandoned}$: the caller disconnects before resolution.
+Abandonment has been modelled as a queueing phenomenon, estimated from waiting data rather than from the conversation itself \citep{silentabandonment2024}.
+Handoff rate counts $\theta = \text{handoff}$, the transfer to a human agent; queue-level control optimises this rate from outside the conversation \citep{queuecontrol2026}.
+Compliance-escape rate counts $\theta = \text{compliance\_escape}$: unauthorised commitments, disclosure omissions, or data-handling violations established by post-call audit.
+Ground truth comes from call teardown signals, agent disposition codes, and audit sampling, with inter-annotator agreement reported for audit-derived labels.
+The grammar moves abandonment and escalation inside the conversation: both become predictable at turn granularity, converting reporting KPIs into actionable ones.
+Fraud signatures enter the same accounting: repeated authentication failures and escalation-seeking patterns appear as cycle-deep trajectories, and are flagged through the same terminal-class channel.
+
+\subsection{Dataset Schema and Splits}
+The corpus is production Spanish call logs from the cascade deployment (streaming ASR, orchestration graph, streaming TTS).
+Each call is a record with a pseudonymised identifier, a campaign identifier, turn-indexed partial transcripts $x_{1:k}$, per-turn timestamps, a tool-event log (type and round-trip time), endpointing and barge-in flags, the terminal class, and pipeline telemetry.
+The schema is GDPR-safe by construction: identifiers are pseudonymised, transcripts are minimised to the turn level, audio is excluded from the research extract, and retention follows the channel's data-minimisation policy.
+Splits are campaign-disjoint: leave-one-campaign-out validation holds out each collection cycle and trains on the remainder, testing cross-campaign generalisation rather than within-campaign memorisation.
+Class imbalance is handled by reporting per-class and macro-averaged metrics; headline accuracy is never reported, because rare classes (abandonment, compliance escape) carry the operational cost.
+
+\subsection{Metrics}
+Two metrics are reused with credit from TRACER \citep{nourbakhsh2026tracer}: the Early Detection Score, $\mathrm{EDS}_i = (T_i - t_i^*)/T_i$, and the mean detection turn $\bar{t}^{\,*}$, computed here per terminal class rather than for a single binary outcome.
+For calibration, TRACER reports EDS 0.727 at AUC 0.741 under oracle belief states on MultiWOZ \citep{nourbakhsh2026tracer}; these numbers anchor the text-chat regime that our protocol extends to voice.
+The cost-weighted detection latency extends both with the banking cost model, weighting each misclassification by how early it was committed:
+\begin{equation}
+  \mathcal{L}_{\mathrm{cwd}} \;=\; \sum_{\theta \in \mathcal{T}} \pi_\theta \;
+  \mathbb{E}_{k_{\mathrm{dec}}}\!\left[\, c(\hat{\theta}_{k_{\mathrm{dec}}}, \theta) \cdot
+  w(k_{\mathrm{dec}}) \,\right],
+  \qquad w(k) = (T - k)/T,
+  \label{eq:cost_weighted_latency}
+\end{equation}
+mirroring the early-prediction reward that TRACER uses at training time \citep{nourbakhsh2026tracer}.
+The cost model $c(\hat{\theta}, \theta)$ encodes the operational asymmetries: a false containment (predicting resolution while the call was abandoned or escaped) costs more than a false handoff, which only spends agent-minutes; compliance escape has unbounded cost and is therefore reported separately, never averaged into a scalar.
+Detection-latency distributions are reported as p50/p90/p99, matching the dual-environment latency reporting of the program's prior work.
+Calibration of the stopping rule is checked empirically: the realised error rate at confidence level $1-\delta$ must not exceed $\delta$, and the realised $\mathbb{E}[k_{\mathrm{dec}}]$ must meet the bound $k^*(\delta)$ of the Trajectory Stopping Theorem.
+
+\subsection{Decision-Latency Accounting}
+The trajectory monitor is itself a pipeline stage: per turn it consumes the interim transcript, the tool-event log, and the turn flags, and updates the posterior and the sequential test statistic.
+If the update runs on the critical path, the published onset floor inflates to $\Lambda^* + \lambda_{\mathrm{mon}}^{\mathrm{irr}}$, and the competitiveness condition $\Lambda^* + \lambda_{\mathrm{mon}}^{\mathrm{irr}} \leq \tau_{\mathrm{human}}$ must hold \citep{garcia2026latencyfloor}.
+Placement off the critical path hides the update under the user's speech, provided the SPRT decision is ready before the next intervention point.
+The sensing substrate is already measured: the Spanish partial-transcript pipeline used for semantic VAD decides in p99 178--268~ms in the cloud configuration \citep{garcia2026asking}, which bounds the per-turn observation update.
+Interventions inherit a second floor: taking the floor mid-drift is a barge-in against the agent's own audio, so every intervention must clear the cessation floor (detect, decide, cease, resume) \citep{garcia2026cessationfloor}.
+The protocol therefore reports decision latency in both currencies: in turns, the stopping theorem's unit, and in milliseconds, the floors' unit, joined by the per-turn floor arithmetic.
+The $k$-step ReAct bound \citep{garcia2026latencyfloor} doubles as a drift alarm threshold in evaluation: any run exceeding $k^*$ tool-loop cycles is scored off-path, and the alarm's own decision latency is measured against the same floors.
+
+\subsection{Baselines}
+Five baselines cover the design space without conversation-internal trajectory structure.
+The no-intervention and fixed-schedule triggers reproduce TRACER's heuristic baseline families \citep{nourbakhsh2026tracer}.
+A TRACER-style dual-stream predictor, retrained for multi-class outcomes on our schema, is the nearest learned baseline \citep{nourbakhsh2026tracer}.
+Queue-only escalation decides from queue state alone, without any conversation-internal signal \citep{queuecontrol2026}.
+An EarlyEval-style offline predictor, trained on completed episodes and applied as a live trigger, tests whether offline early prediction transfers to in-conversation decisioning \citep{earlyeval2026}.
+The stopping rule must dominate all five under the cost-weighted metric at matched false-alarm budgets, not merely under ranking metrics.
+
+\subsection{Ablations}
+The emissions-channel ablation compares text-only emissions against text plus turn states \citep{x2turn2026}, plus tool events, plus endpointing and barge-in flags.
+The motivation is measured rather than assumed: text-only turn-end decisions sit near chance on Spanish hard cuts (0.40--0.54 accuracy) \citep{garcia2026asking}, so the ablation quantifies which channel carries the trajectory signal.
+The drift-statistic ablation replaces cycle depth $D(\sigma)$ with raw conversation length, and must degrade early prediction if the grammar's claim holds: off-path structure, not duration, is the signal.
+The stopping-rule ablation compares TRACER's fixed threshold, $\tau = 0.7788$ under an FPR $\leq 0.15$ constraint \citep{nourbakhsh2026tracer}, against the SPRT at matched error, isolating the value of the sequential rule.
+
+\subsection{Reproducibility and Honest Scope}
+Results on private production logs are not publicly reproducible; we state this as a property of the evidence class, not of the protocol.
+A frozen, schema-identical synthetic Spanish benchmark, stratified by scenario class and terminal label, will be released on Hugging Face so that the protocol, the baselines, and the stopping rule can be re-run end to end.
+Wherever both corpora exist, protocol numbers are reported on both, and the synthetic-to-private gap is reported rather than smoothed.
+This mirrors the evaluation-driven industrial practice documented by \citet{nubank2026}, which publishes frameworks at scale without corpus release.
