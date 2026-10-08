@@ -9,6 +9,35 @@
 | [multimodal](topics/multimodal/) | 0 | — | — |
 | [orchestration](topics/orchestration/) | 29 | [gaps.md](topics/orchestration/gaps.md) | 2026-09-01 |
 | [semantic_vad](topics/semantic_vad/) | 36 | [gaps.md](topics/semantic_vad/gaps.md) | 2026-10-08 |
+| [conversation_dynamics](topics/conversation_dynamics/) | 14 | [gaps.md](topics/conversation_dynamics/gaps.md) | 2026-10-08 |
+
+## Conversation Dynamics Papers (15 total)
+_New topic 2026-10-08 — trajectory-level analysis of agent conversations. See [topics/conversation_dynamics/](topics/conversation_dynamics/) - [gaps.md](topics/conversation_dynamics/gaps.md) (CD1-CD4). Feeds `papers/trajectory_grammars_voice/`._
+
+### Early outcome prediction / trajectory analysis
+- [nourbakhsh2026tracer](topics/conversation_dynamics/papers/nourbakhsh2026tracer.md) - TRACER partial-dialogue failure forecasting (2607.03974) [VERIFIED full text]
+- [earlyeval2026](topics/conversation_dynamics/papers/earlyeval2026.md) - EarlyEval early outcome prediction for eval pruning (2609.02783)
+- [falsesuccess2026](topics/conversation_dynamics/papers/falsesuccess2026.md) - false-success characterization over tau2 trajectories (2606.09863)
+- [chang2019derailment](topics/conversation_dynamics/papers/chang2019derailment.md) - derailment forecasting from partial context (WWW 2019)
+- [higashinaka2016breakdown](topics/conversation_dynamics/papers/higashinaka2016breakdown.md) - turn-level breakdown detection lineage
+- [walker1997paradise](topics/conversation_dynamics/papers/walker1997paradise.md) - PARADISE quality = success + cost
+
+### Agent benchmarks (full-episode paradigm)
+- [sierra2024taubench](topics/conversation_dynamics/papers/sierra2024taubench.md) - tau-bench tool-agent-user (2406.12045)
+- [webarena2023](topics/conversation_dynamics/papers/webarena2023.md) - WebArena static web tasks (2307.13854)
+- [tauvoice2026](topics/conversation_dynamics/papers/tauvoice2026.md) - tau-Multilingual voice agents ES/PT/HI/KO/ZH (2609.35820)
+- [x2turn2026](topics/conversation_dynamics/papers/x2turn2026.md) - X2-Turn joint ASR + turn states (2608.10878)
+
+### Process structure / workflows
+- [salesforce2025workflows](topics/conversation_dynamics/papers/salesforce2025workflows.md) - dialog workflow extraction (2502.17321)
+
+### Escalation / queueing / production practice
+- [queuecontrol2026](topics/conversation_dynamics/papers/queuecontrol2026.md) - queue control in human-AI service systems (2607.06017)
+- [silentabandonment2024](topics/conversation_dynamics/papers/silentabandonment2024.md) - silent abandonment / customer patience (2304.11754)
+- [nubank2026](topics/conversation_dynamics/papers/nubank2026.md) - Nubank support-agent evaluation at scale (2606.08867)
+
+### Stopping rules
+- [consol2025](topics/conversation_dynamics/papers/consol2025.md) - ConSol SPRT for reasoning paths (2503.17587)
 
 ## Orchestration Papers (29 total)
 
