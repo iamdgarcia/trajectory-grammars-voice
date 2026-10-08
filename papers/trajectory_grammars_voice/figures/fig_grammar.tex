@@ -24,9 +24,12 @@
 % progress spine
 \draw (gr) edge[bend left=14] node[above]{user-answer} (au);
 \draw (au) edge[bend left=14] node[above]{user-answer} (in);
-\draw (in) edge[bend left=14] node[above]{tool-call} (tl);
+\draw (in) edge[bend left=14] node[above]{user-answer (request)} (tl);
 \draw (tl) edge[bend left=14] node[above]{user-answer} (cfy);
 \draw (cfy) edge[bend left=14] node[above]{user-answer} (cf);
+% tool-call / user-bargein are channel self-loops on tl / any state respectively
+\draw[-Stealth, gray!70!black] (tl) edge[loop above, distance=0.32cm, looseness=5.5] node[above, font=\scriptsize]{tool-call (iter.)} (tl);
+\draw[-Stealth, gray!70!black] (au) edge[loop left, distance=0.28cm, looseness=5.5] node[left, font=\scriptsize, align=right]{user-bargein\\(channel event)} (au);
 \draw (cf) edge node[above]{disclosure (guarded)} (cl);
 \draw (cl) edge node[right]{service-complete} (cont);
 

@@ -43,7 +43,7 @@ transition, so the same close event can be re-labelled at audit time without a s
   }
   \caption{The trajectory grammar $G$.
            Progress states (rounded) form the service spine; typed transitions (labelled
-           arrows) carry the eight event classes of Table~\ref{tab:transitions};
+           arrows) carry the ten event classes of Table~\ref{tab:transitions};
            regression types open cycles back into earlier states;
            terminal classes (squares) absorb every well-formed run.}
   \label{fig:grammar}
@@ -187,9 +187,11 @@ page a supervisor, while a short call with two clarification cycles may already 
     \input{figures/fig_cycles}%
   }
   \caption{Cycle depth as drift.
-           Two runs of equal length: the contained run (top) iterates \texttt{tool-call} within
-           $q_{tool}$ and stays on the spine; the drifted run (bottom) opens a
-           $q_{confirm} \to q_{clarify} \to q_{confirm}$ cycle.
+           Two runs of equal length (twelve turns each): the contained run (top) iterates
+           \texttt{tool-call} within $q_{tool}$ and stays on the spine with zero regression
+           transitions; the drifted run (bottom) accrues three regression events
+           (a \texttt{tool-fail} retry, a re-opening \texttt{agent-clarify}, and an
+           \texttt{endpoint-error}).
            Length is identical; only cycle depth distinguishes them.}
   \label{fig:cycles}
 \end{figure}

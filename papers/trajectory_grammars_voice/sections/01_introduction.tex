@@ -90,8 +90,9 @@ conversations, with seven interior states (greeting, auth, intent, tool loop,
 clarification, confirmation, close) and four terminal outcome classes
 (contained, abandoned, handoff, compliance-escape).
 Transitions are typed (user-answer, user-bargein, agent-clarify, tool-call,
-tool-fail, endpoint-error, disclosure, escalation), so that voice physics and
-tool events are first-class grammar emissions.
+tool-fail, endpoint-error, disclosure, service-complete, hangup, escalation),
+so that voice physics and tool events are first-class grammar emissions and
+all four terminal classes are reachable.
 Regressions are grammar cycles, and we define cycle depth $D(\sigma)$ as the
 drift statistic separating long from off-path conversations,
 bounded by the published $k$-step ReAct constraint \citep{garcia2026latencyfloor}.

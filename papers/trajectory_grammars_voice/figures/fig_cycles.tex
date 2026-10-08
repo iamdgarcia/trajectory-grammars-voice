@@ -1,30 +1,32 @@
 % fig_cycles.tex — contained vs drifted trajectories as grammar walks (cycle depth)
-% D counts regression-typed transitions (Table 1): retry (tool-fail), re-open clarify, endpoint-error.
+% D counts regression-typed transitions (Table 1): tool-fail retry, agent-clarify re-open, endpoint-error.
+% Both panels draw the SAME number of turns (caption: "equal length"); only regression events differ.
 \begin{tikzpicture}[xscale=1.0, yscale=1.0]
-% Panel A: contained call (low cycle depth)
+% ---------- Panel A: contained call, D = 0 ----------
 \begin{scope}
   \node[font=\small\bfseries, anchor=west] at (-0.4,2.3) {(a) contained: $D=0$};
-  % turn dots along a line
-  \foreach \i in {0,...,9} { \fill[blue!60!black] (\i,0) circle (1.7pt); }
-  \draw[gray!60] (-0.4,0) -- (9.4,0);
+  % 12 turns, no regressions
+  \foreach \i in {0,...,11} { \fill[blue!60!black] (\i*0.72,0) circle (1.7pt); }
+  \draw[gray!60] (-0.4,0) -- (9.1,0);
   % state strip
-  \node[font=\scriptsize, anchor=west] at (-0.4,-0.55) {gr $\to$ au $\to$ in $\to$ tl $\to$ cfy $\to$ cf $\to$ cl};
-  \node[font=\scriptsize, align=left, anchor=west] at (-0.4,-1.25) {monotone progress; no regression types; outcome decidable at $k_{\mathrm{dec}}=6$};
+  \node[font=\scriptsize, anchor=west] at (-0.4,-0.55) {gr $\to$ au $\to$ in $\to$ tl (iterations) $\to$ cfy $\to$ cf $\to$ cl};
+  \node[font=\scriptsize, align=left, anchor=west] at (-0.4,-1.25) {monotone progress; zero regression transitions; outcome decidable at $k_{\mathrm{dec}}=6$};
   \node[font=\scriptsize, blue!60!black, anchor=west] at (-0.4,0.45) {LLR crosses $A_a$ inside the tool loop};
 \end{scope}
-% Panel B: drifted call (high cycle depth)
-\begin{scope}[yshift=-3.3cm]
+% ---------- Panel B: drifted call, D = 3 (same length) ----------
+\begin{scope}[yshift=-3.4cm]
   \node[font=\small\bfseries, anchor=west] at (-0.4,2.3) {(b) drifted: $D=3$};
-  \draw[gray!60] (-0.4,0) -- (9.4,0);
-  \foreach \i in {0,...,12} { \fill[red!60!black] (\i*0.72,0) circle (1.7pt); }
-  % regression events drawn as arcs (each increments D)
-  \draw[-Stealth, red!60!black] (2.2,0.12) .. controls (3.0,1.0) and (4.2,1.0) .. (5.0,0.12)
+  % same 12 turns
+  \draw[gray!60] (-0.4,0) -- (9.1,0);
+  \foreach \i in {0,...,11} { \fill[red!60!black] (\i*0.72,0) circle (1.7pt); }
+  % three regression events (each increments D by 1)
+  \draw[-Stealth, red!60!black] (1.6,0.12) .. controls (2.2,1.0) and (3.2,1.0) .. (3.8,0.12)
     node[midway, above, font=\scriptsize] {tool-fail (retry), $D{+}1$};
-  \draw[-Stealth, red!60!black] (4.3,-0.12) .. controls (5.1,-1.1) and (6.3,-1.1) .. (7.1,-0.12)
+  \draw[-Stealth, red!60!black] (3.9,-0.12) .. controls (4.5,-1.1) and (5.5,-1.1) .. (6.1,-0.12)
     node[midway, below, font=\scriptsize] {agent-clarify re-open, $D{+}1$};
-  \draw[-Stealth, red!60!black] (5.8,0.12) .. controls (6.6,1.6) and (7.8,1.6) .. (8.6,0.12)
+  \draw[-Stealth, red!60!black] (6.2,0.12) .. controls (6.8,1.5) and (7.8,1.5) .. (8.4,0.12)
     node[midway, above, font=\scriptsize] {endpoint-error, $D{+}1$};
-  \node[font=\scriptsize, align=left, anchor=west] at (-0.4,-1.85) {same length as 1.4$\times$ a contained call, but three regression events: off-path};
-  \node[font=\scriptsize, red!60!black, anchor=west] at (-0.4,-2.55) {drift alarm: $(k_{\mathrm{cyc}}{+}1)$-th tool-call event, or rising $D$ feeding the posterior};
+  \node[font=\scriptsize, align=left, anchor=west] at (-0.4,-1.85) {same turn count as panel (a), but three regression transitions: off-path};
+  \node[font=\scriptsize, red!60!black, align=left, anchor=west] at (-0.4,-2.55) {drift alarm fires on the $(k_{\mathrm{cyc}}{+}1)$-th tool-call event, or on rising $D$ fed to the posterior};
 \end{scope}
 \end{tikzpicture}
