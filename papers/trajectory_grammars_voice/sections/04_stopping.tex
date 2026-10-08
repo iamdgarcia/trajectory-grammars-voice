@@ -135,7 +135,7 @@ The cycle-length bound of Section~\ref{sec:grammar} completes the picture from t
 \subsection{False-Early-Exit Economics}
 \label{subsec:economics}
 Stopping early is only justified if the cost model says so.
-Recall the banking cost $c(\hat{\theta}, \theta)$ over declared versus true terminal classes, defined in Section~\ref{subsec:classes} as part of the grammar's outcome wiring.
+Let $c(\hat{\theta}, \theta)$ denote the banking cost of declaring class $\hat{\theta}$ when the truth is $\theta$, over declared versus true terminal classes; its operational content is specified with the KPI wiring of Section~\ref{sec:evaluation}.
 False containment --- declaring \textit{contained} while the truth is \textit{handoff} or \textit{compliance-escape} --- is the expensive error: it converts a recoverable failure into an unattended one, and a compliance escape has unbounded cost.
 False escalation --- declaring \textit{handoff} while the truth is \textit{contained} --- wastes teller minutes, the trade that queue-level control already prices from the outside of the conversation \citep{queuecontrol2026}.
 Abandonment adds a patience-driven cost that queueing models estimate from uncertain data \citep{silentabandonment2024}; the grammar lets us price it from the conversation's own trajectory.

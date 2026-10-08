@@ -41,6 +41,9 @@
 \draw (cfy) edge node[right]{escalation} (hand);
 \draw (cf) edge[bend left=14] node[above]{escalation} (hand.north east);
 
+% channel event (state unchanged, Table 1 row user-bargein)
+\draw (in) edge[loop above] node[looplabel, above]{user-bargein} (in);
+
 % audit overlay (not a type of Sigma)
 \draw[-Stealth, dashed] (cont) -- node[font=\scriptsize, below, sloped]{audit: no prior disclosure} (comp);
 \end{tikzpicture}

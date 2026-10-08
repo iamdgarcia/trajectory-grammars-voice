@@ -70,9 +70,11 @@ What they lack is a conversation-internal signal; nothing in the queueing view c
 Cost-weighted classification rather than accuracy is therefore the right evaluation lens, and our evaluation protocol adopts it.
 The delta of our paper relative to this strand is that escalation and abandonment become terminal classes of a trajectory grammar, predicted from the partial transcript and acted on inside the conversation, where any intervention must first clear the cessation floor \citep{garcia2026cessationfloor}.
 
+Per-turn guardrail systems classify individual utterances before or after they are spoken \citep{rebedea2023nemo,dong2024building}; a trajectory layer complements them with conversation-level failure modes that no single utterance exhibits.
+
 \subsection{Positioning}
 
-Across the four strands, no work defines a formal state space for voice-agent conversations with terminal banking outcomes, predicts those outcomes from partial observations with a calibrated decision time, or couples the prediction to intervention machinery with measured latency.
+Across the five strands, no work defines a formal state space for voice-agent conversations with terminal banking outcomes, predicts those outcomes from partial observations with a calibrated decision time, or couples the prediction to intervention machinery with measured latency.
 Benchmarks score finished episodes, structure mining ignores outcomes, forecasters offer learned scores without guarantees, and operations decisions ignore the conversation.
 This intersection, not any single strand, is the contribution space of the paper.
 The trajectory grammar, the stopping theorem, and the banking evaluation protocol presented in the remainder of the paper close it.
