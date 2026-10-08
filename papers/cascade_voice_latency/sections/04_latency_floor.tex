@@ -1,0 +1,216 @@
+% §4 The Latency Floor Theorem
+We now prove the central result: the silence gap of any cascade pipeline has an
+irreducible lower bound.
+
+\subsection{The Latency Floor Theorem}
+
+\begin{theorem}[Latency Floor]
+\label{thm:latency_floor}
+Let $G = (S, E)$ be an \emph{EOU-gated cascade} (Definition~\ref{def:egc}) with stages
+$S = \{s_1, \ldots, s_n\}$ forming a linear chain.
+Let each stage $s_i$ have latency decomposed as $\lambda_i = \lambda_i^r + \lambda_i^{irr}$
+per Definition~\ref{def:decomposition}.
+The following premises are assumed:
+\begin{enumerate}
+  \item \emph{Sequential execution}: stages execute strictly sequentially; no stage begins
+        processing before its predecessor has produced its complete output.
+        (This premise holds by definition for EGC; it does \emph{not} hold for the streaming
+        cascade of Definition~\ref{def:sc}, which is analysed separately in
+        Theorem~\ref{thm:streaming_floor}.)
+  \item \emph{Input independence}: each stage latency $\lambda_i$ is treated as independent of the specific input $x_i$ (a simplifying assumption acknowledged in Section~\ref{sec:discussion}).
+  \item \emph{Implementation}: an ``implementation'' of $G$ is any choice of model weights, inference hardware, and serving configuration that preserves the pipeline topology and stage boundary definitions; the set of valid implementations for each stage is $\mathrm{valid}(s_i)$ as defined in Definition~\ref{def:decomposition}.
+\end{enumerate}
+Then the silence gap satisfies:
+\begin{equation}
+  \Lambda \geq \Lambda^* := \sum_{i=1}^{n} \lambda_i^{irr}
+\end{equation}
+for all implementations of $G$, regardless of model size, hardware, or inference optimisation.
+\end{theorem}
+
+\begin{proof}
+Each stage $s_j$ in the linear chain cannot begin execution until $s_{j-1}$ produces its output,
+by Definition~\ref{def:cascade_dag} (Cascade Pipeline DAG).
+Therefore the silence gap is at least the sum of the first-output latencies of all stages:
+$\Lambda \geq \sum_i \lambda_i$.
+Since $\lambda_i = \lambda_i^r + \lambda_i^{irr}$ and $\lambda_i^r \geq 0$,
+we have $\Lambda \geq \sum_i \lambda_i^{irr} = \Lambda^*$.
+The reducible terms $\lambda_i^r$ can be made arbitrarily small by using faster models
+(in the limit of infinite compute), but $\lambda_i^{irr}$ is by definition the lower bound
+achievable for any implementation of $s_i$ given its input--output contract.
+Therefore $\Lambda^*$ is a lower bound on $\Lambda$ for any cascade pipeline with topology $G$.
+\end{proof}
+
+\begin{remark}
+Theorem~\ref{thm:latency_floor} applies to any linear or branching DAG topology.
+For a branching pipeline where parallel stages can execute concurrently,
+$\Lambda^*$ is the maximum irreducible latency along any critical path through the DAG,
+not the sum over all stages.
+The standard cascade pipeline is a single critical path,
+so the sum form applies directly.
+\end{remark}
+
+\subsection{Native Voice as the Zero-Floor Limit}
+
+A native voice model collapses the three-stage cascade into a single stage $s_{native}$
+that maps audio input directly to audio output, eliminating inter-stage buffering latency.
+Two architecturally distinct classes exist, with different prefill-hiding properties.
+
+\paragraph{Buffer-and-commit (GPT-4o Realtime class).}
+Systems such as GPT-4o Realtime \citep{openai2024realtimeapi} and Gemini Live
+\citep{google2024geminivoice} stream audio into a server-side buffer during the user's speech.
+VAD monitors the stream and, upon detecting end-of-utterance, commits the buffer and triggers
+model inference.
+The full audio-token prefill therefore begins \emph{after} EOU, analogously to EGC cascade:
+\begin{equation}
+  \Lambda^*_{RT,commit} = d_{eou}^{vad} + \alpha_{audio} \cdot N_{speech} + \lambda_{decode,1}
+\end{equation}
+The advantage over cascade is the elimination of the separate ASR decode and TTS stages,
+not prefill hiding during speech.
+Observed silence gaps of 320--500~ms are consistent with this structure.
+
+\paragraph{Streaming causal (Moshi class).}
+Systems such as Moshi \citep{defossez2024moshi} use a fully causal audio codec
+(frame stride $\Delta_t = 80$~ms) and process each codec frame through the Temporal Transformer
+as it arrives.
+The KV cache grows continuously during the user's utterance:
+by the time speech ends, the model has already prefilled all speech frames.
+The post-EOU silence gap is therefore:
+\begin{equation}
+  \Lambda^*_{RT,stream} = \Delta_t + \lambda_{forward}^{(1)}
+\end{equation}
+where $\lambda_{forward}^{(1)}$ is the time for one Transformer step over the current KV state.
+This gives a theoretical floor of approximately 160~ms, independent of utterance length.
+The prefill advantage relative to EGC cascade is:
+\begin{equation}
+  \Lambda^*_{EGC} - \Lambda^*_{RT,stream}
+    = \underbrace{\lambda_{asr}^{irr} + \lambda_{tts}^{irr}}_{\text{stage elimination}}
+    + \underbrace{\alpha_{audio} \cdot N_{speech} - \lambda_{forward}^{(1)} - \Delta_t}_{\text{prefill hidden during speech}}
+\end{equation}
+The prefill-hiding term grows with utterance duration $T_{speech}$,
+so streaming causal models gain a larger advantage for longer utterances.
+
+The formal inequality chain is:
+\begin{equation}
+  \Lambda^*_{RT,stream} \leq \Lambda^*_{RT,commit} \leq \Lambda^*_{EGC}
+\end{equation}
+where the first gap reflects prefill hiding during speech and the second reflects
+ASR and TTS stage elimination.
+The paper's impossibility result (Corollary~\ref{cor:impossibility}) applies only to EGC cascade,
+not to streaming cascade or native voice architectures.
+
+\subsection{The Cascade Competitiveness Criterion}
+
+\begin{definition}[Cascade Competitiveness Criterion]
+\label{def:ccc}
+A cascade pipeline is \emph{perceptually competitive} with a native voice model if and only if:
+\begin{equation}
+  \Lambda \leq \tau_{human}
+\end{equation}
+where $\tau_{human}$ is the human turn-taking threshold (approximately 200~ms,
+as established by \citet{levinson2015timing} and \citet{stivers2009universals}).
+\end{definition}
+
+\begin{corollary}[Impossibility of Cascade Competitiveness]
+\label{cor:impossibility}
+If $\Lambda^* > \tau_{human}$, then no \emph{EOU-gated cascade} pipeline with topology $G$
+can satisfy the Cascade Competitiveness Criterion, regardless of model or hardware improvements.
+\end{corollary}
+
+\begin{proof}
+By Theorem~\ref{thm:latency_floor}, $\Lambda \geq \Lambda^*$.
+If $\Lambda^* > \tau_{human}$, then $\Lambda > \tau_{human}$ for all implementations,
+so the CCC $\Lambda \leq \tau_{human}$ cannot be satisfied.
+\end{proof}
+
+\begin{remark}
+Corollary~\ref{cor:impossibility} is scoped to EOU-gated cascade.
+Streaming cascade (Definition~\ref{def:sc}) violates premise~(1) of Theorem~\ref{thm:latency_floor}
+by design, and therefore has a strictly lower latency floor, derived in Theorem~\ref{thm:streaming_floor} below.
+\end{remark}
+
+\begin{theorem}[Streaming Cascade Floor]
+\label{thm:streaming_floor}
+Let $G$ be a streaming cascade (Definition~\ref{def:sc}).
+Let $\delta_N$ be the commit latency of the final word from EOU,
+$\alpha$ the per-token LM prefill cost,
+$|C_{residual}|$ the number of tokens not yet prefilled at EOU,
+$\lambda_{lm}^{decode,irr}$ the time to generate the first output token from a
+completed KV cache, and $\lambda_{tts}^{irr}$ the TTS irreducible latency.
+Then:
+\begin{equation}
+  \Lambda_{SC} \geq \Lambda^*_{SC}
+    := \delta_N + \alpha \cdot |C_{residual}| + \lambda_{lm}^{decode,irr} + \lambda_{tts}^{irr}
+\end{equation}
+The gain over the EGC floor is the prefill work amortised over the user's speech duration:
+\begin{equation}
+  \Lambda^*_{EGC} - \Lambda^*_{SC}
+    = \alpha \cdot (|C_{user}| - |C_{residual}|)
+    = \alpha \cdot |C_{pre}|
+\end{equation}
+where $|C_{pre}|$ is the number of tokens stably committed and prefilled during speech.
+\end{theorem}
+
+\begin{proof}
+At $t = 0$ (EOU): (1)~$\delta_N$ has elapsed for the ASR to commit the final word; (2)~the
+LM decode phase cannot begin before EOU by Definition~\ref{def:sc}(c); (3)~the residual
+$\alpha \cdot |C_{residual}|$ tokens must be prefilled before the first output token is generated;
+(4)~TTS cannot begin before the first LM output token.
+Each term is irreducible under its respective stage contract.
+The gain $\alpha \cdot |C_{pre}|$ is bounded above by $\lambda_{lm}^{irr}$ (the full EGC
+prefill cost) and approaches zero as $T_{speech} \to 0$ (short utterances leave no time for overlap).
+\end{proof}
+
+\begin{corollary}[Streaming CCC Satisfiability]
+\label{cor:streaming_ccc}
+A streaming cascade can satisfy the Cascade Competitiveness Criterion if and only if:
+\begin{equation}
+  \delta_N + \lambda_{lm}^{decode,irr} + \lambda_{tts}^{irr} \leq \tau_{human}
+\end{equation}
+Substituting representative values ($\lambda_{lm}^{decode,irr} \approx 20$~ms,
+$\lambda_{tts}^{irr} \approx 80$~ms, $\tau_{human} = 200$~ms), this requires
+$\delta_N \leq 100$~ms.
+Streaming RNN-T systems \citep{sainath2020streaming} achieve $\delta_N \approx 150$--320~ms
+at production accuracy, placing the CCC at the boundary of feasibility.
+Fully causal CTC architectures with minimal lookahead can achieve $\delta_N \approx 100$~ms
+at a 5--15\% relative word error rate cost \citep{yao2021wenet}.
+\end{corollary}
+
+Figure~\ref{fig:perceptual_threshold} illustrates the relationship between
+the latency floor $\Lambda^*$, the total silence gap $\Lambda$, and the human threshold.
+
+\begin{figure}[t]
+  \centering
+  \resizebox{\linewidth}{!}{%
+    \input{figures/fig_perceptual_threshold}%
+  }
+  \caption{Perceptual threshold diagram.
+           The green zone ($\Lambda \leq \tau_{human} = 200$~ms) is the region where
+           the Cascade Competitiveness Criterion is satisfied.
+           Buffer-and-commit native voice models such as GPT-4o Realtime (green band,
+           320--500~ms) fall outside the strict 200~ms CCC zone, yet are substantially
+           below typical cascade latency.
+           A typical cascade pipeline (blue band) operates well beyond it.
+           The best-case cascade floor $\Lambda^*$ (red band) remains above
+           $\tau_{human}$, establishing the impossibility result of
+           Corollary~\ref{cor:impossibility}.}
+  \label{fig:perceptual_threshold}
+\end{figure}
+
+\subsection{Practical Interpretation of \texorpdfstring{$\tau_{human}$}{tau\_human}}
+
+The threshold $\tau_{human} = 200$~ms is derived from the modal inter-turn interval observed in human-human conversation \citep{levinson2015timing,stivers2009universals}.
+We note that human tolerance for machine voices is empirically somewhat higher than for human interlocutors: users of voice assistants typically accept gaps up to 300--500~ms without explicit dissatisfaction \citep{levinson2015timing}.
+The CCC should therefore be interpreted as a \emph{target} derived from the ideal human-human norm: cascade architectures that approach this threshold are perceptually competitive, and those that substantially exceed it are not.
+Native voice systems such as GPT-4o Realtime, which report silence gaps of 320--500~ms \citep{openai2024realtimeapi}, themselves fall outside the strict $\tau_{human} = 200$~ms zone; they nonetheless set the practical bar for perceptual competitiveness as the current state of the art for low-latency voice interaction.
+The impossibility result (Corollary~\ref{cor:impossibility}) applies in the strict sense: cascade pipelines whose irreducible floor $\Lambda^* > \tau_{human}$ cannot approach the ideal human-human norm without architectural change, and are structurally at a disadvantage relative to native voice models regardless of model or hardware improvements.
+
+\subsection{Implications}
+
+Corollary~\ref{cor:impossibility} has a direct engineering implication:
+for the representative latency values in Table~\ref{tab:latency_example},
+where $\Lambda^* = 380$~ms $> \tau_{human} = 200$~ms,
+no model improvement or infrastructure upgrade can make the cascade pipeline
+perceptually competitive in the strict sense.
+The pipeline topology must change---through streaming synthesis, barge-in, or hybrid
+routing---for the CCC to become satisfiable.
+We formalise these architectural modifications in Section~\ref{sec:design_levers}.

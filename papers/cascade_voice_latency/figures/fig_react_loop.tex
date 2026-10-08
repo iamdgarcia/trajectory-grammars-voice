@@ -1,0 +1,38 @@
+% Fig 3: ReAct loop DAG showing compounding latency for k tool calls
+\begin{tikzpicture}[
+  node distance=0.25cm and 0.5cm,
+  box/.style={rectangle, rounded corners=3pt, draw=black, thick,
+              minimum width=1.4cm, minimum height=0.6cm,
+              font=\scriptsize, align=center},
+  tool/.style={box, fill=orange!20},
+  lm/.style={box, fill=blue!15},
+  arr/.style={-{Stealth[length=4pt]}, thick},
+  annot/.style={font=\scriptsize}
+]
+
+% Nodes (left to right)
+\node[box, fill=gray!15] (asr)  {ASR};
+\node[lm,  right=of asr]  (lm1)  {LM~1\\(reason)};
+\node[tool, right=of lm1] (t1)   {Tool~1};
+\node[lm,  right=of t1]  (lm2)  {LM~2\\(reason)};
+\node[tool, right=of lm2] (t2)   {Tool~2};
+\node[lm,  right=of t2]  (lmk)  {LM~$k$\\(respond)};
+\node[box, fill=gray!15, right=of lmk] (tts) {TTS};
+
+% Arrows with latency labels
+\draw[arr] (asr)  -- (lm1)  node[midway, above, annot]{$\lambda_{asr}$};
+\draw[arr] (lm1)  -- (t1)   node[midway, above, annot]{$\lambda_{lm}$};
+\draw[arr] (t1)   -- (lm2)  node[midway, above, annot]{$\lambda_{tool}$};
+\draw[arr] (lm2)  -- (t2)   node[midway, above, annot]{$\lambda_{lm}$};
+\draw[arr] (t2)   -- (lmk)  node[midway, above, annot]{$\cdots$};
+\draw[arr] (lmk)  -- (tts)  node[midway, above, annot]{$\lambda_{tts}$};
+
+% Brace below showing total silence gap and irreducible floor
+\draw[decorate, decoration={brace, amplitude=8pt, mirror}, thick, color=black!60]
+  ([yshift=-0.5cm]asr.south west) -- ([yshift=-0.5cm]tts.south east)
+  node[midway, below=0.4cm, annot, align=center]
+  {$\Lambda_k = \lambda_{asr} + k\,\lambda_{lm} + (k-1)\,\lambda_{tool} + \lambda_{tts}$\\[2pt]
+   \textit{Floor:}\;
+   $\Lambda_k^* = \lambda_{asr}^{irr} + k\,\lambda_{lm}^{irr} + \lambda_{tts}^{irr}$};
+
+\end{tikzpicture}

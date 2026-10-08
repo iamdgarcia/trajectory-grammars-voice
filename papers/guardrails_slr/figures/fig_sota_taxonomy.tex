@@ -1,0 +1,159 @@
+% SOTA Guardrail Taxonomy Diagram
+% Three-axis taxonomy: Implementation Layer (vertical) x Placement (horizontal) x Modality (colour)
+% Compile with: pdflatex main.tex (requires tikz, shapes.geometric, arrows.meta, positioning, calc)
+%
+% Grid coordinates (all in TikZ cm units):
+%   Vertical dividers:   x = 1.1, 4.1, 7.1, 10.6, 13.2
+%   Horizontal dividers: y = -2.0, -5.1, -7.5, -12.0
+%   Column centres:      x = 2.6, 5.6, 8.85, 11.9
+%   Row centres:         y = -3.55, -6.3, -9.75
+%   Row label centre x:  -0.05
+
+\begin{figure}[!htbp]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+  font=\small,
+  textonly/.style={
+    draw=blue!60, fill=blue!10, rounded corners=2pt,
+    text width=2.0cm, align=center, minimum height=1.0cm,
+    font=\scriptsize
+  },
+  multimodal/.style={
+    draw=orange!70, fill=orange!12, rounded corners=2pt,
+    text width=2.0cm, align=center, minimum height=1.0cm,
+    font=\scriptsize
+  },
+  intrinsic/.style={
+    draw=green!50!black, fill=green!10, rounded corners=2pt,
+    text width=2.0cm, align=center, minimum height=1.0cm,
+    font=\scriptsize
+  },
+  gap/.style={
+    draw=red!60, fill=red!8, rounded corners=2pt, dashed,
+    text width=2.0cm, align=center, minimum height=1.0cm,
+    font=\scriptsize\itshape
+  },
+  arrow/.style={-Stealth, thick, black!60},
+  divider/.style={dashed, black!30, thick},
+  header/.style={fill=black!8, draw=black!70, thick},
+]
+
+%% -----------------------------------------------------------------------
+%% AXIS ARROWS (drawn first so headers paint over them)
+%% -----------------------------------------------------------------------
+\draw[arrow, very thick] (-1.2, 0.5) -- (13.2, 0.5)
+  node[midway, above, font=\footnotesize\bfseries]
+  {Placement in inference pipeline $\longrightarrow$};
+
+\draw[arrow, very thick] (-1.2, 0.5) -- (-1.2, -12.0)
+  node[midway, left, font=\footnotesize\bfseries, rotate=90, yshift=6pt]
+  {$\longleftarrow$ Implementation layer};
+
+%% -----------------------------------------------------------------------
+%% COLUMN HEADERS — TikZ rectangles at exact grid x-coords
+%% x boundaries: 1.1 | 4.1 | 7.1 | 10.6 | 13.2
+%% y range: 0.4 (below arrow) → -2.0 (header bottom = first h-divider top)
+%% -----------------------------------------------------------------------
+\fill[black!8] (1.1, 0.4) rectangle (13.2, -2.0);
+% outer border
+\draw[black!70, thick] (1.1,  0.4) -- (13.2,  0.4);
+\draw[black!70, thick] (1.1, -2.0) -- (13.2, -2.0);
+\draw[black!70, thick] (1.1,  0.4) -- (1.1,  -2.0);
+\draw[black!70, thick] (13.2, 0.4) -- (13.2, -2.0);
+% inner vertical borders (match grid dividers exactly)
+\draw[black!70, thick] (4.1,  0.4) -- (4.1,  -2.0);
+\draw[black!70, thick] (7.1,  0.4) -- (7.1,  -2.0);
+\draw[black!70, thick] (10.6, 0.4) -- (10.6, -2.0);
+% header text at column midpoints
+\node[font=\footnotesize\bfseries, align=center] at (2.6,  -0.8) {Pre-generation\\(input)};
+\node[font=\footnotesize\bfseries, align=center] at (5.6,  -0.8) {In-generation\\(streaming)};
+\node[font=\footnotesize\bfseries, align=center] at (8.85, -0.8) {Post-generation\\(output)};
+\node[font=\footnotesize\bfseries, align=center, text width=2.2cm] at (11.9, -0.8) {Training-time\\(no pipeline stage)};
+
+%% -----------------------------------------------------------------------
+%% ROW LABELS — TikZ rectangles at exact grid y-coords
+%% x range: -1.2 → 1.1
+%% y boundaries: -2.0 | -5.1 | -7.5 | -12.0
+%% -----------------------------------------------------------------------
+\fill[black!8] (-1.2, -2.0) rectangle (1.1, -12.0);
+% outer border
+\draw[black!70, thick] (-1.2, -2.0)  -- (1.1, -2.0);
+\draw[black!70, thick] (-1.2, -12.0) -- (1.1, -12.0);
+\draw[black!70, thick] (-1.2, -2.0)  -- (-1.2, -12.0);
+\draw[black!70, thick] (1.1,  -2.0)  -- (1.1,  -12.0);
+% inner horizontal borders (match grid dividers exactly)
+\draw[black!70, thick] (-1.2, -5.1) -- (1.1, -5.1);
+\draw[black!70, thick] (-1.2, -7.5) -- (1.1, -7.5);
+% row label text at row midpoints  (x centre = (-1.2+1.1)/2 = -0.05)
+\node[font=\footnotesize\bfseries, align=center] at (-0.05, -3.55) {Model\\Extrinsic};
+\node[font=\footnotesize\bfseries, align=center] at (-0.05, -6.3)  {Model\\Augmented};
+\node[font=\footnotesize\bfseries, align=center] at (-0.05, -9.75) {Model\\Intrinsic};
+
+%% -----------------------------------------------------------------------
+%% GRID LINES (drawn after fills so they appear on top)
+%% -----------------------------------------------------------------------
+% Horizontal dividers between content rows
+\draw[divider] (1.1, -5.1) -- (13.2, -5.1);
+\draw[divider] (1.1, -7.5) -- (13.2, -7.5);
+% Vertical dividers between content columns
+\draw[divider] (4.1,  -2.0) -- (4.1,  -12.0);
+\draw[divider] (7.1,  -2.0) -- (7.1,  -12.0);
+\draw[divider] (10.6, -2.0) -- (10.6, -12.0);
+% Bottom border
+\draw[divider] (-1.2, -12.0) -- (13.2, -12.0);
+
+%% -----------------------------------------------------------------------
+%% ROW 1: MODEL-EXTRINSIC  (y band: -2.0 to -5.1)
+%% Pre-gen nodes at x=2.6; in-gen x=5.6; post-gen x=8.85
+%% -----------------------------------------------------------------------
+\node[textonly]  at (2.6,  -2.8) {Llama Guard\\\cite{inan2023llama}};
+\node[textonly]  at (2.6,  -3.7) {ShieldLM\\\cite{zhang2024shieldlm}};
+\node[textonly]  at (2.6,  -4.6) {NeMo Rails$^\dagger$\\\cite{rebedea2023nemo}};
+
+\node[gap]       at (5.6,  -3.55) {Open gap:\\no streaming\\classifier};
+
+\node[textonly]  at (8.85, -2.9) {WildGuard\\\cite{han2024wildguard}};
+\node[textonly]  at (8.85, -4.1) {NeMo Rails$^\dagger$\\\cite{rebedea2023nemo}};
+
+%% -----------------------------------------------------------------------
+%% ROW 2: MODEL-AUGMENTED  (y band: -5.1 to -7.5, centre=-6.3)
+%% -----------------------------------------------------------------------
+\node[multimodal] at (2.6,  -6.3) {SafeVLM\\\cite{oh2024safevlm}};
+\node[multimodal] at (8.85, -6.3) {MLLM-Protector\\\cite{pi2024mllm}};
+
+%% -----------------------------------------------------------------------
+%% ROW 3: MODEL-INTRINSIC  (y band: -7.5 to -12.0, training-time column x=11.9)
+%% -----------------------------------------------------------------------
+\node[intrinsic] at (11.9, -8.2)  {RLHF\\\cite{ouyang2022training}};
+\node[intrinsic] at (11.9, -9.6)  {Const.\ AI\\\cite{bai2022constitutional}};
+\node[intrinsic] at (11.9, -11.1) {Safety Context\\Distillation\\\cite{touvron2023llama2}};
+
+%% -----------------------------------------------------------------------
+%% LEGEND (modality)
+%% -----------------------------------------------------------------------
+\node[textonly,   text width=1.5cm, minimum height=0.5cm] at (2.6,  -12.8) {Text-only};
+\node[multimodal, text width=1.5cm, minimum height=0.5cm] at (5.6,  -12.8) {Multimodal};
+\node[intrinsic,  text width=1.5cm, minimum height=0.5cm] at (8.85, -12.8) {Weight-embedded};
+\node[gap,        text width=1.5cm, minimum height=0.5cm] at (11.9, -12.8) {Open gap};
+\node[font=\footnotesize\bfseries] at (-0.05, -12.8) {Modality:};
+
+\end{tikzpicture}%
+}% end resizebox
+\caption{%
+  Three-axis taxonomy of LLM guardrail mechanisms.
+  \textbf{Horizontal axis}: placement in the inference pipeline
+  (pre-generation, in-generation/streaming, post-generation, training-time).
+  \textbf{Vertical axis}: implementation layer
+  (model-extrinsic, model-augmented, model-intrinsic).
+  \textbf{Colour}: modality coverage
+  (\textcolor{blue!70}{text-only}, \textcolor{orange!80!black}{multimodal}, \textcolor{green!50!black}{weight-embedded}).
+  The dashed red cell marks the central open gap identified in this review:
+  no streaming-compatible extrinsic guardrail currently exists.
+  $^\dagger$NeMo Guardrails~\cite{rebedea2023nemo} applies rails at both
+  pre-generation (input inspection) and post-generation (output inspection);
+  it appears in both columns to reflect this hybrid placement.
+  Its latency cost grows additively with each interception point.
+}
+\label{fig:sota_taxonomy}
+\end{figure}

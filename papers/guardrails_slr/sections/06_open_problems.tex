@@ -1,0 +1,241 @@
+\section{Open Problems}
+\label{sec:open_problems}
+
+This section catalogues the principal open problems identified in the review,
+organised by theme.
+For each problem we note the strongest evidence motivating it and the specific
+gap in current knowledge.
+
+\paragraph{Priority ordering}
+The nine problems are not of equal urgency, and urgency must be distinguished from blocking: these are different properties operating on different timescales.
+RP1 (standardised evaluation) is the most broadly \emph{blocking}: without a shared protocol, no other open problem can be resolved in a reproducible way, because progress claimed under one evaluation setup cannot be compared to progress under another.
+MM3 (audio and video safety) is the most \emph{urgent}: capable multimodal models with audio and video capabilities are already in production deployment --- GPT-4o audio mode, Gemini Live --- with no academic safety characterisation at all.
+The tension between these two rankings is only apparent.
+RP1 blocking and MM3 urgency operate on different axes: RP1 is a methodological prerequisite for \emph{measuring and comparing} progress across future work, while MM3 describes the gap between deployed-system risk and current academic coverage.
+MM3 is urgent not because the problem is well-posed and tractable (it is neither), but because, unlike streaming text safety where the problem is at least defined and the attack surface understood, audio and video safety lacks even a foundational attack-surface taxonomy; the distance between deployment reality and academic treatment is widest precisely here.
+MM3 urgency therefore calls for immediate investment in problem definition --- an attack-surface taxonomy for audio-language and video-language models --- even before a reproducible evaluation protocol for that domain exists.
+RP1 and MM3 are thus complementary rather than competing priorities: MM3 motivates \emph{why} we need the field to move fast, and RP1 explains \emph{how} that movement must be structured to produce reproducible results.
+MM1--MM2 (cross-modal alignment and multi-turn VLM attacks) require more foundational work on VLM architecture before targeted guardrail solutions are feasible.
+FT1 (fine-tuning robustness) and FG1 (formal guarantees) are the most foundationally difficult: FT1 requires solving an optimisation-theoretic problem about weight-space invariants, and FG1 faces the non-stationary adversary obstacle described below.
+RT1--RT3 (streaming safety) are the most tractable in the near term: they are empirical questions that could be addressed by a single rigorous study, and the adjacent constrained-generation literature provides structural inspiration.
+They are also \emph{sequentially dependent}: RT1 (minimum viable prefix length) is a prerequisite for RT2 and RT3 --- without knowing the minimum prefix at which a classifier can operate reliably, the parallelism architecture (RT2) has no design target, and the early-stopping cost analysis (RT3) has no threshold to optimise against.
+Future work should therefore address RT1 before RT2 or RT3.
+
+\subsection{The Reproducibility Crisis}
+\label{subsec:reproducibility}
+
+The most pervasive finding of this review is methodological.
+Across three temporally separated author-verification passes spanning 75 primary
+sources and 237 extracted claims, exactly five claims survived structured self-review
+(unanimous agreement across all three passes required).
+
+Table~\ref{tab:claim_counts} breaks down the 237 extracted claims by section to
+allow verification that the section-level totals are consistent with the headline
+count.
+
+\begin{table}[h]
+  \caption{Section-level breakdown of the 237 extracted claims.
+           Claims are quantitative or qualitative architectural assertions only;
+           purely descriptive or background statements were not coded as discrete claims.
+           The fifth surviving claim (evaluation-protocol fragility, SALAD-Bench
+           meta-finding) is a cross-cutting meta-finding drawn from the 72 remaining
+           papers; it is enumerated in the text below and in Section~\ref{sec:conclusion}
+           but is not attributed to a single row in this table.}
+  \label{tab:claim_counts}
+  \centering
+  \begin{tabular}{lrr}
+    \toprule
+    \textbf{Section} & \textbf{Claims extracted} & \textbf{Claims surviving} \\
+    \midrule
+    \S3 Background and Taxonomy         & 18  & 2 \\
+    \S4 Real-Time Guardrails            & 25  & 1 \\
+    \S5 Multimodal Guardrails           & 26  & 2 \\
+    \S6 Reproducibility (meta-finding)  &  0  & 0 \\
+    Remaining 72 corpus papers          & 168 & 0 \\
+    \midrule
+    \textbf{Total}                      & \textbf{237} & \textbf{5} \\
+    \bottomrule
+  \end{tabular}
+  \par\smallskip
+  \noindent\small The 168 remaining claims are distributed across the 72 corpus
+  papers not individually highlighted in Sections~\ref{sec:background}--\ref{sec:multimodal}.
+  The SALAD-Bench meta-finding (fifth surviving claim) is the only surviving claim
+  from this group; it is reported separately because it is a cross-paper methodological
+  observation, not a result of any single paper.
+\end{table}
+
+The five surviving claims are:
+
+\begin{enumerate}
+  \item The dual reward model architecture and threshold arbitration in Llama 2
+        ($R_s < 0.15$)~\cite{touvron2023llama2}, verified in
+        Section~\ref{sec:realtime} (Dual Reward Model Architecture subsection).
+  \item Safety Context Distillation as a weight-embedding technique~\cite{touvron2023llama2},
+        verified in Section~\ref{sec:background} (Foundational Alignment Techniques
+        subsection).
+  \item The Llama Guard instruction-following classification
+        architecture~\cite{inan2023llama}, verified in Section~\ref{sec:realtime}
+        (Llama Guard subsection).
+  \item Multi-turn conversational priming as a jailbreak amplifier (+29--71\% over
+        single-turn attacks)~\cite{russinovich2024greatescalation,li2024llm},
+        verified in Section~\ref{sec:multimodal} (Multi-Turn Conversational Attack
+        subsection).
+  \item Evaluation methodology choices shifting reported attack-success rates by up
+        to 30 percentage points~\cite{li2024salad}, verified as a meta-finding
+        across Sections~\ref{sec:realtime} and~\ref{sec:multimodal}.
+\end{enumerate}
+
+The pattern of refutations is instructive.
+Refuted claims are not uniformly fabricated; they reflect genuine experimental
+observations that collapse under three failure modes:
+(i) \emph{evaluation-protocol fragility}---at least 9 distinct evaluation setups
+appear across papers, and token-output budget alone accounts for $\pm$30\% variation
+in ASR~\cite{li2024salad};
+(ii) \emph{model-version sensitivity}---results reported for GPT-4-0314 may not hold
+for GPT-4-0613 or subsequent updates;
+(iii) \emph{overstated precision}---specific numerical claims (e.g.\ exact ASR
+percentages) cannot be reproduced from available source material.
+
+\paragraph{Open problem (RP1)}
+\textit{The field lacks a standardised, versioned evaluation protocol for runtime
+guardrail effectiveness.}
+Current practice uses incompatible combinations of attack sets, judge models,
+token budgets, and harm taxonomies, making cross-paper comparisons unreliable.
+Several recent frameworks attempt to address this: HarmBench~\cite{mazeika2024harmbench}
+proposes a standardised red-teaming evaluation with fixed attack sets and a common
+judge, finding that attack success rates vary dramatically across evaluation setups;
+StrongREJECT~\cite{souly2024strongreject} identifies a specific failure mode of
+common jailbreak evaluations---empty or low-quality jailbreaks scoring as successful
+when judge models apply lenient criteria; GRAM~\cite{zhu2024gram} analyses
+generalisation failures in safety evaluation by showing that guardrails overfit to
+training attack distributions; and EasyJailbreak~\cite{zhou2024easyjailbreak} provides
+a unified framework exposing how the choice of jailbreak methodology alone accounts
+for substantial variance in reported attack success rates.
+Collectively these works confirm that the evaluation fragility is not incidental but
+structural: progress claimed by any paper that does not fix all five protocol
+dimensions (attack set version, judge model version, token budget, harm taxonomy,
+and ambiguous-output handling) is not reproducible.
+A standardised protocol must specify all five dimensions before any guardrail results
+can be compared across papers.
+
+\subsection{The Streaming Safety Gap}
+
+As established in Section~\ref{subsec:streaming_gap}, no verified mechanism exists
+for enforcing safety constraints on streamed token sequences in real time.
+(This null finding was confirmed across three independent search passes using streaming-specific query terms including ``token-by-token safety,'' ``prefix classification,'' ``streaming guardrail,'' and ``in-generation filtering''; the absence reflects the state of the literature, not a gap in the search strategy.)
+
+\paragraph{Open problem (RT1) \textnormal{[prerequisite for RT2 and RT3]}}
+\textit{Minimum viable prefix length for streaming safety detection.}
+For each harm category (explicit content, self-harm facilitation, cyberweapon
+synthesis, etc.), what is the minimum prefix length at which a classifier can
+achieve acceptable precision and recall?
+This determines whether in-generation safety checking is architecturally feasible
+without unacceptable latency or over-refusal rates.
+RT1 is the foundational empirical question: the answer sets the design target for
+the parallelism architecture (RT2) and the minimum window for the stopping policy
+analysis (RT3).
+Progress on RT2 or RT3 without first answering RT1 risks optimising an architecture
+with no empirically grounded operating point.
+
+A deployment caveat applies to any empirical RT1 finding: the minimum viable prefix length, once published, becomes an adversarial target.
+An attacker who knows the threshold $L^*$ can front-load the first $L^* - 1$ tokens with benign content and inject policy-violating material thereafter.
+RT1 answers should therefore be treated as private security parameters rather than published design constants --- analogous to the non-stationarity critique that applies to Aegis's no-regret bound (Section~\ref{sec:open_problems}).
+Future work on RT1 should include an adversarial robustness analysis that evaluates classifier performance when the threshold is known to the attacker, not only under the standard oblivious-attacker assumption.
+
+\paragraph{Open problem (RT2) \textnormal{[requires RT1 answer]}}
+\textit{Parallelism architecture for in-generation safety checking.}
+A streaming-compatible safety mechanism must run concurrently with the generation
+process.
+Whether this requires a separate inference process, speculative decoding tricks,
+or a fundamentally different model architecture is an open design question whose
+feasibility depends on the minimum prefix length established by RT1.
+
+\paragraph{Open problem (RT3) \textnormal{[requires RT1 answer]}}
+\textit{Early-stopping cost under uncertainty.}
+Conservative in-generation classifiers may stop generation on ambiguous prefixes,
+trading safety for utility.
+The optimal stopping policy under uncertainty---and its sensitivity to harm category,
+user population, and deployment context---has not been studied.
+The RT1 answer determines the earliest prefix at which an early-stopping decision
+is meaningful; without it, the policy optimisation in RT3 has no grounded lower bound.
+
+\subsection{The Cross-Modal Alignment Deficit}
+
+\paragraph{Open problem (MM1)}
+\textit{Does safety alignment in the text backbone transfer to visual and audio
+modalities?}
+The qualitative concern that multimodal fine-tuning introduces new vulnerability
+pathways has not been rigorously characterised.
+A reproducible measurement protocol---one that isolates the contribution of
+multimodal fine-tuning from changes in the training data distribution---is needed.
+
+\paragraph{Open problem (MM2)}
+\textit{Multi-turn conversational attacks on VLMs.}
+The confirmed finding that multi-turn priming amplifies jailbreaks in text-only
+models~\cite{russinovich2024greatescalation} has not been evaluated in VLM settings.
+Does image context accelerate or retard multi-turn escalation?
+Does visual priming (a sequence of benign images) create the same vulnerability as
+text priming?
+
+\paragraph{Open problem (MM3)}
+\textit{Audio and video safety mechanisms.}
+No verified safety mechanism for audio-language or video-language models exists in
+the literature.
+Given active deployment of audio-capable models, this represents the most urgent
+gap in the multimodal safety landscape.
+
+\subsection{Post-Deployment Fine-Tuning Threats}
+
+\paragraph{Open problem (FT1)}
+\textit{Safety alignment robustness under post-deployment customisation.}
+Qi et al.~\cite{qi2023finetuning} raise the concern that fine-tuning on entirely
+benign data may degrade safety alignment.
+The specific numerical claims in that paper did not survive adversarial verification,
+but the threat model is sound: any deployment context that allows users to fine-tune
+the model (e.g.\ OpenAI fine-tuning API, open-source model adaptation) creates a
+potential mechanism for safety degradation.
+What architectural invariants would make safety behaviour robust to post-deployment
+fine-tuning?
+
+\subsection{Formal Guarantees}
+
+\paragraph{Open problem (FG1)}
+\textit{Completeness bounds for runtime guardrails.}
+No verified formal result provides bounds on the false-negative rate of any runtime
+guardrail against novel jailbreaks outside the training distribution.
+The Aegis no-regret bound~\cite{su2024aegis} is the closest attempt but did not
+survive adversarial verification.
+Establishing even weak distribution-dependent bounds---analogous to PAC-learning
+guarantees---would represent a significant theoretical advance.
+
+The most instructive case study is erase-and-check~\cite{kumar2023certifying}, which does
+provide formal guarantees --- but under a specific threat model that does not match
+operational deployment.
+Erase-and-check provides certified guarantees under a bounded random-erasure threat
+model: it can certify that no harmful content survives a specified erasure budget.
+These guarantees do not, however, extend to adaptive adversaries who craft inputs
+specifically to survive erasure with high probability --- through paraphrasing,
+insertion, semantic-preserving transformations, or embedding-space perturbations.
+This is not a limitation of the technique within its threat model; it is a
+\emph{threat-model mismatch} between what erase-and-check certifies (robustness to
+bounded random erasure) and what deployed guardrails must withstand (adaptive
+adversarial attack).
+Practitioners should therefore treat erase-and-check certificates as providing strong
+theoretical assurance under restricted assumptions, not as practical robustness
+guarantees against motivated adversaries.
+
+Two structural obstacles explain why this threat-model mismatch is not easily
+closed by extending the erase-and-check framework: (i) the adversary is
+\emph{non-stationary} --- unlike the fixed but unknown distribution assumed in
+classical PAC learning, a jailbreak adversary adapts to the deployed guardrail,
+so the adaptive attacker who crafts inputs to survive erasure is precisely the
+adversary that falls outside the bounded random-erasure model, rendering any
+bound derived on a fixed attack distribution invalid after the first adaptive
+attack iteration; and (ii) the input distribution over jailbreak prompts is
+\emph{undefined by default} --- there is no agreed natural distribution over
+harmful queries, making it unclear what an $\epsilon$-$\delta$ bound would be
+taken over even in the non-adaptive case.
+Future work on FG1 should therefore frame completeness bounds explicitly in
+adversarial or minimax terms --- worst-case regret against a computationally
+bounded adaptive adversary --- rather than in the classical PAC formulation,
+which assumes a fixed and non-adaptive attack distribution.

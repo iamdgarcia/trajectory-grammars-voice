@@ -1,0 +1,53 @@
+% §6 Open Problems
+The two-floor model leaves deliberately open problems that we list with their intended next
+steps.
+
+\paragraph{Standardised cessation and perceived-V2V measurement.}
+Industry measures barge-in timing ad hoc; there is no shared definition and no protocol for the
+perceived variant (audio actually reaching the speaker, including transport and devices).
+A standardised protocol for \emph{perceived} response onset and cessation -- analogous to the
+reporting standards that exist for static benchmarks -- would let the floors of
+Theorem~\ref{thm:cessation_floor} be compared across systems and labs.
+Our smoke anchor is an approximation; the protocol is the full measurement campaign.
+
+\paragraph{Guardrail re-arming under reentry.}
+An execution-persistent orchestrator re-enters the model on every tool completion.
+Each re-entry is a fresh generation window and therefore a fresh place a guardrail must arm
+\citep{dong2024building}.
+The safety-deadline question -- where a guardrail can sit inside the floor without inflating it
+-- becomes a per-reentry schedulability problem with the same shared-dependency structure as
+Proposition~\ref{prop:floor_dependency}.
+This connects the present paper to the open streaming-safe guardrail gap and its
+linear-cost certification question.
+
+\paragraph{Forgetting and context compaction across long sessions.}
+Long stateful sessions grow the prefill contribution to the onset floor over time.
+Managing what the agent retains -- compaction, eviction, external memory -- is a
+\emph{deadline-aware} policy in the same sense as buffer depth is here
+\citep{xiao2023streamingllm,packer2023memgpt}.
+A ``forgetting floor'' that ties retained context to the onset budget is the natural companion
+result.
+
+\paragraph{Cancellable vs irrevo\-cable tools.}
+The ``tool persistence under cancellation is safe'' headline of
+Section~\ref{sec:analysis} is \emph{protocol}-safe: it guarantees a provider-valid history
+(Lemma~\ref{lem:serializability}).
+It is not automatically \emph{business}-safe.
+For irrevocable, side-effecting tools -- payment, transfer, authorization -- a resumed context
+that re-runs the same tool risks double-execution or double-charge.
+Idempotency keys, revocation, and explicit re-authorisation are therefore prerequisites for
+persisting business-critical tools across an interruption.
+This is a separate concern from the type A/B/C classification: tool typing describes when
+a result is needed for audio, not whether re-running the persisted call is safe.
+
+\paragraph{Learned turn-end prediction.}
+Reacting to an interruption is the worst case; predicting it is the improvement.
+The companion paper's predictive-stop ceiling and this paper's reactive floor delimit the
+intervention window, and learning to shrink it is an open empirical question.
+
+\paragraph{Predictive dispatch across tool types.}
+Reclassifying a tool from type A to type B at runtime -- dispatching it off a partial
+transcript before the turn is final -- is the engine behind deployed pre-EOU dispatch and
+prefetch systems \citep{specrag2024,agentsnotenough2024,lin2026fdbv3}.
+A composition rule that states when such pre-dispatch is safe, and what it costs in accuracy,
+remains open.

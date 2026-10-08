@@ -1,0 +1,54 @@
+% §5 The Practical Question: Which Cascade Architecture?
+Practitioners currently choose between four concrete cascade configurations for a realtime,
+tool-using, long-session assistant:
+a serial graph orchestrator (no decoupling, no filler),
+the same with manual filler,
+the same with model-uttered (LLM) filler, and
+a decoupled, event-driven runtime with tools on a background clock.
+The two-floor model assigns each configuration its onset and cessation behaviour in one table
+(Table~\ref{tab:architectures}).
+
+\begin{table}[t]
+\centering
+\begin{tabular}{p{0.30\textwidth}p{0.32\textwidth}p{0.30\textwidth}}
+\toprule
+\textbf{Architecture} & \textbf{Onset} & \textbf{Cessation} \\
+\midrule
+Serial graph (all clocks coupled) & pays reducible latency serially &
+can cancel generation; checkpoint preserves state, but the coupled loop drags tool-waits and
+delivery into the stop path \\
+\midrule
+Serial graph + manual filler & onset masked at delivery layer &
+manual filler shortens the interruption tail: the classic barge-in-friendly device \\
+\midrule
+Serial graph + LLM filler & onset masked but fragment may bleed or duplicate in the committed
+text & no cessation gain; unretractable filler corrupts delivered content per
+Corollary~\ref{cor:filler} \\
+\midrule
+Event-driven, decoupled clocks & hides reducible latency during user speech &
+owns both floors: generation-interruptible, execution-persistent, atomically committed batches
+(Lemma~\ref{lem:serializability}) \\
+\bottomrule
+\end{tabular}
+\caption{The four cascade architectures mapped onto the two-floor model. The event-driven row
+is a sufficiency statement (Definitions~\ref{def:interruptibility} and~\ref{def:clocks}), not
+an in-principle uniqueness claim: a graph orchestrator that hosts async nodes, background
+dispatch, and checkpoint reentry can emulate it at expressiveness cost.
+\label{tab:architectures}}
+\end{table}
+
+Two consequences follow.
+First, for single-hop turns there is no reducible latency to hide and no tail to manage: under
+a fixed in-flight policy all four configurations meet the same floor, so orchestration choice
+is noise.
+Second, for tool and long-duration turns the configurations separate sharply: tool round-trips
+land on the onset floor unless dispatched to a background clock
+(Theorem~\ref{thm:tool_hiding}), and interruption behaviour is governed by the delivery tail
+(Theorem~\ref{thm:cessation_floor}).
+This separation is the pattern that tool-agent latency evaluations reveal: they measure
+accuracy and liveness jointly but do not predict liveness from tool-DAG structure
+\citep{taubench2024}, whereas our model predicts exactly the turns where structure dominates.
+An assistant that mostly answers from memory can stay on a serial graph with manual filler;
+an assistant whose turns habitually touch the bank, the card service, or multi-step skills
+needs the decoupled runtime to avoid paying each tool round-trip inside the user's perceived
+silence.

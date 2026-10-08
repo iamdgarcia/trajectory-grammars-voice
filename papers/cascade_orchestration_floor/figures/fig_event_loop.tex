@@ -1,0 +1,28 @@
+% Event algebra of the orchestrator: generic events, three clocks, reentry.
+\begin{tikzpicture}[>=Stealth, font=\small,
+  st/.style={draw, rounded corners, align=center, minimum height=9mm, minimum width=24mm},
+  ev/.style={->,>=Stealth}]
+  \node[st] (idle) at (0,0) {Idle};
+  \node[st] (gen)  at (5,1.5) {Generating};
+  \node[st] (del)  at (10,1.5) {Delivering};
+  \node[st] (tool) at (5,-2.5) {Tool running};
+  % user turn: idle -> generating (diagonal)
+  \draw[ev] (idle) -- (gen) node[midway,above,font=\scriptsize,left=2mm]{user turn};
+  % stream: generating -> delivering (straight, label above)
+  \draw[ev] (gen) -- (del) node[midway,above,font=\scriptsize]{stream};
+  % interrupt: red arc OVER the top left (cancels generation only, not tools)
+  \draw[ev,red] (gen.north west) to[bend left=75]
+    node[midway,above,font=\scriptsize,red]{interrupt} (idle.north east);
+  % tool call: right bulge down from generation to the tool
+  \draw[ev] (gen.south east) .. controls (6.3,-0.3) and (6.3,-1.5) .. (tool.north east)
+    node[pos=0.5,right,font=\scriptsize]{tool call};
+  % completion -> reentry: left bulge up from the tool to generation
+  \draw[ev] (tool.north west) .. controls (3.7,-1.6) and (3.7,-0.2) .. (gen.south west)
+    node[pos=0.5,left,font=\scriptsize]{completion $\rightarrow$ reentry};
+  % tool execution persists across interruption (self-loop under the tool)
+  \draw[dashed,->,gray] (tool.south) .. controls (6.4,-3.3) and (3.6,-3.3) .. (tool.south);
+  \node[gray,font=\scriptsize] at (5.15,-3.55) {execution persists};
+  % delivery outcomes: one outer loop around the right and bottom (clear of everything)
+  \draw[ev] (del.south) .. controls (11.7,-3.5) and (0.3,-4.6) .. (idle.south)
+    node[pos=0.30,below,font=\scriptsize,xshift=1.5mm,yshift=-1mm]{delivery: completed / interrupted};
+\end{tikzpicture}

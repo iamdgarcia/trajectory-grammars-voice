@@ -1,0 +1,275 @@
+% Bibliography for "Start Fast, Stop Fast: Interruptibility and the Cessation
+% Floor of Realtime Cascade Voice Agents".
+% All entries verified against the arXiv API / Crossref on 2026-09-01 (sweep
+% covering 2025-26 full-duplex and interruption benchmarks included).
+% The only placeholder is `latencyfloor2025` (our own companion paper): fill in
+% its arXiv id once published under its final id.
+
+%% ── Spoken Dialogue Systems: incremental revocability ───────────────────────
+@inproceedings{schlangen2011general,
+  author    = {Schlangen, David and Skantze, Gabriel},
+  title     = {A General, Abstract Model of Incremental Dialogue Processing},
+  booktitle = {Proceedings of the 13th Conference of the European Chapter of the
+               Association for Computational Linguistics (EACL)},
+  year      = {2011},
+  pages     = {51--60}
+}
+
+@inproceedings{raux2008optimizing,
+  author    = {Raux, Antoine and Eskenazi, Maxine},
+  title     = {Optimizing Endpointing Thresholds using Dialogue Features for a Voice
+               Search System},
+  booktitle = {Proceedings of the 9th SIGdial Workshop on Discourse and Dialogue},
+  year      = {2008},
+  pages     = {1--10}
+}
+
+@article{skantze2021turn,
+  author    = {Skantze, Gabriel},
+  title     = {Turn-Taking in Conversational Systems and Human-Robot Interaction:
+               Challenges and Opportunities},
+  journal   = {Computer Speech and Language},
+  volume    = {67},
+  pages     = {101178},
+  year      = {2021}
+}
+
+%% ── Human perceptual thresholds ─────────────────────────────────────────────
+@article{levinson2015timing,
+  author  = {Levinson, Stephen C. and Torreira, Francisco},
+  title   = {Timing in Turn-Taking and Its Implications for Processing Models
+             of Language},
+  journal = {Frontiers in Psychology},
+  volume  = {6},
+  pages   = {731},
+  year    = {2015}
+}
+
+@article{stivers2009universals,
+  author  = {Stivers, Tanya and Enfield, N. J. and Brown, Penelope
+             and Englert, Christina and Hayashi, Makoto and Heinemann, Trine
+             and Hoymann, Gertie and Rossano, Federico and de Ruiter, Jan Peter
+             and Yoon, Kyung-Eun and Levinson, Stephen C.},
+  title   = {Universals and Cultural Variation in Turn-Taking in Conversation},
+  journal = {Proceedings of the National Academy of Sciences},
+  volume  = {106},
+  number  = {26},
+  pages   = {10587--10592},
+  year    = {2009}
+}
+
+%% ── Native (full-duplex) voice models ───────────────────────────────────────
+@misc{defossez2024moshi,
+  author       = {D\'{e}fossez, Alexandre and Mazar\'{e}, Laurent and Orsini, Manu
+                  and Royer, Am\'{e}lie and P\'{e}rez, Patrick and J\'{e}gou, Herv\'{e}
+                  and Grave, Edouard and Zeghidour, Neil},
+  title        = {Moshi: A Speech-Text Foundation Model for Real-Time Dialogue},
+  year         = {2024},
+  howpublished = {arXiv preprint arXiv:2410.00037}
+}
+
+@misc{openai2024realtimeapi,
+  author       = {{OpenAI}},
+  title        = {Introducing the {Realtime API}},
+  year         = {2024},
+  howpublished = {\url{https://openai.com/index/introducing-the-realtime-api/}}
+}
+
+@misc{google2024geminivoice,
+  author       = {{Google DeepMind}},
+  title        = {Gemini 1.5 {Pro} and {Flash}: Multimodal and Long-Context Capabilities},
+  year         = {2024},
+  howpublished = {\url{https://deepmind.google/technologies/gemini/}}
+}
+
+%% ── LLM agents, orchestration, inference ────────────────────────────────────
+@inproceedings{yao2023react,
+  author    = {Yao, Shunyu and Zhao, Jeffrey and Yu, Dian and Du, Nan
+               and Shafran, Izhak and Narasimhan, Karthik and Cao, Yuan},
+  title     = {{ReAct}: Synergizing Reasoning and Acting in Language Models},
+  booktitle = {Proceedings of the 11th International Conference on Learning
+               Representations (ICLR)},
+  year      = {2023}
+}
+
+@article{wei2023chainofthought,
+  author  = {Wei, Jason and Wang, Xuezhi and Schuurmans, Dale and Bosma, Maarten
+             and Ichter, Brian and Xia, Fei and Chi, Ed and Le, Quoc and Zhou, Denny},
+  title   = {Chain-of-Thought Prompting Elicits Reasoning in Large Language Models},
+  journal = {Advances in Neural Information Processing Systems},
+  volume  = {35},
+  pages   = {24824--24837},
+  year    = {2022}
+}
+
+@misc{langgraph2024,
+  author       = {{LangChain AI}},
+  title        = {{LangGraph}: Building Stateful Multi-Actor Applications with {LLMs}},
+  year         = {2024},
+  howpublished = {\url{https://github.com/langchain-ai/langgraph}}
+}
+
+@inproceedings{leviathan2023fast,
+  author    = {Leviathan, Yaniv and Kalman, Matan and Matias, Yossi},
+  title     = {Fast Inference from Transformers via Speculative Decoding},
+  booktitle = {Proceedings of the 40th International Conference on Machine Learning (ICML)},
+  year      = {2023},
+  pages     = {19274--19286}
+}
+
+@misc{xiao2023streamingllm,
+  author       = {Xiao, Guangxuan and Tian, Yuandong and Chen, Beidi and Han, Song
+                  and Lewis, Mike},
+  title        = {Efficient Streaming Language Models with Attention Sinks},
+  year         = {2023},
+  howpublished = {arXiv preprint arXiv:2309.17453}
+}
+
+%% ── Guardrails (bridge to the safety thread) ────────────────────────────────
+@article{dong2024building,
+  author    = {Dong, Yi and Mu, Ronghui and Jin, Gaojie and Qi, Yi and Hu, Jinwei
+               and Zhao, Xingyu and Meng, Jie and Ruan, Wenjie and Huang, Xiaowei},
+  title     = {Building Guardrails for Large Language Models},
+  journal   = {arXiv preprint arXiv:2402.01822},
+  year      = {2024}
+}
+
+%% ── Our own companion paper ─────────────────────────────────────────────────
+@misc{latencyfloor2025,
+  author       = {Garc\'ia Pe\~na, Daniel},
+  title        = {The Latency Floor of Cascade Voice Agents: Formal Bounds and
+                  Design Levers},
+  year         = {2026},
+  howpublished = {alphaXiv preprint alphaXiv:2608.latency-floor-cascade-voice-agents}
+}
+
+%% ============================================================================
+%% RELATED WORK -- metadata verified via arXiv API / Crossref on 2026-09-01.
+%% All entries verified; none carry TODO-VERIFY notes.
+%% ============================================================================
+
+@article{raux2012optimizing,
+  author    = {Raux, Antoine and Eskenazi, Maxine},
+  title     = {Optimizing the Turn-Taking Behavior of Task-Oriented Dialog
+               Systems},
+  journal   = {ACM Transactions on Speech and Language Processing},
+  volume    = {9},
+  number    = {1},
+  pages     = {1--23},
+  year      = {2012}
+}
+
+@inproceedings{bohus2011interruptions,
+  author    = {Bohus, Dan and Horvitz, Eric},
+  title     = {Decisions about Turns in Multiparty Conversation: From Perception
+               to Action},
+  booktitle = {Proceedings of the 13th International Conference on Multimodal
+               Interaction (ICMI)},
+  pages     = {153--160},
+  year      = {2011}
+}
+
+@article{schegloff2000overlap,
+  author  = {Schegloff, Emanuel A.},
+  title   = {Overlapping Talk and the Organization of Turn-Taking for
+             Conversation},
+  journal = {Language in Society},
+  volume  = {29},
+  number  = {1},
+  pages   = {1--63},
+  year    = {2000}
+}
+
+@article{ward2000backchannel,
+  author  = {Ward, Nigel and Tsukahara, Wataru},
+  title   = {Prosodic Features Which Cue Back-Channel Responses in English and
+             Japanese},
+  journal = {Journal of Pragmatics},
+  volume  = {32},
+  number  = {8},
+  pages   = {1177--1207},
+  year    = {2000}
+}
+
+@article{heldner2010gaps,
+  author  = {Heldner, Mattias and Edlund, Jens},
+  title   = {Pauses, Gaps and Overlaps in Conversations},
+  journal = {Journal of Phonetics},
+  volume  = {38},
+  number  = {4},
+  pages   = {555--568},
+  year    = {2010}
+}
+
+@inproceedings{baumann2012prosodic,
+  author    = {Baumann, Timo and Schlangen, David},
+  title     = {Evaluating Prosodic Processing for Incremental Speech Synthesis},
+  booktitle = {Proceedings of Interspeech},
+  pages     = {438--441},
+  year      = {2012}
+}
+
+%% ── Tool hiding / prefetch / tool-agent eval (verified arXiv records) ───────
+@misc{specrag2024,
+  author       = {Wang, Zilong and Wang, Zifeng and Zhang, Linjie and others},
+  title        = {Speculative RAG: Enhancing Retrieval Augmented Generation
+                  through Drafting},
+  year         = {2024},
+  howpublished = {arXiv preprint arXiv:2407.08223}
+}
+
+@misc{agentsnotenough2024,
+  author       = {Shah, Chirag and White, Ryen W.},
+  title        = {Agents Are Not Enough},
+  year         = {2024},
+  howpublished = {arXiv preprint arXiv:2412.16241}
+}
+
+@misc{taubench2024,
+  author       = {Yao, Shunyu and Shinn, Noah and Razavi, Pedram and
+                  Narasimhan, Karthik},
+  title        = {tau-bench: A Benchmark for Tool-Agent-User Interaction in
+                  Real-World Domains},
+  year         = {2024},
+  howpublished = {arXiv preprint arXiv:2406.12045}
+}
+
+@misc{packer2023memgpt,
+  author       = {Packer, Charles and Wooders, Sarah and Lin, Kevin and others},
+  title        = {MemGPT: Towards LLMs as Operating Systems},
+  year         = {2023},
+  howpublished = {arXiv preprint arXiv:2310.08560}
+}
+
+%% ── Full-duplex / interruption benchmarks, 2025-26 (verified arXiv records) ─
+@misc{lin2025fullduplexbench,
+  author       = {Lin, Guan-Ting and Lian, Jiachen and Li, Tingle and others},
+  title        = {{Full-Duplex-Bench}: A Benchmark to Evaluate Full-Duplex Spoken
+                  Dialogue Models on Turn-Taking Capabilities},
+  year         = {2025},
+  howpublished = {arXiv preprint arXiv:2503.04721}
+}
+
+@misc{lin2026fdbv3,
+  author       = {Lin, Guan-Ting and Chen, Chen and Chen, Zhehuai and others},
+  title        = {{Full-Duplex-Bench-v3}: Benchmarking Tool Use for Full-Duplex
+                  Voice Agents},
+  year         = {2026},
+  howpublished = {arXiv preprint arXiv:2604.04847}
+}
+
+@misc{salimi2026ihbench,
+  author       = {Salimi, Ahmad and Ma, Wentao and Tang, Yuzhi and others},
+  title        = {{IHBench}: Evaluating Post-Interruption Recovery in Voice
+                  Agents with Structured Workflows},
+  year         = {2026},
+  howpublished = {arXiv preprint arXiv:2606.19595}
+}
+
+@misc{li2025easyturn,
+  author       = {Li, Guojian and Wang, Chengyou and Xue, Hongfei and others},
+  title        = {Easy Turn: Integrating Acoustic and Linguistic Modalities for
+                  Robust Turn-Taking in Full-Duplex Spoken Dialogue},
+  year         = {2025},
+  howpublished = {arXiv preprint arXiv:2509.23938}
+}

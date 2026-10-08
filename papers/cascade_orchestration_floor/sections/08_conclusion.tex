@@ -1,0 +1,25 @@
+% §8 Conclusion
+Real-time responsiveness in cascade voice agents is two-sided, and this paper supplies the side
+that has neither a standard definition nor a bound: the cessation floor.
+We close the gap with a two-floor model and a phase-conditioned result: cessation grows with
+in-flight audio up to the committed buffer depth, generation cancellation is prompt and
+independent of the delivery tail, and resumption after interruption is dominated by tool
+round-trip cost unless tools run on a background clock.
+
+The enabling mechanism is orchestration, not any single component.
+Decoupling generation, delivery, and tool clocks makes an agent generation-interruptible and
+execution-persistent at once, and an API-serializability lemma guarantees that cancelling
+generation never strands a pending tool batch.
+A small, tested orchestrator verifies the semantics, and a monotonic-clock smoke anchor
+instantiates the quantitative shape: cessation linear in in-flight audio, prompt
+depth-independent cancellation, and tool-dominated resumption.
+
+The practical conclusion answers the debate that motivated this work.
+For an assistant whose turns are short and memory-bound, orchestration choice is noise under a
+fixed in-flight policy.
+For an assistant whose turns routinely call tools -- a bank, a card service, a multi-step
+skill -- an idiomatically decoupled runtime avoids paying each round trip inside the
+user's perceived silence and manages the interruption tail.
+Framework arguments settle no data; the two floors settle the question: onset and cessation
+together describe perceived responsiveness, and the onset guarantee now extends to the
+orchestration that schedules reasoning, tools, and interruptions.

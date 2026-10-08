@@ -1,0 +1,328 @@
+\section{Multimodal Guardrails}
+\label{sec:multimodal}
+
+Multimodal large language models—systems that accept inputs in more than one
+modality (typically text and image, with audio and video emerging)—introduce
+qualitatively new safety challenges.
+This section reviews the attack surface, the proposed defences, and the
+confirmed and unconfirmed findings from the literature.
+
+\subsection{The Multimodal Attack Surface}
+
+\subsubsection{Cross-Modal Jailbreaks}
+
+Cross-modal jailbreaks exploit the gap between where safety alignment is
+applied (predominantly the text backbone) and where harmful content can enter
+(any input modality).
+Several attack classes have been documented:
+
+\paragraph{Typographic attacks}
+Embedding text into images allows harmful instructions to enter the model's context
+through the vision encoder rather than the text tokeniser, potentially bypassing
+text-focused filters~\cite{gong2023figstep}.
+The FigStep attack converts harmful text into images of step-by-step instructions,
+exploiting VLMs' tendency to follow visually presented instructions.
+
+\paragraph{Adversarial image perturbations}
+Imperceptible perturbations applied to images can steer VLM outputs toward
+attacker-chosen strings~\cite{liu2023queryrelevant}.
+These attacks target the visual encoder (e.g.\ CLIP) rather than the language
+backbone.
+
+\paragraph{Indirect prompt injection via media}
+An attacker can embed adversarial instructions in an image or document that the user
+shares with the model, hijacking the model's behaviour without the user's knowledge.
+AgentPoison~\cite{chen2024agentpoison} extends this vector to agentic LLM systems,
+showing that poisoning a model's external memory or knowledge base can redirect
+agent behaviour without any modification to the model's weights.
+A clarification on scope is warranted: AgentPoison is evaluated primarily on
+text-only agentic systems with multimodal retrieval (i.e.\ systems that retrieve
+and process image or document content but whose core reasoning backbone is a
+text LLM), rather than on vision-language models where the image encoder is
+part of the model's inference graph.
+The attack surface distinction matters: in a text-only agent with multimodal
+retrieval, the attack operates through the retrieved context that is transcribed
+or described for the text LLM, whereas in a true VLM the adversarial content
+can be embedded directly in the image encoder's input.
+AgentPoison is included under multimodal attacks because it demonstrates the
+retrieval-augmentation attack vector that applies when VLMs are deployed in
+agentic contexts with external memory or knowledge bases.
+
+\paragraph{Text-channel attacks on multimodal models}
+A counterintuitive finding reported across multiple papers~\cite{zhao2024evaluating}
+is that text-only jailbreaks applied to MLLMs---without any image input---achieve
+high attack success rates, suggesting that multimodal fine-tuning may weaken the
+text-backbone's safety alignment.
+These specific numerical claims (average ASR of 50.5\% across open-source models)
+did not survive adversarial verification in this review.
+The \emph{qualitative direction} of this finding---that MLLM text channels are
+more vulnerable than equivalent text-only LLM baselines---is treated in this
+review as an \emph{unverified but plausible hypothesis}, not as an established
+fact: it is consistent with the theoretical framing (multimodal fine-tuning
+modifies the text backbone's activation distribution) but no study has provided
+a reproducible controlled comparison isolating the contribution of multimodal
+fine-tuning from confounds such as different training data, safety fine-tuning
+budget, or RLHF stage.
+This distinction matters for open problem MM1: the uncertainty is about the
+\emph{mechanism} (is it fine-tuning per se, or data differences?) as much as the
+\emph{magnitude}.
+
+\subsubsection{The Multi-Turn Conversational Attack}
+
+Of the 26 quantitative and architectural claims extracted from the multimodal
+guardrails corpus (see Table~\ref{tab:claim_counts}), two survived structured
+self-review: the multi-turn conversational priming finding and the cross-modal
+attack surface taxonomy.
+The only multimodal-relevant attack mechanism that survived all three temporally
+separated self-review verification passes in this review concerns multi-turn
+conversational context~\cite{li2024llm,russinovich2024greatescalation}.
+Multi-turn attacks prime the model through a sequence of benign exchanges that
+gradually shift the conversational context before introducing a harmful request.
+The Crescendo attack~\cite{russinovich2024greatescalation} reports that this
+approach outperforms single-turn jailbreaks by 29--61\% on GPT-4 and 49--71\% on
+Gemini-Pro across seven evaluated models.
+This claim passed all three verification passes for three specific reasons that
+distinguish it from analogous numerical claims that did not survive (e.g.\
+WildGuard's ASR reduction from 79.8\% to 2.4\%): (i) Russinovich et al.\ specify
+the exact prompting procedure, the seven target models, the evaluated harm
+categories, and the ASR measurement methodology in sufficient detail for a reader
+to reconstruct the evaluation; (ii) the directional finding (multi-turn priming
+outperforms single-turn) is corroborated by an independent replication framing
+in~\cite{li2024llm}, which reports consistent multi-turn amplification using a
+different attack methodology; and (iii) the percentage-improvement figures are
+reported as ranges across models rather than single point estimates, which is
+internally consistent with the observed variance across seven models and reduces
+the risk of cherry-picking.
+By contrast, single-point ASR claims such as WildGuard's 2.4\% failed because the
+evaluation baseline, judge model version, and token budget were not fully specified,
+making independent reproduction infeasible.
+
+The implication for multimodal guardrails is direct: a guardrail that inspects only
+the current turn---whether text or image---is structurally insufficient.
+Session-level conversational history must be a first-class input to any safety
+classifier intended to be robust against multi-turn attacks.
+This architectural requirement has not been incorporated into any of the verified
+real-time guardrail systems reviewed in Section~\ref{sec:realtime}.
+
+\subsection{VLM Safety Alignment}
+
+Table~\ref{tab:vlm_defence} compares the three principal VLM defence architectures
+reviewed in this section.
+All performance figures are as reported by the respective authors and are marked
+unverified (U) in accordance with the adversarial verification protocol
+(Section~\ref{subsec:verification_protocol}).
+
+\begin{table}[t]
+  \caption{Comparison of proposed VLM defence architectures. Performance figures
+           are author-reported and \textbf{unverified (U)}. VLM = requires retraining
+           the base vision-language model; N/A = not reported.}
+  \label{tab:vlm_defence}
+  \centering
+  \begin{tabular}{p{2.5cm}p{3.0cm}p{2.5cm}p{2.5cm}p{1.5cm}}
+    \toprule
+    \textbf{System} & \textbf{Design principle} & \textbf{Claimed gain} & \textbf{Retrains VLM?} & \textbf{Status} \\
+    \midrule
+    SafeVLM~\cite{oh2024safevlm}
+      & Plug-in safety projector + tokens + head
+      & Safety score $\uparrow$; ASR $\downarrow$ (unspecified)
+      & No
+      & U \\
+    DRESS$^\dagger$~\cite{chen2024dresssafety}
+      & NL-feedback RL alignment (instruction-following primary)
+      & $+21\%$ harmlessness (benchmark-specific)
+      & Yes
+      & U \\
+    MLLM-Protector~\cite{pi2024mllm}
+      & Detect-then-detoxify two-stage adapter
+      & ASR $\downarrow$ across multiple attack types
+      & No
+      & U \\
+    \bottomrule
+  \end{tabular}
+  \par\smallskip
+  \noindent\small $^\dagger$ Peripheral inclusion: DRESS is primarily an
+  instruction-following alignment paper; it is included because a subset of its
+  evaluation measures harmlessness, to contrast training-time approaches with the
+  inference-time guardrails above.
+  It should not be treated as evidence of a dedicated VLM safety guardrail.
+\end{table}
+
+The key cross-system observation is that the two non-retraining approaches
+(SafeVLM, MLLM-Protector) are architecturally compatible with deployment pipelines
+where the base VLM cannot be retrained, but both lack independently reproducible
+evaluations.
+DRESS requires full retraining and is included for completeness as a training-time
+baseline; it is not a drop-in inference-time guardrail.
+None of the three systems incorporates session-level context, limiting their
+effectiveness against multi-turn attacks (open problem MM2).
+
+\subsubsection{Does Text Alignment Transfer to Vision?}
+
+A recurring concern across the multimodal safety literature is whether safety
+alignment in the text backbone of a VLM transfers to the visual modality.
+Several papers report that vision-language fine-tuning weakens safety alignment,
+citing specific attack success rate differentials between base LLMs and their
+multimodal derivatives.
+These quantitative claims did not survive adversarial verification in this review.
+The \emph{qualitative} concern---that multimodal training introduces new vulnerability
+pathways that text-only safety alignment does not address---is consistent with the
+theoretical framing and warrants systematic empirical study with reproducible protocols.
+
+\subsubsection{Proposed Architectures}
+
+\paragraph{SafeVLM}
+SafeVLM~\cite{oh2024safevlm} adds three modules to an existing VLM: a safety
+projector, safety tokens injected into the input sequence, and a safety
+classification head.
+The claimed improvements in safety score and reductions in attack success rate did
+not survive adversarial verification.
+The modular, plug-in architecture---avoiding retraining the full VLM---represents
+a practically important design principle.
+
+\paragraph{DRESS}
+DRESS~\cite{chen2024dresssafety} is a training-time, model-intrinsic alignment
+paper included solely as a contrast baseline to the inference-time guardrails above.
+Its peripheral status and the reasons for inclusion are documented in full in the
+footnote to Table~\ref{tab:vlm_defence}; no further analysis is offered here to
+avoid redundancy.
+
+\paragraph{MLLM-Protector}
+MLLM-Protector~\cite{pi2024mllm} adds a lightweight harm-detection adapter and a
+response-detoxification module to existing MLLMs.
+The two-stage architecture---detect then detoxify---is designed to degrade gracefully:
+if the detoxification module introduces hallucinations on safe content, the harm
+detector can suppress it selectively.
+
+\paragraph{VLGuard}
+VLGuard~\cite{li2024vlguard} addresses VLM safety under low-resource constraints,
+proposing a safety fine-tuning approach that achieves alignment improvements with a
+small curated dataset rather than large-scale RLHF.
+The reported gains in harmlessness on multimodal benchmarks did not survive
+author-verified scrutiny in this review---the evaluation dataset and baseline
+model version are insufficiently specified for independent reproduction---but the
+low-resource framing identifies a practically important deployment scenario:
+organisations that cannot afford full-scale safety fine-tuning.
+
+\paragraph{AdaShield}
+AdaShield~\cite{wang2024adashield} proposes adaptive shield prompting to defend
+against structure-based attacks on multimodal LLMs.
+Rather than modifying the model, it prepends dynamically selected safety instructions
+that anticipate the attack structure.
+This inference-time, model-agnostic approach is architecturally compatible with
+deployment pipelines where VLM retraining is infeasible.
+Claimed attack success rate reductions did not survive author-verified scrutiny, but
+the adaptive prompt construction mechanism is a meaningful design contribution.
+
+\subsubsection{Multimodal Safety Benchmarks}
+
+Systematic evaluation of VLM safety requires standardised benchmarks.
+Two principal benchmarks appear in the corpus:
+MM-SafetyBench~\cite{liu2024mmsafetybench} evaluates multimodal LLMs across
+thirteen safety scenarios using typographic and visual adversarial inputs, revealing
+that open-source VLMs are substantially more vulnerable to image-based jailbreaks
+than their text-only counterparts; JailBreakV-28K~\cite{luo2024jailbreakv} provides
+a large-scale benchmark of 28,000 multimodal jailbreak attempts covering both
+image-based and text-based attack vectors, enabling systematic robustness comparison
+across models.
+Both benchmarks confirm the directional finding that visual inputs represent an
+under-defended attack surface, consistent with the theoretical framing in this
+section, though the specific quantitative results from individual model evaluations
+did not survive author-verified scrutiny due to model-version sensitivity.
+
+\subsection{Audio and Video Safety}
+\label{subsec:audiovideo}
+
+Audio and video safety for LLMs is nearly absent from the peer-reviewed literature
+as of 2025.
+No verified claims about audio-language model safety mechanisms or video-language
+model safety mechanisms were found in the three research passes conducted for this
+review.
+The absence is notable given that audio-capable models (GPT-4o audio mode, Gemini
+Live~\cite{google2024gemini}) are in active deployment.
+
+Non-peer-reviewed technical sources were also surveyed.
+Anthropic's Claude 3 model card~\cite{anthropic2024claude3} and the Gemini technical
+report~\cite{google2024gemini} describe internal safety evaluation processes for
+multimodal inputs at a high level but provide no publicly reproducible experimental
+protocols or results for audio or video modalities specifically.
+These documents were therefore excluded from the primary corpus under the inclusion
+criterion requiring empirical or formal evaluation content, but are noted here to
+confirm that the gap in academic literature is not filled by available industry
+reporting.
+
+Rather than simply documenting this absence, we frame the audio/video safety
+problem as a structured research agenda with specific empirical questions that
+future work should address in priority order.
+
+\paragraph{Attack-surface characterisation (foundational, should precede defence work)}
+The image-safety literature developed attack taxonomies (typographic, adversarial
+perturbation, indirect injection, text-channel) before converging on defence
+architectures.
+An analogous characterisation is needed for audio and video.
+Specific open questions:
+\begin{itemize}
+  \item \textit{Adversarial audio perturbations}: Can imperceptible perturbations
+        to speech inputs cause audio-language models to produce harmful outputs,
+        analogously to adversarial image attacks on VLMs?
+        No empirical study has evaluated this question for any production
+        audio-language model.
+  \item \textit{Steganographic speech}: Can harmful instructions be encoded in
+        audio signals at volumes or frequencies inaudible to humans but
+        parseable by speech encoders?
+        The image analogue (typographic embedding) is the most effective attack
+        class in the image literature; the audio equivalent has not been studied.
+  \item \textit{Multi-turn audio priming}: The confirmed finding that multi-turn
+        conversational priming amplifies jailbreaks in text-only models
+        (Section~\ref{subsec:streaming_gap}) predicts that audio-turn priming
+        may have the same effect.
+        Whether the dynamics of audio conversation (prosody, speaker identity,
+        temporal rhythm) accelerate or retard priming is an open empirical
+        question.
+  \item \textit{Video-specific attack vectors}: Video inputs add temporal
+        structure absent from both image and audio.
+        Cross-frame adversarial perturbations, visual scene transitions, and
+        embedded text in video frames all represent attack surfaces without
+        established empirical characterisation.
+\end{itemize}
+
+\paragraph{Defence transfer evaluation (second priority)}
+Once attack surfaces are characterised, the critical empirical question is whether
+existing image-safety defences transfer to audio and video.
+Specific testable hypotheses:
+\begin{itemize}
+  \item The modality-specific classifier approach (pre-filtering audio before it
+        reaches the language backbone) is architecturally straightforward and
+        should be the first defence evaluated, given its success in the image
+        domain.
+  \item Session-level context tracking (established as necessary by the Crescendo
+        finding) applies directly to audio conversations; whether the same
+        multi-turn priming signature is detectable in acoustic features is
+        unknown.
+\end{itemize}
+
+\paragraph{Evaluation infrastructure (blocking for all above)}
+No standardised benchmark for audio or video safety evaluation exists.
+A minimum viable benchmark would specify: a fixed set of audio-encoded attack
+prompts covering at least the perturbation, steganographic, and multi-turn
+categories above; a judge model capable of evaluating audio-language model outputs;
+and a harm taxonomy adapted for audio-specific content (e.g., voice-cloning fraud,
+real-time deepfake facilitation).
+Without such infrastructure, empirical progress cannot be compared across systems
+and the audio/video gap cannot be closed in a reproducible way.
+This is identified as open problem MM3 (Section~\ref{sec:open_problems}).
+
+\subsection{Industry Deployments}
+
+Microsoft Azure Content Safety~\cite{azure2024contentsafety} provides a commercial
+API covering text and image moderation.
+It operates as a post-generation filter and does not publish latency or accuracy
+figures in reproducible form.
+Its multimodal coverage (text + image) is broader than most academic proposals,
+but independent evaluation is absent.
+
+Meta's Llama Guard series~\cite{meta2024llamaguard2} (v1, v2, v3) represents the
+most complete documented progression of a safety classifier through multiple
+iterations, including taxonomy evolution.
+Llama Guard's text-only classification architecture is the most robustly verified
+finding in this review; its extension to image inputs in later versions has not been
+evaluated independently.

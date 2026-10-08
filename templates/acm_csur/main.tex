@@ -1,0 +1,67 @@
+\documentclass[acmsmall,review,anonymous]{acmart}
+
+% TikZ
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,backgrounds,calc}
+
+% Tables
+\usepackage{booktabs}
+\usepackage{longtable}
+
+%%% ACM metadata -- fill in before submitting
+\acmJournal{CSUR}
+\acmYear{2026}
+\acmVolume{0}
+\acmNumber{0}
+\acmArticle{0}
+\acmMonth{0}
+
+\title{PAPER TITLE}
+
+\author{Daniel Garc\'ia Pe\~na}
+\authornote{ORCID: 0000-0002-1456-4785}
+\email{info@iamdgarcia.com}
+\affiliation{%
+  \institution{University of Oviedo}
+  \city{Oviedo}
+  \country{Spain}
+}
+\affiliation{%
+  \institution{Unicaja Bank}
+  \country{Spain}
+}
+% Add co-authors below following the same pattern
+
+\begin{abstract}
+Abstract text here.
+\end{abstract}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+\input{sections/01_introduction}
+
+\section{Background and Related Work}
+\input{sections/02_background}
+
+\section{Methodology}
+\input{sections/03_methodology}
+
+\section{Results and Analysis}
+\input{sections/04_analysis}
+
+\section{Open Problems and Future Directions}
+\input{sections/05_open_problems}
+
+\section{Discussion}
+\input{sections/06_discussion}
+
+\section{Conclusion}
+\input{sections/07_conclusion}
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{main}
+
+\end{document}

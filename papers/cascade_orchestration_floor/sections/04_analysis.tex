@@ -1,0 +1,251 @@
+% §4 Analysis: Ceasing and Hiding Latency
+We state and prove the two-floor results.
+Throughout, $\Lambda_{on}$ and $\Lambda_c$ denote the onset and cessation floors of
+Definition~\ref{def:floors}.
+Constituent latencies of the pipeline are written $\lambda_{\cdot}$, with superscript $irr$
+meaning \emph{irreducible}; reaction components of an interruption are written
+$\delta_{\cdot}$ (\emph{detect}, \emph{decide}, \emph{cease}, \emph{resume}).
+$\tau_f$ is the duration of one synthesis frame and $d$ the committed buffer depth of the
+delivery clock.
+By a ``floor'' we mean the infimum latency over admissible scheduler decisions under the fixed
+in-flight policy of Definition~\ref{def:floors}.
+
+\subsection{The dependency structure of the two floors}
+We state the dependency relation as a proposition rather than a theorem: it is close to
+definitional, but the shared subsystems are the load-bearing observation.
+
+\begin{proposition}[Floor-constituent dependency]
+\label{prop:floor_dependency}
+Under a fixed in-flight policy (fixed detection configuration, buffer depth $d$, decode
+speed), the onset floor and the cessation floor are set by largely disjoint pipeline
+segments, except for three shared subsystems.
+Writing $\lambda_s^{on}$ and $\lambda_s^{c}$ for the onset-side and cessation-side
+contributions of a shared subsystem $s \in \{ \mathrm{detect}, \mathrm{buf},
+\mathrm{decode} \}$, the shared components satisfy
+\begin{equation}
+  \lambda_{\mathrm{detect}}^{c} = \lambda_{\mathrm{detect}}^{on}, \qquad
+  \lambda_{\mathrm{buf}}^{c} = d \cdot \tau_f, \qquad
+  \lambda_{\mathrm{decode}}^{c} \leq \lambda_{\mathrm{decode}}^{on},
+\end{equation}
+where the buffer depth $d$ is the same parameter appearing in the cessation bound of
+Theorem~\ref{thm:cessation_floor}.
+Consequently, a stage-level optimisation acting only on a single-stage constituent (for
+example prefill) moves a single floor; an optimisation acting on a shared subsystem moves
+both.
+\end{proposition}
+
+\begin{proof}
+Onset is gated by detection, prefill/decode, and the buffer handing the first unit to
+synthesis.
+Cessation is gated by what the delivery and tool clocks still owe after an interruption.
+Detection is the same VAD feeding both timelines, giving the equality.
+The buffer depth appears in both as the same committed-tail parameter $d \cdot \tau_f$.
+Decode contributes to cessation only by filling the committed buffer, which is capped at $d$
+frames, hence its cessation-side effect never exceeds its onset-side effect.
+\end{proof}
+
+\subsection{The cessation floor}
+We decompose interruption reaction into detection, decision, cession, and resumption, and
+condition on the interruption phase (Definition~\ref{def:phases}).
+
+\begin{theorem}[Phase-conditioned cessation floor]
+\label{thm:cessation_floor}
+Let an interruption be detected at time $t_0$, with detection latency
+$\delta_{\mathrm{detect}}$ and cancellation-decision latency $\delta_{\mathrm{decide}} \geq
+0$.
+Under flush-on-cancel delivery, the cession tail in phase-play satisfies
+\begin{equation}
+  \delta_{\mathrm{cease}}^{\mathrm{phase\text{-}play}} \;\in\;
+  [\tau_f,\; d \cdot \tau_f] + \delta_{\mathrm{detect}} + \delta_{\mathrm{decide}},
+\end{equation}
+so the worst case is bounded below by $\delta_{\mathrm{detect}} +
+\delta_{\mathrm{decide}} + d \cdot \tau_f$.
+In phase-gen with nothing audible, $\delta_{\mathrm{cease}} \approx 0$ prior to the decision
+terms, and the reaction is task-cancel (onset-adjacent).
+In phase-tool, nothing is audible, so cessation is vacuous and the meaningful quantity is
+$\delta_{\mathrm{resume}}$.
+The \emph{can stop} latency (physical) is set by the in-flight granularity $d \cdot \tau_f$;
+the \emph{should stop} decision (policy) is separate and may legitimately delay cession for
+engagement reasons.
+\end{theorem}
+
+\begin{proof}
+Detection and decision necessarily precede any cession action, so both add to the reaction.
+In phase-play, each committed frame plays to completion under flush-on-cancel, producing a
+tail between one frame (only the currently playing frame is committed) and $d$ frames (a full
+committed buffer), i.e.\ $\delta_{\mathrm{cease}} \in [\tau_f, d \cdot \tau_f]$.
+In phase-gen, no frame is committed, so the tail is empty.
+In phase-tool, audible output is absent by definition, so the observable is whether execution
+persists, which sets $\delta_{\mathrm{resume}}$.
+\end{proof}
+
+\begin{remark}
+\label{rem:saturation}
+Under the fixed in-flight policy the phase-play tail \emph{saturates} at $d \cdot \tau_f$: a
+longer agent utterance lengthens the cease tail only up to the point where the committed
+buffer is full.
+The general decomposition $\mathrm{reaction} = \delta_{\mathrm{detect}} +
+\delta_{\mathrm{decide}} + \delta_{\mathrm{cease}} + \delta_{\mathrm{resume}}$, specialised
+to phase-play, composes the cessation floor $\Lambda_c \geq \delta_{\mathrm{detect}} +
+\delta_{\mathrm{decide}} + \tau_f$: the minimum stop tail under the fixed policy.
+\end{remark}
+
+\begin{remark}
+The companion paper's \emph{learned predictive stop} ceiling and our reactive detect--cease
+floor together delimit the intervention window: an agent that predicts an upcoming
+interruption can begin ceding before detection, contracting $\delta_{\mathrm{detect}}$ toward
+its floor.
+For long sessions, $\delta_{\mathrm{resume}}$ is additionally bounded below by re-prefill of
+the retained context, which the forgetting-floor problem of
+Section~\ref{sec:open_problems} targets.
+\end{remark}
+
+\subsection{Tool-hiding coupling}
+Tools couple the two floors through the onset side unless scheduled onto the tool clock.
+
+\begin{theorem}[Tool-hiding coupling, serial chains]
+\label{thm:tool_hiding}
+Let a turn require a set of tool calls typed per Definition~\ref{def:tool_typing}, executed
+in a serial chain.
+Under serial (in-path) dispatch, the onset floor includes the sum of irreducible type-A round
+trips $\sum_{i \in A} \lambda_{tool,i}^{irr}$.
+Under background dispatch with model reentry on completion
+(Definition~\ref{def:interruptibility}), each round trip is removed from the first-audio gate
+of the segment it precedes, and only a tool whose result is genuinely required before any
+audio of that segment can be produced keeps its type-A cost on the floor.
+For a parallel tool DAG, the onset term is the maximum (critical-path) sum over the branches,
+not the total over all tools.
+\end{theorem}
+
+\begin{proof}
+Serial dispatch executes each call in the same path as generation, so first audio of the
+chain cannot precede the last type-A result on which the opening utterance depends; the sum
+is the chain total.
+Background dispatch moves execution to the tool clock, so each completion triggers a fresh
+segment whose own onset is gated only by that completion.
+For parallel branches the floor is the critical-path maximum, per the companion
+paper's DAG latency result.
+\end{proof}
+
+The typing here is a \emph{when-needed} classification (does the audio wait on this
+result?); it is not a persistence-safety classification, which
+Section~\ref{sec:open_problems} takes up.
+
+\subsection{Serializability of tool persistence}
+The safety of generation-interruptible, execution-persistent behaviour rests on a commit
+invariant.
+
+\begin{lemma}[API serializability as an invariant]
+\label{lem:serializability}
+For a provider whose function-calling protocol rejects assistant messages with incomplete
+tool-call batches, a conversation history is API-valid (Definition~\ref{def:apivalid}) if and
+only if every assistant tool-call batch is committed atomically with its complete result set.
+Keeping a pending batch in internal orchestrator state (never flushed to the provider) is
+safe by construction; the invalid operation is \emph{flushing} a partial batch to the
+provider.
+\end{lemma}
+
+\begin{proof}
+Flushing a partial batch produces an assistant message whose tool-call set lacks its complete
+result set, which such protocols reject.
+Atomic commit is the only writer path that avoids it; internal retention keeps partial
+batches entirely out of the provider's view.
+\end{proof}
+
+\subsection{Filler placement}
+Filler interacts with both floors through the clock that emits it.
+
+\begin{corollary}[Filler hygiene]
+\label{cor:filler}
+Masking latency with filler is an \emph{onset} operation and must be emitted by the delivery
+clock, never committed to the generation stream.
+Short manual filler additionally shortens the phase-play ceasing tail by ending earlier
+(Theorem~\ref{thm:cessation_floor}).
+Model-uttered filler that is committed to the conversation stream must be rejected on
+content-integrity grounds: append-only provider histories cannot retract a partial filler
+fragment, and unguarded filler bleeds into or duplicates the committed response.
+\end{corollary}
+
+\begin{proof}
+Filler that precedes the first real utterance shortens perceived onset by
+Definition~\ref{def:floors}; a manually played clip is delivered and forgotten, never
+entering history.
+On append-only histories a committed model-uttered fragment is unretractable, so an
+interrupted filler corrupts the committed record; reliability of the delivered text therefore
+forces filler to stay off the generation stream.
+\end{proof}
+
+\subsection{Smoke anchor}
+We instantiate the semantics with a small event-driven orchestrator
+(generation-interruptible, execution-persistent, atomically committed tool batches) and
+anchor the quantitative claims with a monotonic-clock delivery-clock simulation.
+Table~\ref{tab:smoke} reports five-run medians.
+
+\begin{table}[t]
+\centering
+\begin{tabular}{lr}
+\toprule
+\textbf{Metric} & \textbf{Median (ms)} \\
+\midrule
+cease, buffer depth 1 & 109 \\
+cease, buffer depth 6 & 609 \\
+generation-stop, depth 1 / 6 & $<$0.1 / $<$0.1 \\
+resume, tool 10 ms (in-memory) & $<$1 \\
+resume, tool 1.0 s & 1000 \\
+\bottomrule
+\end{tabular}
+\caption{Smoke anchor of the cessation floor (five-run medians, monotonic clock, simulated
+delivery clock with committed buffer depth $d$). The scripted model has zero prefill cost, so
+resume figures bound only reentry plus remaining tool delay. An anchor, not a benchmark:
+there is no real ASR/TTS/LLM, and frame and tool latencies are synthetic.
+\label{tab:smoke}}
+\end{table}
+
+In phase-play the measured cease is linear in the committed buffer depth
+($109$~ms at $d=1$ vs $609$~ms at $d=6$ for a $100$~ms synthetic frame), consistent with
+Theorem~\ref{thm:cessation_floor}'s $[\tau_f, d \cdot \tau_f]$ bound; in-fill is synthetic,
+so the numbers are a self-consistent reproduction, not independent field evidence.
+Generation cancellation is prompt ($<$0.1~ms median) and depth-independent, as the decoupled
+``cancel generation, persist tools'' semantics predict.
+In phase-tool the model task has already completed, so the interrupt call cancels nothing new;
+the measured resume therefore records the tool-completion reentry path, and it is dominated by
+the tool round trip ($< 1$~ms in-memory vs $\sim$1000~ms for the $1.0$~s tool), consistent
+with Theorem~\ref{thm:tool_hiding}.
+
+\begin{figure}[t]
+\centering
+\input{figures/fig_two_floors}%
+\caption{The two responsiveness floors on a single turn timeline. Onset spans the detectable
+end of user speech to first audible agent audio; cessation spans interruption onset to the end
+of all in-flight audio. The detection, buffer, and decode subsystems are shared by both floors.
+\label{fig:two_floors}}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\input{figures/fig_interruption_phases}%
+\caption{The three interruption phases and the react paths each one takes: phase-gen is
+task-cancel, phase-play is delivery flush, phase-tool reduces to resumption after the
+background tool completes.
+\label{fig:interruption_phases}}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\input{figures/fig_event_loop}%
+\caption{The event algebra of the orchestrator: user turns and tool completions are generic
+events; delivery status reports playback; interruption cancels generation while the tool clock
+persists and re-enters on completion.
+\label{fig:event_loop}}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\input{figures/fig_tool_hiding}%
+\caption{Tool placement against the onset floor: a serial type-A tool gates first audio
+(inside the band); background dispatch removes it from the floor (arrow away from the band);
+type-B is hidden behind delivery lead-in and type-C behind the background tool clock.
+Only the earliest genuinely audio-gating type-A result stays on the floor; for a parallel
+DAG it is the critical path, not the sum.
+\label{fig:tool_hiding}}
+\end{figure}

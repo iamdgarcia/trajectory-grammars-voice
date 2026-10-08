@@ -1,0 +1,337 @@
+\section{Real-Time Guardrails}
+\label{sec:realtime}
+
+Real-time guardrails are mechanisms that must operate within the latency budget of
+a live inference request.
+We define this operationally: a guardrail is \emph{real-time} if it is designed to
+fire before or during token delivery to the end user, rather than in an offline or
+batch evaluation pipeline.
+This section reviews the principal systems and identifies the open problems
+that the literature has not resolved.
+
+\subsection{Inference-Time Classification Systems}
+
+\subsubsection{Llama Guard}
+
+Llama~Guard~\cite{inan2023llama} is the most fully documented real-time guardrail
+system in the literature.
+It frames content moderation as an instruction-following classification task:
+a 7B-parameter LLM fine-tuned on a safety taxonomy produces \texttt{safe} or
+\texttt{unsafe} as its first output token, followed by one or more violated category
+labels.
+The instruction-tuning framing allows the same model to be applied to both the
+user prompt (pre-generation) and the model response (post-generation) without
+retraining; only the prompt template changes.
+
+This architectural description is the only real-time guardrail claim that survived
+all three self-review verification passes (of 25 extracted claims in this section)
+under the protocol described in Section~\ref{subsec:verification_protocol}.
+Meta has since released Llama Guard~2 and Llama Guard~3~\cite{meta2024llamaguard2},
+extending the safety taxonomy to align with the MLCommons AI Safety standard.
+Of direct relevance to Section~\ref{sec:multimodal}, Llama Guard~3 extends the
+classification architecture to support image inputs alongside text, making it the
+only documented progression of the original text-only Llama Guard design toward
+multimodal safety classification.
+The architectural extension is described in Meta's release materials but has not
+been evaluated independently; the image-safety classification accuracy, latency
+overhead of the vision pathway, and behaviour against cross-modal jailbreaks are
+not established in the reproducible academic literature.
+Quantitative comparisons between versions (v1, v2, v3) have not been independently
+verified and are treated as unverified throughout this review.
+
+\subsubsection{ShieldLM}
+
+ShieldLM~\cite{zhang2024shieldlm} is a bilingual (Chinese/English) safety
+detector built by instruction-tuning a 7B-parameter LLM.
+The system is designed to be customisable via natural language rule specification at
+inference time, enabling domain-specific policy enforcement without retraining.
+Its claimed accuracy advantages over GPT-4 and Llama Guard~2, and the claimed
+latency reduction from token-output truncation, did not survive adversarial
+verification in this review.
+The underlying architectural approach---customisable natural-language policy
+specification---is a meaningful design contribution regardless of the specific
+numbers, and warrants further reproducible study.
+
+\subsubsection{WildGuard}
+
+WildGuard~\cite{han2024wildguard} addresses three safety tasks in a single
+inference pass: prompt harmfulness classification, response harmfulness classification,
+and refusal behaviour detection.
+This multi-task framing is architecturally significant because it avoids the latency
+cost of running separate classifiers.
+The claimed reduction in jailbreak attack success rate from 79.8\% to 2.4\% did not
+survive adversarial verification; the comparison baseline (Llama Guard~2 leaving
+53.1\% ASR) similarly could not be confirmed.
+The single-pass multi-task design remains a promising direction.
+
+\subsubsection{The Dual Reward Model Architecture}
+
+The only quantified, reproducible arbitration mechanism in the literature is the
+dual reward model design from Llama~2~\cite{touvron2023llama2}.
+Two independent reward models---one for helpfulness, one for safety---are trained
+separately.
+At inference time, the safety reward model overrides the helpfulness reward model
+when the safety score $R_s(g|p) < 0.15$, where a threshold was selected to achieve
+precision 0.89 and recall 0.55 on the Meta Safety test set.
+This constitutes the most concrete, verifiable description of a real-time
+safety/helpfulness arbitration mechanism in the reviewed literature.
+
+\subsection{Pipeline-Based Frameworks}
+
+\subsubsection{NeMo Guardrails}
+
+NeMo Guardrails~\cite{rebedea2023nemo} implements a dialogue-management-inspired
+runtime that applies rails at multiple interception points in the inference pipeline:
+input, knowledge retrieval, dialogue management, action execution, and output.
+Rails are specified in Colang, a domain-specific language designed to express
+dialogue flows and policy constraints.
+The framework has undergone substantial development since the founding 2023 preprint,
+with multiple major releases through 2024--2025 adding support for additional LLM
+backends, expanded rail types, and updated streaming semantics; readers consulting
+the codebase or documentation should be aware that the implementation may differ
+materially from what the 2023 paper describes.
+In accordance with the review's scope and temporal specificity standard, all
+analytical statements below pertain to the documented 2023 description only.
+
+The architectural motivation---decoupling safety policy from model weights so that
+rails can be updated without retraining---is sound and represents an important
+engineering contribution.
+However, specific claims about pipeline stages, the number of LLM round-trips
+per user turn, and the timeline of streaming support did not survive author-verified
+scrutiny.
+A key limitation noted in the caveats of the original paper but underemphasised
+in subsequent citations is that each rail invocation may trigger additional LLM
+calls, adding cumulative latency that is difficult to bound in the general case.
+
+\subsubsection{Guardrails AI}
+
+Guardrails AI (guardrailsai.com) provides an open-source framework for defining
+input and output validators (``guards'') around LLM calls.
+Guards can invoke classifiers, regex patterns, or LLM-based validators.
+The framework has no peer-reviewed evaluation of its safety guarantees or latency
+characteristics in the academic literature.
+From the standpoint of this review, the analytically relevant point is the absence
+of published empirical evidence: whether Guardrails AI performs well in production
+is unknown because the data required to assess that question have not been made
+available in reproducible form.
+
+\subsection{The Streaming Safety Gap}
+\label{subsec:streaming_gap}
+
+The most significant unresolved problem in real-time guardrails is \emph{streaming
+safety}: how to enforce safety constraints when tokens are delivered to the user
+incrementally, before a complete response is available for inspection.
+
+Post-generation classifiers are structurally incompatible with streaming delivery:
+by the time the classifier fires, the harmful content has already reached the user.
+Pre-generation prompt classifiers address only the input side and miss
+response-level harms generated from benign inputs.
+In-generation safety checking---monitoring the growing token prefix as generation
+proceeds---remains an open engineering problem with no verified solution in the
+literature.
+
+\paragraph{Relation to constrained-generation literature}
+The adjacent field of constrained text generation has produced prefix-level
+decoding techniques that enforce hard constraints during generation.
+FUDGE~\cite{yang2021fudge} trains a future discriminator that re-weights the
+next-token distribution to steer generation toward a target attribute; COLD
+Decoding~\cite{qin2022cold} uses Langevin dynamics to satisfy multiple
+differentiable constraints jointly; and NeuroLogic
+decoding~\cite{lu2021neurologic} enforces predicate-logic constraints over
+token sequences via beam search with constraint tracking.
+Speculative decoding~\cite{leviathan2023fast} offers a complementary
+architectural pattern in which a small draft model generates candidate tokens
+that a larger model verifies, creating a natural slot for a concurrent safety
+check in the verification step.
+
+These techniques are \emph{adjacent} to, but do not resolve, the streaming
+safety problem for three reasons.
+First, constrained-generation methods assume that the constraint function is
+differentiable or efficiently computable over short prefixes; safety is
+a semantic property that may require inspecting long context windows to evaluate
+reliably, making prefix-level approximations prone to high false-negative rates
+on adversarially crafted prompts.
+Second, FUDGE, COLD Decoding, and NeuroLogic all introduce per-token or per-step
+overhead (additional forward passes or energy-function evaluations) that compounds
+at the token level and may push end-to-end latency beyond acceptable bounds for
+production streaming deployments.
+Third, none of these methods has been evaluated against adaptive adversaries who
+know the constraint mechanism and can craft inputs to minimise the safety
+signal on partial prefixes---the precise threat model of interest here.
+In-generation safety checking therefore remains open, and the constrained-generation
+literature, while offering useful structural inspiration, does not transfer directly
+to this setting without addressing these three gaps.
+
+\paragraph{Null finding (documented corpus entry)}
+A systematic search of the corpus for papers reporting empirical prefix-level safety
+classification — that is, studies that train or evaluate a classifier on token
+prefixes of LLM outputs for the purpose of safety detection — returned zero results.
+No paper in the 75-paper corpus, and no paper identified but excluded during
+full-text review, has empirically characterised the relationship between prefix
+length and safety detection accuracy for any harm category.
+This null finding is itself a substantive result: the streaming safety problem is
+not merely unsolved but unstudied at the empirical level, leaving open questions
+RT1--RT3 (Section~\ref{sec:open_problems}) entirely without quantitative bounds.
+The closest adjacent evidence comes from the constrained-generation literature
+reviewed above: FUDGE~\cite{yang2021fudge} operates on prefixes of minimum length
+determined by the future discriminator's receptive field (roughly 10--20 tokens
+in the reported experiments), suggesting that very short prefixes may be
+insufficient for semantic safety decisions; however, FUDGE's discriminator targets
+stylistic attributes, not adversarial harmful intent, and the analogy is
+therefore only weakly informative.
+
+Key open questions within this gap include:
+
+\begin{itemize}
+  \item What is the minimum prefix length at which a safety classifier can reliably
+        detect harmful generation trajectories, and how does this vary by harm category
+        and model?
+        (No empirical lower bound currently exists in the literature.)
+  \item Can a safety classifier be parallelised with the generation process without
+        introducing head-of-line blocking?
+        (Speculative decoding~\cite{leviathan2023fast} provides a structural template
+        but has not been adapted for safety classification.)
+  \item What is the cost (in terms of both compute and over-refusal rate) of
+        conservative early-stopping on ambiguous prefixes?
+        (No study has measured the utility penalty of prefix-level early stopping
+        under realistic streaming latency constraints.)
+\end{itemize}
+
+\subsection{Evaluation Against Adaptive Adversaries}
+
+A significant gap in the deployment-relevance axis of the quality assessment
+(Table~\ref{tab:quality}) is that none of the five real-time systems reviewed above
+has been evaluated against an adaptive adversary who knows the guardrail mechanism
+and optimises inputs to evade it.
+The token-level adversarial suffix literature (GCG attack,~\cite{zou2023universal})
+demonstrates that gradient-based optimisation can reliably find suffixes that cause
+aligned LLMs to produce harmful outputs; these attacks are directly relevant to
+classifier-based guardrails because a suffix that causes the LLM to begin generating
+harmful content may also suppress the safety signal in a prefix-monitoring classifier
+that reads from the same token stream.
+Circuit Breakers~\cite{zou2024improving} represent a complementary weight-level
+defence that attempts to disrupt the internal representations that harmful generation
+relies on, rather than filtering outputs post-hoc; its evaluation includes white-box
+adaptive attacks, making it the strongest adaptive-adversary robustness result in the
+corpus, though its quantitative claims did not survive author-verified scrutiny in
+this review.
+No paper in the corpus reports evaluating the inference-time classifier systems
+(Llama Guard, ShieldLM, WildGuard, or NeMo Guardrails) against GCG-style adaptive
+suffix attacks.
+This omission is methodologically significant: a guardrail evaluated only against
+non-adaptive attacks provides no assurance of robustness once the attack distribution
+shifts to include adversaries who optimise against the specific classifier.
+The absence of adaptive evaluation is therefore noted as a cross-cutting
+deployment-relevance gap affecting all five systems reviewed in this section.
+
+\subsection{Latency-Accuracy Tradeoffs}
+
+Table~\ref{tab:latency} summarises the latency and accuracy figures \emph{as
+reported} by each system's authors.
+All figures are marked as unverified (U): they are reproduced from the source
+papers but could not be independently confirmed under the adversarial verification
+protocol (Section~\ref{subsec:verification_protocol}).
+They are included to give practitioners a reference point while making the
+reproducibility status explicit.
+
+\begin{table}[t]
+  \caption{Reported latency and accuracy figures for real-time guardrail systems.
+           All entries are \textbf{unverified (U)}: figures are taken from author
+           self-reports and could not be independently confirmed.
+           N/A = not reported.
+           \textbf{The latency column is not comparable across rows}: hardware,
+           batch size, concurrency, and network conditions differ for every system.
+           A hardware column is included to make this explicit; do not rank systems
+           by the latency column alone.}
+  \label{tab:latency}
+  \centering
+  \small
+  \begin{tabular}{p{2.5cm}p{1.8cm}p{2.4cm}p{3.4cm}p{1.5cm}p{0.8cm}}
+    \toprule
+    \textbf{System} & \textbf{Hardware} & \textbf{Latency (rep.)} & \textbf{Accuracy (reported)} & \textbf{Stream?} & \textbf{St.} \\
+    \midrule
+    \multicolumn{6}{l}{\textit{Hardware-specified (non-comparable with each other or with rows below):}} \\
+    Llama Guard~\cite{inan2023llama}       & A100        & ${\sim}200$ ms   & F1 0.82 (OpenAI Mod.)    & No      & U \\
+    ShieldLM~\cite{zhang2024shieldlm}      & V100        & ${\sim}150$ ms   & Acc. 90.6\% (bilingual)  & No      & U \\
+    \midrule
+    \multicolumn{6}{l}{\textit{Hardware unspecified:}} \\
+    WildGuard~\cite{han2024wildguard}      & ---         & N/A              & ASR 2.4\% (claimed)      & No      & U \\
+    NeMo Guardrails~\cite{rebedea2023nemo} & ---         & 1--3$\times$ LLM & N/A                      & Partial & U \\
+    Aegis~\cite{su2024aegis}               & ---         & N/A              & F1 0.84 (ensemble)       & No      & U \\
+    Azure Content Safety~\cite{azure2024contentsafety} & Cloud API & N/A   & N/A (proprietary)        & No      & U \\
+    \bottomrule
+  \end{tabular}
+  \par\smallskip
+  \noindent\small Subgroups make explicit that the A100 and V100 figures
+  (Llama Guard, ShieldLM) are on incompatible hardware baselines, and that all
+  remaining rows have no stated hardware; no latency comparison across any rows
+  is meaningful.
+\end{table}
+
+Three architectural families represent distinct design intents in this space.
+Because all entries in Table~\ref{tab:latency} are unverified and were obtained
+on incomparable hardware, the following characterisations describe the
+\emph{design rationale} of each family rather than making comparative performance
+claims:
+
+\begin{description}
+  \item[LLM-as-judge] A second, full-size LLM evaluates each response.
+        The design intent is maximum accuracy by leveraging full model reasoning,
+        at the cost of high latency; this architecture is structurally incompatible
+        with streaming delivery regardless of hardware, because a full response must
+        be available before the judge can be invoked.
+  \item[Classifier-based] A smaller, purpose-trained classifier (BERT-scale to 7B)
+        evaluates each response.
+        The design intent is reduced latency at the cost of reduced accuracy;
+        this family is \emph{potentially} adaptable to streaming with prefix-based
+        invocation, but no verified implementation has demonstrated this in practice.
+  \item[Hybrid] A lightweight classifier gates whether a full LLM judge is invoked.
+        The design intent is to achieve a better efficiency frontier by reserving
+        the expensive judge for ambiguous cases; however, this introduces
+        architectural complexity and dual failure modes (both the classifier and the
+        judge must be correct for end-to-end safety).
+\end{description}
+
+No verified quantitative evidence exists in the literature that any of these
+families dominates the others on any reproducible latency-accuracy metric.
+The latency-accuracy design space for runtime guardrail architectures therefore
+remains empirically uncharted in reproducible literature, representing a direct
+opportunity for future work.
+
+\subsection{Formal Guarantees}
+
+The Aegis system~\cite{su2024aegis} proposes an online adaptive ensemble of safety
+expert models with a theoretical no-regret bound.
+The specific mathematical claims (regret $O(\sqrt{T \log K})$, phased
+adaptation/compliance rounds) did not survive adversarial verification for two
+reasons: (i) the proof of the regret bound references an appendix that was not
+present in any accessible version of the preprint at the time of review; and
+(ii) the definition of a ``compliance round'' in the phased-adaptation scheme is
+underspecified, making it impossible to verify that the empirical algorithm
+described in the paper matches the theoretical model for which the bound is derived.
+Beyond these proof-level defects, it is worth noting---as developed in
+open problem FG1 (Section~\ref{sec:open_problems})---that the regret formulation
+itself may be inappropriate for the safety setting regardless of proof correctness:
+the regret bound assumes a stationary sequence of adversarial inputs against which
+the ensemble adapts, but a real jailbreak adversary is non-stationary and will
+adapt to the deployed classifier, invalidating the bound after the first adaptive
+attack iteration.
+
+Kumar et al.~\cite{kumar2023certifying} attempt to provide formal safety
+guarantees against adversarial prompting via an erase-and-check procedure that
+provides probabilistic certificates on whether a prompt can be detected as
+adversarial within a given perturbation radius.
+This claim did not survive adversarial verification in this review for a specific
+reason: the certification guarantee is conditioned on the adversary's perturbation
+being bounded by a fixed token-deletion radius, a constraint that is not satisfied
+by the free-form jailbreaks (multi-turn priming, typographic embedding, cipher
+substitution) that dominate the empirical attack literature.
+The formal guarantee is therefore valid within a narrow, largely hypothetical
+threat model and does not generalise to the realistic deployment threat model
+characterised in Section~\ref{sec:background}.
+
+No verified formal guarantees exist in the current literature for:
+(i) the false-negative rate of any runtime guardrail against novel jailbreaks
+not present in the training distribution; or
+(ii) the soundness of any streaming safety mechanism under adaptive adversaries.
+This is a foundational theoretical gap.

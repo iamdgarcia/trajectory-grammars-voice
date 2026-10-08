@@ -1,0 +1,73 @@
+% §1 Introduction
+Voice-based conversational agents are no longer a laboratory curiosity: they answer
+telephone calls, operate bank accounts, and route service requests on a daily basis
+\citep{openai2024realtimeapi,google2024geminivoice}.
+Two architectural families dominate this space.
+\emph{Native voice models} process speech end-to-end inside a single network, eliminating
+inter-component boundaries and their latencies \citep{defossez2024moshi}.
+\emph{Cascade architectures} decompose the agent into speech recognition, a text-based
+language model, and speech synthesis, exposing transcripts and structured outputs that make
+tool use, debugging, and governance practical \citep{yao2023react,langgraph2024}.
+Modern cascades are valued precisely because they compose commodity components, swap
+models independently, and call external tooling and databases mid-conversation.
+
+The price of the cascade is latency.
+Perceptual studies converge on a turn-taking norm of roughly $200$~ms
+\citep{levinson2015timing,stivers2009universals}: responses slower than this are perceived as
+delayed.
+Our companion paper \citep{latencyfloor2025} formalises the \emph{onset} side of responsiveness for cascades: the
+Latency Floor Theorem states that the silence gap from end of user speech to first audible
+agent audio has an irreducible lower bound, and the Cascade Competitiveness Criterion states
+when a cascade can meet the $200$~ms norm.
+That work leaves the pipeline's middle stage as a black box and, crucially, addresses only
+\textbf{when the agent starts to speak}.
+
+Responsiveness has a second, equally visible half: \textbf{when the agent can fully stop}.
+A user who interrupts a banking agent to correct an account number experiences, in that
+instant, how much sound the agent keeps making and how long before the system is again
+listening.
+On tool-heavy turns this stopping behaviour dominates the felt quality of the assistant.
+Yet the cessation side is neither standardly defined nor formally bounded: the turn-taking
+literature treats barge-in operationally \citep{raux2008optimizing,skantze2021turn}, and
+engineers measure barge-in behaviour ad hoc without a shared definition or a lower bound.
+
+This paper supplies the missing floor.
+We introduce a two-floor model of realtime responsiveness, prove a phase-conditioned
+\emph{cessation floor} for cascade agents, and show how tool round-trips couple to the onset
+floor unless they are scheduled onto a background execution clock.
+We prove an API-serializability lemma that makes \emph{tool persistence under cancellation}
+safe: an interrupted turn cancels generation while pending tool batches commit atomically.
+We argue that decoupled-clocks (event-driven) scheduling is the idiomatic configuration that
+owns both floors — a sufficiency claim, not a uniqueness claim.
+We validate the required semantics with a small, tested, event-driven orchestrator and anchor
+the quantitative statements with a monotonic-clock smoke measurement.
+
+Our contributions are:
+\begin{enumerate}
+  \item a two-floor model of responsiveness (onset floor from our companion work
+        \citep{latencyfloor2025}, cessation floor introduced here), together with
+        Proposition~\ref{prop:floor_dependency} stating the dependency structure between the
+        floors;
+  \item a phase-conditioned cessation floor (generate / playback / tool-wait) with a
+        detect--decide--cease--resume decomposition and separated \emph{can stop}
+        (physical) and \emph{should stop} (policy) statements
+        (Theorem~\ref{thm:cessation_floor});
+  \item a tool-hiding coupling result showing that tool round-trips sit on the onset side
+        unless dispatched to a background execution clock (Theorem~\ref{thm:tool_hiding});
+  \item an API-serializability lemma making tool persistence under cancellation safe
+        (Lemma~\ref{lem:serializability}) and a filler-placement corollary
+        (Corollary~\ref{cor:filler});
+  \item a small, tested, event-driven orchestrator providing faithful semantics, plus a
+        measured smoke anchor of the cessation floor.
+\end{enumerate}
+
+The rest of the paper is structured as follows.
+Section~\ref{sec:background} positions the work against incremental dialogue processing,
+endpointing, interruption, and orchestration literature.
+Section~\ref{sec:framework} defines the two-floor framework and the event system.
+Section~\ref{sec:analysis} states and proves the results.
+Section~\ref{sec:practical} answers the practitioner's question of which cascade
+architecture to build.
+Section~\ref{sec:open_problems} lists open directions.
+Section~\ref{sec:discussion} discusses scope and limitations, and
+Section~\ref{sec:conclusion} concludes.

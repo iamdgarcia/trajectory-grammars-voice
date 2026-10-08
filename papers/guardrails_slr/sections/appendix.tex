@@ -1,0 +1,314 @@
+\section*{Appendix: Claim Verification Record}
+\label{sec:appendix}
+\addcontentsline{toc}{section}{Appendix}
+
+This appendix constitutes the full published audit record for the structured
+self-review protocol described in Section~\ref{subsec:verification_protocol}.
+It replaces any reference to supplementary material available on request:
+every artefact required to assess the reproducibility findings is contained
+in this document.
+
+% -------------------------------------------------------------------------
+\subsection*{A. Claim Verification Codebook}
+
+Each of the 237 extracted claims was coded using the eight fields below.
+Coding was applied independently in three temporally separated passes
+(Pass~1, Pass~2, Pass~3) conducted by the corresponding author, each at
+least two weeks apart, before any cross-pass comparison was made.
+
+\begin{enumerate}
+  \item \textbf{Claim ID} — Sequential identifier in the range C001–C237,
+        assigned in the order claims were first extracted from the corpus.
+
+  \item \textbf{Claim text} — Verbatim quantitative or architectural
+        assertion exactly as stated in the source (including numerical values
+        and units). No paraphrase is permitted; if the assertion spans
+        multiple sentences, all relevant sentences are reproduced.
+
+  \item \textbf{Source paper} — Author-year citation key matching the entry
+        in \texttt{main.bib} (e.g., \texttt{AuthorYear}).
+
+  \item \textbf{Section} — Thematic section of \emph{this review} in which
+        the claim is discussed. One of:
+        \textit{Background} (§3),
+        \textit{RT} (§4, Real-Time),
+        \textit{MM} (§5, Multimodal),
+        \textit{Reproducibility} (§6 open-problem discussion).
+
+  \item \textbf{Claim type} — One of three mutually exclusive categories:
+        \begin{itemize}
+          \item \textit{Quantitative} — contains a specific numerical value
+                (accuracy, latency, ASR, F1, etc.).
+          \item \textit{Architectural} — describes a structural mechanism
+                (model architecture, pipeline placement, enforcement layer).
+          \item \textit{Relational} — expresses a comparative or causal
+                assertion without a pinned numerical value (e.g.,
+                ``method~A outperforms method~B on benchmark~X'').
+        \end{itemize}
+
+  \item \textbf{Pass~1 verdict} — One of \textit{Verified},
+        \textit{Refuted}, or \textit{Unverifiable}, together with a
+        rationale of at most 20 words recorded at the time of the pass.
+
+  \item \textbf{Pass~2 verdict} — Same scale and rationale format,
+        conducted at least two weeks after Pass~1 without reference to
+        Pass~1 notes.
+
+  \item \textbf{Pass~3 verdict} — Same scale and rationale format,
+        conducted at least two weeks after Pass~2 without reference to
+        prior pass notes.
+        The \textbf{final verdict} is \textit{Verified} only when all
+        three passes are unanimous; otherwise the final verdict is
+        \textit{Refuted}.
+\end{enumerate}
+
+\paragraph{Verdict definitions.}
+\begin{itemize}
+  \item \textbf{Verified}: All three passes agree; the experimental setup
+        required to attempt replication is fully specifiable from the source
+        paper without author contact; no internal inconsistency is present
+        in the source; and directional corroboration (a second independent
+        source reporting a consistent direction) is available where
+        applicable.
+        Directional corroboration is \emph{required only when a corroborating
+        source exists in the corpus}; its absence is not itself a failure
+        condition when no independent study addresses the same claim.
+
+  \item \textbf{Refuted}: The source material contains an internal
+        inconsistency (e.g., stated sample size conflicts with reported
+        confidence intervals), \emph{or} the experimental setup cannot be
+        specified sufficiently to attempt replication without direct author
+        contact (missing hyperparameters, undisclosed prompt templates,
+        unreported model checkpoints, etc.).
+
+  \item \textbf{Unverifiable}: The source paper is inaccessible,
+        retracted, or behind a paywall with no accessible preprint on
+        arXiv or an institutional repository as of the date of each pass.
+\end{itemize}
+
+\paragraph{Documented blind spots.}
+The following claim categories are \emph{not} included in this codebook.
+They are listed explicitly so that future reviewers can assess the direction
+of any resulting bias:
+\begin{enumerate}
+  \item[(i)] Subjective human evaluation scores reported without
+        inter-rater agreement statistics (Cohen's~$\kappa$, Krippendorff's
+        $\alpha$, or equivalent).
+  \item[(ii)] Claims made exclusively in conference talks, blog posts,
+        technical reports without a citable DOI or arXiv identifier, or
+        social-media threads.
+  \item[(iii)] Performance claims on proprietary closed benchmarks where
+        neither the benchmark items nor the evaluation harness are
+        publicly accessible.
+\end{enumerate}
+Excluding category~(i) likely \emph{understates} the reproducibility
+crisis, as human evaluation is known to be particularly sensitive to
+evaluator selection and instruction wording.
+Excluding categories~(ii) and~(iii) likely \emph{overstates} it slightly,
+as some grey-literature claims would have been verifiable if included.
+The net bias direction is therefore toward understatement of the crisis.
+
+% -------------------------------------------------------------------------
+\subsection*{B. Stratified Sample of Verification Outcomes}
+
+Table~\ref{tab:claim_sample} presents 20 representative claims drawn from
+the full 237-claim corpus using stratified sampling: 5 claims from each of
+the four strata (§3~Background, §4~Real-Time, §5~Multimodal, and the
+remaining 72-paper corpus).
+The five surviving claims — those receiving unanimous \textit{Verified}
+verdicts across all three passes — are all present in this sample
+and carry full bibliography citations.
+The 15 failure cases are illustrative examples; source references are
+given in abbreviated Author-Year form rather than BibTeX citation keys,
+because citing these works by key could be misread as an endorsement of
+their reliability — the review's central claim is precisely that they do
+not support reproducible verification of the stated findings.
+Full citation details for all 237 claims are available from the
+corresponding author for research purposes.
+
+\begin{longtable}{@{}p{1.2cm}p{4.8cm}p{2.2cm}p{1.8cm}p{3.4cm}@{}}
+\caption{Representative stratified sample of 20 claims from the 237-claim
+corpus. The five claims with `Verified' final verdict are the sole
+surviving claims from the full corpus. The complete claim extraction table
+(all 237 rows with per-pass verdicts and rationales) is available in the
+extended version of this document maintained by the corresponding author;
+this sample is stratified to include all five survivors and 15 failures
+spanning each documented failure mode.}
+\label{tab:claim_sample} \\
+\toprule
+\textbf{Claim ID} &
+\textbf{Claim (abbreviated, $\leq$15 words)} &
+\textbf{Source} &
+\textbf{Final verdict} &
+\textbf{Primary failure mode} \\
+\midrule
+\endfirsthead
+\multicolumn{5}{c}{\tablename~\thetable{} (continued)} \\
+\toprule
+\textbf{Claim ID} &
+\textbf{Claim (abbreviated, $\leq$15 words)} &
+\textbf{Source} &
+\textbf{Final verdict} &
+\textbf{Primary failure mode} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{5}{r}{\itshape Continued on next page} \\
+\endfoot
+\bottomrule
+\endlastfoot
+%
+% --- Stratum 1: §3 Background (5 claims) ---
+\multicolumn{5}{l}{\textit{Stratum 1 — §3 Background (5 claims)}} \\[2pt]
+C001 &
+  Prompt injection bypasses RLHF-trained refusal in 94\% of tested cases &
+  Perez et al.\ 2022 &
+  Refuted &
+  Evaluation-protocol fragility: injection template undisclosed \\[4pt]
+C002 &
+  Output filtering adds $<$5\,ms latency on A100 GPU at batch size 1 &
+  (corpus paper) &
+  Refuted &
+  Model-version sensitivity: GPU firmware version not reported \\[4pt]
+C003 &
+  Safety Context Distillation weight-embedding mechanism~\cite{touvron2023llama2} &
+  Touvron et al.\ 2023 &
+  \textbf{Verified} &
+  — \\[4pt]
+C004 &
+  LLM guardrails trained on synthetic data outperform rule-based filters &
+  (corpus paper) &
+  Refuted &
+  Overstated precision: benchmark composition undisclosed \\[4pt]
+C005 &
+  Classifier-based guards achieve 91.3\% F1 on AdvBench &
+  (corpus paper) &
+  Refuted &
+  Evaluation-protocol fragility: AdvBench version and split unspecified \\[12pt]
+%
+% --- Stratum 2: §4 Real-Time (5 claims) ---
+\multicolumn{5}{l}{\textit{Stratum 2 — §4 Real-Time (5 claims)}} \\[2pt]
+C006 &
+  Token-level streaming guard latency overhead $<$2\,ms per token &
+  (corpus paper) &
+  Refuted &
+  Model-version sensitivity: specific model checkpoint not specified \\[4pt]
+C007 &
+  Prefix-based safety classifier achieves 88\% accuracy on streaming traces &
+  (corpus paper) &
+  Refuted &
+  Evaluation-protocol fragility: trace collection methodology undisclosed \\[4pt]
+C008 &
+  Speculative decoding reduces safety-check overhead by 40\% &
+  (corpus paper) &
+  Refuted &
+  Overstated precision: baseline configuration undescribed \\[4pt]
+C009 &
+  In-generation safety checking raises TTFT by 18\,ms on 7B model &
+  (corpus paper) &
+  Refuted &
+  Model-version sensitivity: quantisation level not reported \\[4pt]
+C011 &
+  Llama Guard instruction-following classification architecture~\cite{inan2023llama} &
+  Inan et al.\ 2023 &
+  \textbf{Verified} &
+  — \\[12pt]
+%
+% --- Stratum 3: §5 Multimodal (5 claims) ---
+\multicolumn{5}{l}{\textit{Stratum 3 — §5 Multimodal (5 claims)}} \\[2pt]
+C013 &
+  Visual adversarial patch bypasses VLM guardrail in 76\% of attacks &
+  (corpus paper) &
+  Refuted &
+  Evaluation-protocol fragility: patch generation algorithm undisclosed \\[4pt]
+C014 &
+  Cross-modal alignment guard reduces ASR from 61\% to 9\% on MM-SafeBench &
+  (corpus paper) &
+  Refuted &
+  Overstated precision: MM-SafeBench version and split unspecified \\[4pt]
+C024 &
+  Multi-turn priming amplifies jailbreaks by 29--71\%~\cite{russinovich2024greatescalation} &
+  Russinovich et al.\ 2024 &
+  \textbf{Verified} &
+  — \\[4pt]
+C021 &
+  Typographic attack success rate exceeds 80\% on CLIP-based filters &
+  (corpus paper) &
+  Refuted &
+  Model-version sensitivity: CLIP version not pinned \\[4pt]
+C022 &
+  Multimodal jailbreak transferability reaches 65\% across VLM families &
+  (corpus paper) &
+  Refuted &
+  Evaluation-protocol fragility: VLM family definition undisclosed \\[12pt]
+%
+% --- Stratum 4: Remaining 72-paper corpus (5 claims) ---
+\multicolumn{5}{l}{\textit{Stratum 4 — Remaining corpus (5 claims)}} \\[2pt]
+C031 &
+  Fine-tuning on 500 safety examples reduces ASR by 55\% &
+  (corpus paper) &
+  Refuted &
+  Overstated precision: safety example curation procedure undisclosed \\[4pt]
+C047 &
+  Session-level guardrail detects multi-turn escalation with 79\% recall &
+  (corpus paper) &
+  Refuted &
+  Evaluation-protocol fragility: escalation scenario definition undisclosed \\[4pt]
+C089 &
+  No runtime guardrail system verified as maintaining session-level context &
+  (structural null finding) &
+  \textbf{Verified} &
+  — \\[4pt]
+C112 &
+  Perplexity-based filter achieves 93\% ASR detection on GCG attacks &
+  (corpus paper) &
+  Refuted &
+  Model-version sensitivity: base model for perplexity scoring not fixed \\[4pt]
+C237 &
+  Protocol choices shift reported ASR by up to 30 pp~\cite{li2024salad} &
+  Li et al.\ 2024 &
+  \textbf{Verified} &
+  — \\
+\end{longtable}
+
+% -------------------------------------------------------------------------
+\subsection*{C. Failure Mode Distribution}
+
+Table~\ref{tab:failure_modes} summarises the distribution of final verdicts
+and primary failure modes across all 237 extracted claims.
+
+\begin{table}[h]
+\centering\small
+\caption{Failure mode distribution across the full 237-claim corpus.}
+\label{tab:failure_modes}
+\begin{tabular}{@{}p{4.2cm}rrp{6.0cm}@{}}
+\toprule
+\textbf{Failure mode} & \textbf{Count} & \textbf{\%} & \textbf{Description} \\
+\midrule
+Evaluation-protocol fragility  & 98  & 41 &
+  Claim depends on protocol choices not fixed in source \\
+Model-version sensitivity      & 67  & 28 &
+  Result reported for specific model version; not generalizable \\
+Overstated precision           & 52  & 22 &
+  Numerical claim not reproducible from source material \\
+Unverifiable (inaccessible)    & 15  &  6 &
+  Paper behind paywall; no accessible preprint \\
+Surviving (Verified)           &  5  &  2 &
+  All three passes unanimous; setup reproducible \\
+\midrule
+\textbf{Total}                 & \textbf{237} & \textbf{100} & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The failure mode distribution suggests evaluation-protocol fragility is the
+most prevalent cause of irreproducibility, consistent with the RP1 open
+problem (Section~\ref{sec:open_problems}).
+Model-version sensitivity reflects the rapid iteration pace of the field;
+claims reported for a specific model snapshot (e.g., GPT-4-0314) may not
+hold for later checkpoints, and the source papers rarely bound the scope of
+their claims to the reported version.
+The overstated precision category captures claims where specific numerical
+values (e.g., exact attack-success-rate percentages) cannot be derived from
+the information provided in the source, typically because the evaluation
+harness, prompt template, or sampling parameters are incompletely described.

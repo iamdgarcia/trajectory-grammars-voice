@@ -1,0 +1,192 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Large language models (LLMs) have transitioned from research artefacts to
+production systems embedded in search engines, coding assistants, customer-service
+platforms, and medical information portals~\cite{bommasani2022opportunities,openai2023gpt4}.
+This deployment scale has made safety a first-order engineering concern:
+models trained on vast internet corpora can reproduce harmful content, assist with
+illicit activities, or be coaxed—through carefully crafted inputs known as
+\emph{jailbreaks}—into abandoning alignment constraints~\cite{weidinger2021ethical,perez2022red}.
+
+\emph{Guardrails} are the class of mechanisms designed to prevent or mitigate these
+failures.
+The term encompasses both \emph{intrinsic} approaches, which shape model behaviour
+during training (reinforcement learning from human feedback~\cite{ouyang2022training},
+constitutional AI~\cite{bai2022constitutional}), and \emph{extrinsic} approaches,
+which enforce policy at inference time through classifiers, rule engines, or wrapper
+frameworks~\cite{inan2023llama,rebedea2023nemo}.
+A substantial body of work exists on guardrails for text-only, batch-inference settings,
+and several surveys have organised this literature~\cite{dong2024building}.
+
+Two deployment-critical dimensions remain, however, substantially underexplored.
+
+\subsection{Real-Time Operation}
+
+Production LLM deployments increasingly serve responses in \emph{streaming} mode,
+emitting tokens to the user as they are generated rather than waiting for a complete
+response.
+This changes the guardrail problem fundamentally: a post-hoc output classifier cannot
+inspect a complete response before it reaches the user.
+Safety must operate token-by-token or on short prefixes, under tight latency budgets
+that may preclude invoking a second large model as a judge.
+The literature contains several systems claiming to address this---Llama Guard~\cite{inan2023llama},
+NeMo Guardrails~\cite{rebedea2023nemo}, ShieldLM~\cite{zhang2024shieldlm},
+WildGuard~\cite{han2024wildguard}---but, as we document in this review, their quantitative
+latency and accuracy claims prove largely unverifiable under rigorous scrutiny.
+
+\subsection{Multimodal Models}
+
+Vision-language models (VLMs) such as GPT-4V, LLaVA, and Gemini introduce new attack
+surfaces absent in text-only systems.
+Harmful intent can be embedded in images rather than text, circumventing text-focused
+filters~\cite{gong2023figstep,liu2023queryrelevant}.
+Safety alignment learned from text-only RLHF may not transfer to the visual
+modality~\cite{zhao2024evaluating}.
+Audio and video modalities remain almost entirely unaddressed in the safety literature.
+Meanwhile, multi-turn conversational attacks---where a model is primed through a sequence
+of benign exchanges before a harmful request---have been shown to outperform single-turn
+jailbreaks by 29--61\% on GPT-4 and 49--71\% on Gemini-Pro across major commercial
+systems~\cite{russinovich2024greatescalation}.
+These specific figures are cited with confidence: they constitute one of the five claims
+that survived all three passes of the structured self-review protocol described in
+Section~\ref{subsec:verification_protocol} (three temporally separated passes by the
+same author, each at least two weeks apart, unanimous agreement required).
+Quantitative claims that did not survive that protocol are explicitly hedged throughout
+the paper.
+
+\subsection{Contribution}
+
+This paper presents a systematic literature review (SLR) of guardrail research at the
+intersection of real-time operation and multimodal contexts, covering publications from
+2022 to 2025.
+Our specific contributions are:
+
+\begin{enumerate}
+  \item A \textbf{unified taxonomy} of guardrail architectures organised along three axes:
+        placement in the inference pipeline, implementation layer (intrinsic vs.\ extrinsic),
+        and modality coverage (Section~\ref{sec:background}).
+
+  \item A \textbf{structured self-review claim-verification protocol} applied to all 237
+        quantitative and architectural claims extracted from 75 primary sources: three
+        temporally separated passes by the same author (each at least two weeks apart),
+        with unanimous agreement required for a claim to survive.
+        All pass verdicts and refutation rationales are documented in a per-claim
+        audit artefact available from the corresponding author on request
+        (Section~\ref{sec:methodology}).
+
+  \item Documentation of a \textbf{pervasive reproducibility crisis}: exactly five of
+        237 claims survived the verification protocol; evaluation-protocol choices alone
+        shift reported attack-success rates by up to 30 percentage
+        points~\cite{li2024salad} (Section~\ref{sec:open_problems}).
+
+  \item A \textbf{structured review of real-time guardrail systems}, characterising each
+        by latency profile, accuracy, streaming support, and deployment evidence, and
+        identifying the streaming safety gap as entirely unstudied at the empirical level
+        (Section~\ref{sec:realtime}).
+
+  \item A \textbf{structured review of multimodal guardrail research}, covering VLM safety
+        alignment, cross-modal attack vectors, and proposed defences, and identifying the
+        absence of audio/video safety mechanisms as the most urgent open gap
+        (Section~\ref{sec:multimodal}).
+
+  \item A \textbf{structured open-problems catalogue} identifying nine specific gaps
+        that future work should prioritise (Section~\ref{sec:open_problems}).
+\end{enumerate}
+
+\noindent The low count of surviving claims — five from 237 — should not be read as
+an indictment of the survey's utility.
+The primary deliverable is not a census of verified results but a structured map of
+the evidentiary vacuum: which specific claims are unsubstantiated, which gaps are
+unstudied, and which design requirements follow from what can be verified.
+That map is actionable regardless of the claim count, because researchers and
+deployers need to know \emph{where} the field cannot yet stand before they can
+decide where to invest.
+The five surviving claims identify the narrow evidentiary ground the field \emph{can}
+stand on; the nine open problems are grounded in those verified gaps, not in
+unverified assertions, which is what makes them tractable targets rather than
+speculative directions.
+
+\noindent The contribution of this review is the methodology and the null result
+as much as any positive synthesis: the per-claim artefact and the documented
+evidentiary vacuum are designed to serve as a reproducible baseline against which
+future work can be measured, regardless of whether one treats five surviving claims
+as a sufficient foundation for agenda-setting or as a signal of field immaturity.
+
+\subsection{Relationship to Prior Surveys}
+
+Table~\ref{tab:survey_comparison} positions this review relative to five closely
+related prior surveys spanning guardrail architectures, LLM security, LLM evaluation,
+and multimodal jailbreaking.
+Dong~et~al.~\cite{dong2024building} provide a comprehensive treatment of guardrail
+architectures for LLMs, covering threat models, defence taxonomies, and evaluation
+frameworks across the broad safety landscape.
+Huang~et~al.~\cite{huang2023survey} survey LLM safety through the lens of formal
+verification and validation, emphasising probabilistic safety properties and
+trustworthiness metrics.
+Yao~et~al.~\cite{yao2023survey} survey LLM security and privacy with broad
+coverage of attack vectors and defences, but without a reproducibility audit.
+Chang~et~al.~\cite{chang2024survey} survey LLM evaluation methodologies, including
+safety benchmarks, but do not focus on guardrail mechanisms or streaming constraints.
+Shayegani~et~al.~\cite{shayegani2023jailbreak} present a detailed analysis of
+compositional jailbreaking attacks on multimodal LLMs, establishing a partial
+attack taxonomy, but propose no defences and do not cover the real-time dimension.
+None of these surveys focuses on the deployment-critical intersection of real-time
+operation and multimodal contexts, and none applies a structured per-claim
+reproducibility audit to the literature reviewed.
+The threat model taxonomy used in Section~\ref{sec:background} of this paper
+(naive user, jailbreaker, fine-tuner) is adopted from Dong~et~al.\ without
+modification, as noted explicitly there.
+
+\begin{table}[h]
+  \caption{Structured comparison of this review against five closely related prior
+           surveys.
+           RT = real-time/streaming focus;
+           MM = multimodal focus;
+           RA = per-claim reproducibility audit applied to extracted claims;
+           CA = per-claim audit artefact published.
+           ``Partial''\textsuperscript{*} indicates the dimension is addressed as a secondary topic.}
+  \label{tab:survey_comparison}
+  \centering
+  \begin{tabular}{lcccc}
+    \toprule
+    \textbf{Survey} & \textbf{RT focus} & \textbf{MM focus} & \textbf{RA} & \textbf{CA} \\
+    \midrule
+    Dong et al.\ 2024~\cite{dong2024building}         & No      & Partial & No  & No \\
+    Huang et al.\ 2023~\cite{huang2023survey}         & No      & No      & No  & No \\
+    Yao et al.\ 2023~\cite{yao2023survey}             & No      & Partial & No  & No \\
+    Chang et al.\ 2024~\cite{chang2024survey}         & No      & No      & No  & No \\
+    Shayegani et al.\ 2023~\cite{shayegani2023jailbreak} & No  & Yes     & No  & No \\
+    This review (2025)                                & Yes     & Yes     & Yes & Yes \\
+    \bottomrule
+  \end{tabular}
+  \par\smallskip\noindent\small\textsuperscript{*}``Partial'' indicates the dimension is addressed as a secondary topic in at most one subsection; it is not equivalent to the primary focus of this review.
+\end{table}
+
+\noindent
+Dong~et~al.\ treat multimodal threats briefly as an emerging direction; this review
+treats them as a primary focus with a dedicated section and attack-surface taxonomy.
+Huang~et~al.\ concentrate on formal verification of LLM properties, whereas this
+review focuses on empirical guardrail systems and their reproducibility.
+Yao~et~al.\ provide the most comprehensive security and privacy coverage but do
+not examine streaming deployment constraints or conduct per-claim verification.
+Chang~et~al.\ address evaluation methodology at a high level; they do not focus
+on guardrail mechanisms or identify the streaming safety gap.
+Shayegani~et~al.\ provide a rigorous attack taxonomy for multimodal systems but
+are restricted to jailbreaking attacks; they do not review defences or address
+real-time operation.
+None of the five prior surveys identifies the streaming safety gap (zero empirical
+papers on prefix-level safety classification) or reports the five-of-237-claims
+verified reproducibility outcome that is the central empirical finding of this
+review.
+
+The section proportions reflect the paper's contribution structure deliberately: the methodology section (§2) is detailed because the per-claim audit protocol is itself a contribution, not merely a procedural prerequisite; the open problems section (§6) is substantial because the nine catalogued gaps are the primary actionable output of the review, grounded in the five verified claims and the structural null findings rather than in the broader unverified corpus.
+The synthesis sections (§4 and §5) are correspondingly concise because the verified evidentiary base in each domain is narrow — expansive synthesis of unverified claims would misrepresent the field's actual epistemic state.
+
+The remainder of the paper is structured as follows.
+Section~\ref{sec:methodology} describes the SLR protocol.
+Section~\ref{sec:background} provides background and the taxonomy.
+Sections~\ref{sec:realtime} and~\ref{sec:multimodal} present the main review bodies.
+Section~\ref{sec:open_problems} catalogues open problems.
+Section~\ref{sec:discussion} discusses implications.
+Section~\ref{sec:conclusion} concludes.

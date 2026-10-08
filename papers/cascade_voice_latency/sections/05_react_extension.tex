@@ -1,0 +1,125 @@
+% §5 Tool-Using Agents: The ReAct Extension
+We extend the formal pipeline model to cover tool-using agents that execute multiple
+reasoning-action cycles before producing a response.
+
+\subsection{The \texorpdfstring{$k$}{k}-Step ReAct Agent}
+
+A $k$-step ReAct agent \citep{yao2023react} executes $k$ interleaved reasoning steps
+and tool calls before generating its final textual response.
+In the voice cascade setting, the full pipeline for a $k$-step agent is:
+\begin{equation}
+  \text{ASR} \to \bigl[\text{LM}_1 \to \text{Tool}_1 \to \cdots
+  \to \text{LM}_{k-1} \to \text{Tool}_{k-1}\bigr]
+  \to \text{LM}_k \to \text{TTS}
+\end{equation}
+where $\text{LM}_j$ denotes the $j$-th LM inference step and $\text{Tool}_j$ denotes
+the $j$-th external tool call.
+The user perceives silence for the entire duration of this chain.
+
+\subsection{Compounding Latency Theorem}
+
+\begin{theorem}[$k$-Step Silence Gap]
+\label{thm:react}
+Let $\Lambda_k$ denote the silence gap of a $k$-step ReAct agent in a cascade pipeline.
+Let $\lambda_{lm}$ denote the latency of a single LM inference step
+(prefill plus decode to the first token of the response or tool call),
+and let $\lambda_{tool}$ denote the round-trip latency of a single tool call.
+We assume all $k$ LM inference steps have equal latency $\lambda_{lm}$ (in practice, later steps incur higher prefill cost as context grows with tool observations).
+For intermediate ReAct steps, only time-to-first-token (TTFT) determines when the tool call is issued, while the final LM step's full decode time feeds into TTS; this formulation treats $\lambda_{lm}$ uniformly across all steps as a simplifying assumption.
+Then:
+\begin{equation}
+  \Lambda_k = \lambda_{asr} + k \cdot \lambda_{lm} + (k-1) \cdot \lambda_{tool} + \lambda_{tts}
+\end{equation}
+and the irreducible floor is:
+\begin{equation}
+  \Lambda_k^* = \lambda_{asr}^{irr} + k \cdot \lambda_{lm}^{irr} + (k-1) \cdot \lambda_{tool}^{irr} + \lambda_{tts}^{irr}
+\end{equation}
+For in-process local tool calls, $\lambda_{tool}^{irr} \approx 0$ and the simplified form $\Lambda_k^* \approx \lambda_{asr}^{irr} + k \cdot \lambda_{lm}^{irr} + \lambda_{tts}^{irr}$ applies; for remote API tools, $\lambda_{tool}^{irr}$ reflects minimum network round-trip latency.
+\end{theorem}
+
+\begin{proof}
+The $k$-step ReAct pipeline forms a linear dependency chain:
+each LM step cannot begin until the preceding tool call (or the ASR stage, for $\text{LM}_1$)
+has completed, and each tool call cannot begin until the preceding LM step has completed.
+By Definition~\ref{def:decomposition}, the latency of each stage decomposes into
+reducible and irreducible components.
+Summing over the critical path of the chain, the total silence gap is:
+\[
+  \Lambda_k = \lambda_{asr} + \sum_{j=1}^{k} \lambda_{lm} + \sum_{j=1}^{k-1} \lambda_{tool}
+              + \lambda_{tts}
+  = \lambda_{asr} + k \cdot \lambda_{lm} + (k-1) \cdot \lambda_{tool} + \lambda_{tts}.
+\]
+For the irreducible floor, we apply the argument of Theorem~\ref{thm:latency_floor}:
+the reducible components of each LM step and each tool call can be driven to zero
+by faster models and faster infrastructure, but the irreducible component $\lambda_{lm}^{irr}$
+persists for each of the $k$ LM steps.
+For tool calls, $\lambda_{tool}^{irr}$ reflects the minimum service round-trip latency;
+for remote APIs this is positive, but even in the best case
+(local in-process tools, $\lambda_{tool}^{irr} \approx 0$) it cannot be negative.
+Applying Definition~\ref{def:decomposition} to each stage and collecting
+irreducible terms along the critical path yields $\Lambda_k^*$ as stated.
+\end{proof}
+
+Figure~\ref{fig:react_loop} illustrates the compounding latency structure of the
+$k$-step ReAct pipeline.
+
+\begin{figure}[t]
+  \centering
+  \resizebox{\linewidth}{!}{%
+    \input{figures/fig_react_loop}%
+  }
+  \caption{The $k$-step ReAct agent pipeline.
+           Each reasoning step (blue) adds a full LM inference latency $\lambda_{lm}$;
+           each tool call (orange) adds $\lambda_{tool}$.
+           The total silence gap $\Lambda_k$ grows linearly with $k$,
+           making the Cascade Competitiveness Criterion (Definition~\ref{def:ccc})
+           increasingly hard to satisfy for tool-intensive agents.}
+  \label{fig:react_loop}
+\end{figure}
+
+\subsection{Implications for Tool-Using Voice Agents}
+
+Theorem~\ref{thm:react} has several important consequences for the design and deployment
+of voice agents built on the ReAct paradigm \citep{yao2023react}.
+
+\paragraph{CCC becomes harder to satisfy.}
+For representative values ($\lambda_{lm} = 350$~ms, $\lambda_{tool} = 100$~ms,
+$\lambda_{asr} = 350$~ms, $\lambda_{tts} = 200$~ms),
+the silence gap for a two-step agent ($k = 2$) is already:
+\[
+  \Lambda_2 = 350 + 2(350) + 100 + 200 = 1350~\text{ms},
+\]
+nearly $7\times$ the human turn-taking threshold $\tau_{human} = 200$~ms
+established by \citet{levinson2015timing} and \citet{stivers2009universals}.
+Each additional reasoning step adds at least $\lambda_{lm} + \lambda_{tool} \approx 450$~ms
+to the silence gap, pushing competitiveness further out of reach.
+
+\paragraph{Chain-of-thought reasoning compounds the effect.}
+When the agent uses chain-of-thought reasoning \citep{wei2023chainofthought},
+each LM step generates a longer token sequence before producing the tool call
+or response token.
+This increases $\lambda_{lm}$ while improving response quality,
+creating a fundamental quality--latency trade-off within each reasoning step.
+The trade-off is multiplicative in $k$: an agent running $k$ reasoning steps
+with chain-of-thought pays the overhead $k$ times.
+
+\paragraph{Tool call latency is largely irreducible.}
+Remote API tool calls involve a network round-trip that cannot be eliminated.
+For tools requiring database queries or external service calls,
+$\lambda_{tool}^{irr}$ reflects the minimum service response time,
+set by physical network latency and server-side processing.
+Only local, in-process tool calls have $\lambda_{tool}^{irr} \approx 0$;
+real-world agents using web search, calendar, or CRM tools face positive
+$\lambda_{tool}^{irr}$ values on the order of 50--200~ms per call
+\citep{langgraph2024}.
+
+\paragraph{The irreducible floor grows linearly with \texorpdfstring{$k$}{k}.}
+Unlike the single-step case, where $\Lambda^* = 380$~ms in our running example,
+a $k$-step agent has $\Lambda_k^* = 380 + (k-1) \cdot \lambda_{lm}^{irr}$ (assuming in-process tools).
+For $k = 3$ and $\lambda_{lm}^{irr} = 100$~ms, this gives
+$\Lambda_3^* = 380 + 2 \times 100 = 580$~ms,
+nearly $3\times$ the human threshold.
+No engineering lever can push below this floor without changing the pipeline
+architecture: architectural modifications such as speculative execution or
+parallel tool dispatch (discussed in Section~\ref{sec:design_levers}) address
+the reducible terms but leave $\Lambda_k^*$ intact.

@@ -1,0 +1,85 @@
+% §1 Introduction
+Voice-based conversational interfaces are increasingly deployed in real-world applications,
+from customer service \citep{openai2024realtimeapi} to personal assistants \citep{google2024geminivoice}.
+Two competing architectural paradigms have emerged for building such systems.
+\emph{Native voice models} process speech end-to-end within a single neural network,
+eliminating inter-component boundaries and their associated latencies.
+\emph{Cascade architectures} decompose the pipeline into three sequential components:
+a speech recognition model that transcribes user audio to text,
+a text-based language model that reasons and generates a response,
+and a speech synthesis model that renders the response as audio.
+
+Cascade architectures offer compelling practical advantages.
+They are substantially cheaper to operate than native voice APIs \citep{openai2024realtimeapi}.
+They allow the language model component to be replaced or updated independently.
+They support tool use---the ability to call external APIs, databases, and services---through
+standard text-based agent frameworks \citep{yao2023react,langgraph2024}.
+They expose intermediate representations (transcripts, structured outputs) that aid
+auditability, debugging, and safety monitoring.
+
+Despite these advantages, cascade architectures suffer from a perceptual deficiency:
+the \emph{silence gap}.
+When a user finishes speaking, the cascade pipeline must complete speech recognition,
+then wait for the language model to produce its first token,
+then wait for the speech synthesis model to begin audio playback.
+The sum of these delays produces an interval of silence that users perceive as unnatural.
+Human conversation tolerates gaps of roughly 200 milliseconds before perceiving a response
+as delayed \citep{levinson2015timing,stivers2009universals}.
+Cascade pipelines routinely exceed this threshold by a factor of four to ten.
+
+This gap is widely acknowledged in the engineering literature as a key limitation of cascade
+voice systems, but it has received no formal treatment.
+Practitioners address it through ad hoc engineering mitigations without a principled basis
+for understanding which strategies reduce the gap structurally and which merely mask it
+perceptually.
+No prior work has formally characterized the irreducible latency floor of cascade voice pipelines as a function of pipeline topology, nor established formal conditions under which such systems can approach human conversational response norms.
+
+This paper provides that framework.
+We introduce the \emph{turn-taking threshold} $\tau_{human} = 200$~ms as the upper bound on
+the \emph{silence gap}---the interval of silence between the end of the user's utterance and
+the beginning of the agent's audio response---within which a \emph{cascade architecture} is
+perceived as conversationally natural.
+We make the following contributions:
+
+\begin{enumerate}
+\item \textbf{Formal pipeline model} (\S\ref{sec:pipeline_model}).
+We represent the cascade voice pipeline as a directed acyclic graph of latency-contributing
+stages and decompose each stage's latency into a \emph{reducible} component,
+improvable with faster models or hardware, and an \emph{irreducible} component,
+determined by architectural structure and eliminable only by changing the pipeline topology.
+
+\item \textbf{Latency Floor Theorem} (\S\ref{sec:latency_floor}).
+We prove that the silence gap of any cascade architecture has a lower bound $\Lambda^*$,
+the sum of irreducible latencies across all pipeline stages,
+that cannot be reduced by any model improvement or hardware upgrade.
+We derive the \emph{Cascade Competitiveness Criterion} (CCC),
+the formal condition under which a cascade architecture achieves perceptual equivalence
+with a native voice model.
+
+\item \textbf{ReAct extension} (\S\ref{sec:react_extension}).
+We extend the formal model to tool-using agents built on the ReAct pattern \citep{yao2023react}.
+We prove that each reasoning step adds a full latency cycle to the silence gap,
+compounding the irreducible floor and making CCC satisfaction increasingly unlikely
+for multi-step agents.
+
+\item \textbf{Design lever taxonomy} (\S\ref{sec:design_levers}).
+We classify six mitigation strategies by the latency component each targets,
+the headroom each can recover, and its side effects.
+We show that only two strategies---streaming synthesis and hybrid routing---reduce
+the irreducible floor $\Lambda^*$ itself;
+the remaining four are perceptual patches that mask the gap without reducing it.
+
+\item \textbf{Open problems} (\S\ref{sec:open_problems}).
+We identify four open research directions emerging from the formal analysis:
+learned barge-in prediction, safety in cascade voice systems,
+voice-aware agent planning, and principled hybrid routing policies.
+\end{enumerate}
+
+The remainder of this paper is organised as follows.
+Section~\ref{sec:background} introduces the cascade pipeline architecture,
+native voice models, and human turn-taking thresholds.
+Section~\ref{sec:pipeline_model} develops the formal model.
+Sections~\ref{sec:latency_floor} and~\ref{sec:react_extension} state and prove the main theorems.
+Section~\ref{sec:design_levers} presents the design lever taxonomy.
+Sections~\ref{sec:open_problems} and~\ref{sec:discussion} discuss implications.
+Section~\ref{sec:conclusion} concludes.

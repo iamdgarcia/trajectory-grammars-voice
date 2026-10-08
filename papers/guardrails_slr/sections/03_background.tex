@@ -1,0 +1,244 @@
+\section{Background and Taxonomy}
+\label{sec:background}
+
+\subsection{Threat Model}
+
+A guardrail operates within a threat model that specifies who the adversary is,
+what access they have, and what harm they aim to cause.
+We adopt the adversary taxonomy of Dong~et~al.~\cite{dong2024building} without
+modification, as it provides adequate coverage for the real-time and multimodal
+settings of this review and avoids introducing an incompatible competing
+classification.
+The three adversary classes are:
+
+\begin{description}
+  \item[Naive user] A user who elicits harmful outputs unintentionally or through
+        naive prompting.
+  \item[Jailbreaker] An adversary who deliberately crafts inputs to bypass safety
+        constraints, with black-box API access only.
+  \item[Fine-tuner] An adversary with the ability to customise the model (e.g.\ via a
+        fine-tuning API), who degrades safety alignment during post-deployment
+        customisation~\cite{qi2023finetuning}.
+\end{description}
+
+Real-time and multimodal settings expand the attack surface: a jailbreaker may
+exploit streaming behaviour to extract partial harmful responses before a classifier
+can fire, or embed harmful intent in images to evade text-focused filters.
+
+\subsection{Guardrail Taxonomy}
+
+We organise existing guardrail mechanisms along three axes:
+\emph{placement in the inference pipeline}, \emph{implementation layer}, and
+\emph{modality coverage}.
+The axes are defined to be mutually orthogonal: placement describes \emph{when}
+during a live inference request a guardrail fires; implementation layer describes
+\emph{how} the guardrail is realised architecturally; and modality coverage
+describes \emph{what input types} the guardrail can inspect.
+Mechanisms whose safety behaviour is embedded in model weights during training
+have \emph{no placement in the inference pipeline}---they impose no inference-time
+interception point---and are therefore classified exclusively under the
+implementation layer axis, not the placement axis.
+
+\textit{Boundary case resolved}: plug-in adapter approaches such as
+SafeVLM~\cite{oh2024safevlm} sit at the boundary between model-intrinsic and
+model-extrinsic.
+SafeVLM adds a safety projector, safety tokens, and a classification head that are
+\emph{trained jointly} with or appended to the base VLM's architecture, which
+blurs the weight-modification / external-classifier boundary.
+We resolve this boundary by introducing a third implementation-layer subcategory,
+\textbf{model-augmented}, defined as follows: a mechanism is model-augmented if and
+only if (i) it adds new parameters to the base model's computational graph (rather
+than wrapping the model in an external pipeline), \emph{and} (ii) the base model's
+original weights are held fixed or can be restored by removing the added parameters.
+This distinguishes model-augmented mechanisms from model-intrinsic mechanisms (which
+modify the base weights) and from model-extrinsic mechanisms (which operate outside
+the model's computational graph entirely, e.g., as a separate classifier invoked
+after inference).
+SafeVLM satisfies both criteria and is therefore classified as \textbf{model-augmented}
+in this taxonomy.
+MLLM-Protector~\cite{pi2024mllm} (Section~\ref{sec:multimodal}) similarly qualifies
+as model-augmented under this criterion, as it adds adapter modules without altering
+the host VLM's weights.
+The implementation-layer axis thus has three values: \emph{model-intrinsic} (weights
+modified), \emph{model-augmented} (parameters added, base weights preserved),
+\emph{model-extrinsic} (external pipeline component).
+
+\subsubsection{Placement in the Inference Pipeline}
+
+This axis covers only \emph{inference-time} interception points, i.e.\ positions
+at which a running guardrail can observe or interrupt a live inference request.
+Training-time mechanisms (RLHF, constitutional AI, safety context distillation)
+do not appear here because they impose no inference-time pipeline stage.
+
+\begin{description}
+  \item[Pre-generation (input)] The guardrail inspects the user prompt before any
+        tokens are generated.
+        Typical implementations are classifiers or rule engines applied to the prompt
+        (e.g.\ Llama Guard in prompt-check mode~\cite{inan2023llama}).
+  \item[In-generation (streaming)] The guardrail operates concurrently with token
+        generation, either by inspecting each token or by inspecting growing
+        prefixes.
+        This is the least developed category and the central gap identified in
+        this review.
+  \item[Post-generation (output)] The guardrail inspects the completed response before
+        it is returned to the user.
+        Most LLM-as-judge and classifier-based systems operate here.
+\end{description}
+
+\noindent\textbf{Hybrid placement}: a mechanism may fire at more than one
+pipeline stage.
+NeMo Guardrails~\cite{rebedea2023nemo}, for instance, applies rails at both
+the input stage (inspecting the user prompt) and the output stage (inspecting the
+generated response), as well as at intermediate stages (knowledge retrieval,
+action execution).
+Such mechanisms are classified under \emph{all placement values that apply};
+the taxonomy does not require a single placement assignment.
+This multi-placement case should be interpreted as indicating that the mechanism
+provides defence in depth across the pipeline, at the cost of additive latency
+from each interception point.
+
+\subsubsection{Implementation Layer}
+
+\begin{sloppypar}
+\begin{description}
+  \item[Model-intrinsic (weight-embedded)] The mechanism modifies model weights or
+        training procedure, baking safety behaviour into the model itself.
+        No inference-time overhead is incurred, but the mechanism cannot be updated
+        without retraining.
+        Includes RLHF~\cite{ouyang2022training}, constitutional AI /
+        RLAIF~\cite{bai2022constitutional}, and safety context distillation---the
+        only weight-embedding technique with a fully reproducible description in the
+        literature~\cite{touvron2023llama2}.
+        Because these mechanisms have no inference pipeline placement, they do not
+        appear in the placement axis above.
+  \item[Model-augmented] The mechanism adds new parameters to the base model's
+        computational graph but holds the base model's original weights fixed;
+        the added modules can in principle be detached to restore the original
+        model.
+        This category is defined here to resolve boundary cases that neither
+        model-intrinsic nor model-extrinsic classifies cleanly (see boundary
+        case discussion above).
+        Includes SafeVLM~\cite{oh2024safevlm} and
+        MLLM-Protector~\cite{pi2024mllm}.
+        Model-augmented mechanisms have an inference pipeline placement (typically
+        pre- or post-generation, depending on where the added modules intercept).
+  \item[Model-extrinsic] The mechanism is external to the model under guard and
+        operates at inference time without adding parameters to the model's graph.
+        Includes: (a) \emph{classifier-based} systems that run a separate safety
+        classifier (Llama Guard~\cite{inan2023llama}, ShieldLM~\cite{zhang2024shieldlm},
+        WildGuard~\cite{han2024wildguard}); (b) \emph{pipeline frameworks} that
+        intercept at multiple stages (NeMo Guardrails~\cite{rebedea2023nemo}); and
+        (c) \emph{rule engines} or prompt-injection defences.
+        All model-extrinsic mechanisms have an inference pipeline placement (pre,
+        in, or post-generation).
+\end{description}
+\end{sloppypar}
+
+\input{figures/fig_sota_taxonomy}
+
+\subsubsection{Modality Coverage}
+
+Table~\ref{tab:modality} summarises the modality coverage of the principal systems
+and approaches reviewed.
+
+\begin{table}[htbp]
+  \caption{Modality coverage of nine representative guardrail systems.
+           Systems selected to span all three taxonomy axes (placement,
+           implementation layer, and modality); selection is not exhaustive.
+           DRESS excluded: not a dedicated guardrail (see text; appears in
+           Table~\ref{tab:vlm_defence}).
+           \checkmark = addressed; $\triangle$ = partial/unverified;
+           -- = not addressed.}
+  \label{tab:modality}
+  \centering
+  \begin{tabular}{lcccc}
+    \toprule
+    \textbf{System / Approach} & \textbf{Text} & \textbf{Image} & \textbf{Audio} & \textbf{Video} \\
+    \midrule
+    RLHF~\cite{ouyang2022training}        & \checkmark & -- & -- & -- \\
+    Constitutional AI~\cite{bai2022constitutional} & \checkmark & -- & -- & -- \\
+    Safety Context Distillation~\cite{touvron2023llama2} & \checkmark & -- & -- & -- \\
+    Llama Guard~\cite{inan2023llama}      & \checkmark & $\triangle$ & -- & -- \\
+    NeMo Guardrails~\cite{rebedea2023nemo} & \checkmark & -- & -- & -- \\
+    ShieldLM~\cite{zhang2024shieldlm}    & \checkmark & -- & -- & -- \\
+    WildGuard~\cite{han2024wildguard}    & \checkmark & -- & -- & -- \\
+    SafeVLM~\cite{oh2024safevlm}          & \checkmark & $\triangle$ & -- & -- \\
+    Azure Content Safety~\cite{azure2024contentsafety} & \checkmark & \checkmark & -- & -- \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The table reveals that audio and video safety is entirely absent from the verified
+academic literature, and that image safety is addressed only partially or without
+reproducible evaluation.
+DRESS~\cite{chen2024dresssafety} is excluded from this table because it is not a
+dedicated VLM safety guardrail; it appears in Section~\ref{sec:multimodal} as a
+training-time alignment baseline contrast, where its peripheral status is documented
+in full.
+
+\subsection{Taxonomy Cell Analysis}
+
+A three-axis taxonomy with values \{pre-generation, in-generation, post-generation\} $\times$ \{model-intrinsic, model-augmented, model-extrinsic\} $\times$ \{text, image, audio, video\} implies up to $3 \times 3 \times 4 = 36$ cells.
+Not all cells are structurally realizable.
+
+\paragraph{Structurally impossible cells}
+Model-intrinsic mechanisms (weight-embedded) operate during training, not during inference; the placement axis is undefined for them.
+The 12 placement-specific cells in the model-intrinsic row are training-time / placement-agnostic: model-intrinsic mechanisms (RLHF, constitutional AI, safety context distillation) operate during training, not during inference-time placement, and are therefore agnostic to the pre/in/post-generation placement axis.
+These collapse to 4 placement-agnostic cells (one per modality), reducing the total to 28 cells: 24 placement-specific (model-augmented and model-extrinsic rows) and 4 placement-agnostic (model-intrinsic row).
+
+Two boundary cases require explicit treatment: system prompt engineering, though often classified as model-intrinsic, operates at inference time and is more accurately placed in the pre-generation $\times$ model-extrinsic cell; activation steering, a weight-space intervention applied during the forward pass, is genuinely model-intrinsic and in-generation, and is accordingly treated as placement-agnostic in the model-intrinsic row.
+(Here, activation steering refers to the post-training weight-space or representation-space modification, not to inference-time hidden-state intervention; inference-time activation steering, which modifies hidden states during the forward pass, would be classified as in-generation $\times$ model-intrinsic and is noted as a boundary case not yet represented in the corpus.)
+
+\paragraph{Populated cells (from the 75-paper corpus)}
+Of the 24 placement-specific cells, the following are populated by at least one corpus paper:
+pre-generation $\times$ model-extrinsic $\times$ text (Llama Guard, ShieldLM, WildGuard, AEGIS);
+post-generation $\times$ model-extrinsic $\times$ text (same systems in response-checking mode);
+pre-generation $\times$ model-augmented $\times$ image (SafeVLM~\cite{oh2024safevlm});
+post-generation $\times$ model-augmented $\times$ text+image (MLLM-Protector~\cite{pi2024mllm});
+pre+post-generation $\times$ model-extrinsic $\times$ text (NeMo Guardrails, hybrid placement).
+Systems listed in multiple placement cells (e.g., Llama Guard, which supports both pre- and post-generation deployment) occupy a single row in the populated-cell count; placement multiplicity reflects deployment flexibility, not multiple distinct mechanisms.
+
+\paragraph{Structurally empty by research absence}
+Two voids are systematic and constitute the central findings of this review.
+Within the 28-cell framework, \emph{the in-generation row} (streaming) is entirely unpopulated across the placement-specific cells: no paper in the corpus evaluates or proposes a model-augmented or model-extrinsic mechanism that operates on the growing token prefix during active generation (Section~\ref{sec:realtime}, Streaming Safety Gap).
+\emph{The audio and video modality columns} are unpopulated across all 28 cells regardless of placement or implementation layer: no paper addresses audio-language or video-language safety mechanisms at any pipeline stage (Section~\ref{sec:multimodal}, Audio and Video Safety).
+Together, these two voids --- the in-generation row and the audio/video columns --- define the research agenda developed in Section~\ref{sec:open_problems}.
+
+\subsection{Foundational Alignment Techniques}
+
+Three intrinsic alignment techniques form the background against which extrinsic
+guardrails are evaluated.
+
+\paragraph{RLHF}
+Reinforcement learning from human feedback~\cite{ouyang2022training} fine-tunes an
+LLM using a reward model trained on human preference labels.
+The technique produced the first commercially deployed aligned assistants but
+requires large-scale human annotation and is susceptible to reward hacking.
+
+\paragraph{Constitutional AI}
+Bai~et~al.~\cite{bai2022constitutional} replace human safety labels with a set of
+written principles (the ``constitution'') from which an AI generates and filters
+its own training data.
+Of the 18 quantitative and architectural claims extracted from the background and
+taxonomy sources (see Table~\ref{tab:claim_counts}), two survived structured
+self-review: the Safety Context Distillation mechanism and the dual reward model
+arbitration threshold documented in Section~\ref{sec:realtime}.
+The claim that no human labels are required did not survive structured self-review
+on three specific grounds: (i) the ``constitution'' itself is a
+human-authored document requiring substantive expert judgement about which principles
+to include; (ii) the RL from AI Feedback (RLAIF) stage uses a preference model that
+is initialised from human feedback data; and (iii) Bai~et~al.\ report using human
+evaluation to calibrate and validate the resulting model's harmlessness, contradicting
+the no-human-labels framing.
+The technique is a genuine advance in reducing annotation volume, but it does not
+eliminate human involvement from the alignment process.
+
+\paragraph{Safety Context Distillation}
+Introduced in Llama~2~\cite{touvron2023llama2}, this technique generates safe
+responses by prefixing prompts with a safety preprompt, fine-tunes the model on
+those responses, then removes the preprompt.
+The result is a model that has internalised safety behaviour in its weights.
+This is the only weight-embedding technique whose mechanism is described with
+sufficient precision to be reproducible; its use of the safety reward model to
+select which samples receive distillation is a concrete, verifiable architectural
+decision.

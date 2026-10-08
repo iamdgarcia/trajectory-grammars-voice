@@ -1,0 +1,114 @@
+% NOTE FOR PRODUCTION: This manuscript uses \documentclass[12pt,a4paper]{article}
+% for the review submission to maintain readability with double-blind annotations.
+% The final camera-ready version must use \documentclass[acmsmall]{acmart} per
+% ACM CSUR TAPS requirements; reformatting for the acmart template (figure
+% placement, table formatting, bibliography style) will be completed upon
+% conditional acceptance before camera-ready submission.
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{url}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric,arrows.meta,positioning,calc}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=blue,
+  urlcolor=blue
+}
+
+\begin{document}
+
+\title{Real-Time and Multimodal Guardrails for Large Language Models:\\
+A Systematic Literature Review}
+
+\author{Daniel~Garc\'ia~Pe\~na\\[4pt]
+  \small\texttt{info@iamdgarcia.com}\\
+  \small ORCID: \href{https://orcid.org/0000-0002-1456-4785}{0000-0002-1456-4785}
+}
+
+\maketitle
+
+\begin{abstract}
+Guardrails for large language models (LLMs) — mechanisms that constrain harmful,
+offensive, or policy-violating outputs — have become a critical component of responsible
+AI deployment.
+Yet the literature concentrates overwhelmingly on offline, text-only evaluation settings,
+leaving two deployment-critical dimensions underexplored:
+\emph{real-time} operation (safety checking under strict latency budgets, including
+token-by-token streaming) and \emph{multimodal} contexts (vision-language models, audio,
+video, and cross-modal attack surfaces).
+This paper presents a systematic literature review (SLR) of guardrail research at the
+intersection of these two dimensions, covering publications from 2022 to 2025.
+We introduce a three-axis taxonomy of guardrail mechanisms (placement in the inference
+pipeline, implementation layer, and modality coverage) that reveals a systematic absence
+of verified in-generation streaming safety solutions and of any audio or video safety
+mechanisms in the academic literature.
+We also document a pervasive reproducibility crisis via a structured self-review
+protocol: across three temporally separated author-verification passes spanning 75
+primary sources and 237 extracted quantitative and architectural claims,\footnote{Many
+additional qualitative statements were noted during extraction but were not coded as
+discrete claims; the 237 figure covers only quantitative assertions and qualitative
+architectural assertions as defined in the codebook (Section~\ref{subsec:verification_protocol}).}
+exactly five claims survived structured self-review (unanimous agreement across all
+three passes required), with evaluation-protocol choices alone shown to shift reported
+attack-success rates by up to 30 percentage points.
+All individual pass verdicts and refutation rationales are documented in full in
+Appendix~\ref{sec:appendix}.
+On the substantive side, the review finds that real-time in-generation safety checking
+remains an entirely open problem: no empirical paper in the corpus addresses
+prefix-level safety classification under streaming constraints, and audio and video
+modalities are wholly absent from the academic guardrail literature despite confirmed
+production deployment in both.
+Session-level context — the conversational state that accumulates across turns — is
+architecturally absent from all runtime guardrail systems verified in this review,
+leaving multi-turn escalation attacks unmitigated by any mechanism with reproducible
+empirical support.
+Because real-time and multimodal guardrail systems remain undercharacterised in the
+published academic literature, this review documents as much the systematic absence of
+reliable evidence as its presence;
+``multimodal'' in the title refers to the scope of inquiry, not to the density of
+verified findings.
+We conclude with a structured catalogue of nine open problems and directions for future
+work, with particular emphasis on the streaming safety gap and the cross-modal alignment
+deficit.
+\end{abstract}
+
+\noindent\textbf{Keywords:}
+large language models, guardrails, safety, real-time inference, multimodal models,
+vision-language models, jailbreaking, systematic literature review, reproducibility
+
+\vspace{1em}
+
+\input{sections/01_introduction}
+\input{sections/02_methodology}
+\input{sections/03_background}
+\input{sections/04_realtime}
+\input{sections/05_multimodal}
+\input{sections/06_open_problems}
+\input{sections/07_discussion}
+\input{sections/08_conclusion}
+
+\clearpage
+\appendix
+\input{sections/appendix}
+
+\clearpage
+\bibliographystyle{unsrt}
+\bibliography{main}
+
+\end{document}

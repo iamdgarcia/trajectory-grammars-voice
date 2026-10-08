@@ -1,0 +1,61 @@
+\documentclass[journal]{IEEEtran}
+
+% TikZ
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,backgrounds,calc}
+
+% Tables
+\usepackage{booktabs}
+\usepackage{array}
+
+% Bibliography
+\usepackage{cite}
+
+% Math
+\usepackage{amsmath,amssymb}
+
+\begin{document}
+
+\title{PAPER TITLE}
+
+\author{Daniel Garc\'ia Pe\~na%
+\thanks{D. Garc\'ia Pe\~na is with the Department of Computer Science,
+University of Oviedo, Oviedo, Spain, and with Unicaja Bank, Spain.
+E-mail: info@iamdgarcia.com. ORCID: 0000-0002-1456-4785.}}
+% Add co-authors by extending the \author{} block
+
+\maketitle
+
+\begin{abstract}
+Abstract text here.
+\end{abstract}
+
+\begin{IEEEkeywords}
+keyword1, keyword2, keyword3
+\end{IEEEkeywords}
+
+\section{Introduction}
+\input{sections/01_introduction}
+
+\section{Background}
+\input{sections/02_background}
+
+\section{Methodology}
+\input{sections/03_methodology}
+
+\section{Analysis}
+\input{sections/04_analysis}
+
+\section{Open Problems}
+\input{sections/05_open_problems}
+
+\section{Discussion}
+\input{sections/06_discussion}
+
+\section{Conclusion}
+\input{sections/07_conclusion}
+
+\bibliographystyle{IEEEtran}
+\bibliography{main}
+
+\end{document}

@@ -1,0 +1,53 @@
+% Fig 1: Cascade pipeline DAG with reducible/irreducible latency annotations
+\begin{tikzpicture}[
+  node distance=1.4cm and 0.8cm,
+  box/.style={rectangle, rounded corners=4pt, draw=black, thick,
+              minimum width=2.0cm, minimum height=0.9cm,
+              font=\small\bfseries, align=center},
+  reducible/.style={fill=blue!15},
+  irreducible/.style={fill=red!15},
+  arr/.style={-{Stealth[length=6pt]}, thick},
+  annot/.style={font=\footnotesize, align=center}
+]
+
+% Nodes
+\node[box, fill=gray!10] (user) {User\\Audio};
+\node[box, reducible,  right=of user]  (asr)  {ASR};
+\node[box, reducible,  right=of asr]   (lm)   {LM};
+\node[box, reducible,  right=of lm]    (tts)  {TTS};
+\node[box, fill=gray!10, right=of tts] (out)  {Agent\\Audio};
+
+% Arrows
+\draw[arr] (user) -- (asr);
+\draw[arr] (asr)  -- (lm);
+\draw[arr] (lm)   -- (tts);
+\draw[arr] (tts)  -- (out);
+
+% Latency annotations above each stage
+\node[annot, above=0.5cm of asr] (lasr)
+  {$\lambda_{asr}^{irr}$ \textcolor{red!70!black}{(VAD buffer)}\\
+   $+\,\lambda_{asr}^{r}$ \textcolor{blue!70!black}{(decode)}};
+\node[annot, above=0.5cm of lm]  (llm)
+  {$\lambda_{lm}^{irr}$ \textcolor{red!70!black}{(prefill floor)}\\
+   $+\,\lambda_{lm}^{r}$ \textcolor{blue!70!black}{(TTFT)}};
+\node[annot, above=0.5cm of tts] (ltts)
+  {$\lambda_{tts}^{irr}$ \textcolor{red!70!black}{(codec init)}\\
+   $+\,\lambda_{tts}^{r}$ \textcolor{blue!70!black}{(synthesis)}};
+
+% Brace below showing total silence gap
+\draw[decorate, decoration={brace, amplitude=8pt, mirror},
+      thick, color=black!70]
+  ([yshift=-0.6cm]asr.south west) -- ([yshift=-0.6cm]tts.south east)
+  node[midway, below=0.4cm, annot]
+  {Total silence gap $\Lambda = \sum_i (\lambda_i^{irr} + \lambda_i^r)$\\
+   Floor $\Lambda^* = \sum_i \lambda_i^{irr}$\quad (irreducible)};
+
+% Legend — placed below the brace label to avoid overlap
+\node[box, reducible, below left=3.6cm and -0.5cm of asr,
+      minimum width=1.8cm, minimum height=0.5cm, font=\footnotesize]
+  (leg_r) {Reducible $\lambda^r$};
+\node[box, irreducible, right=0.4cm of leg_r,
+      minimum width=1.8cm, minimum height=0.5cm, font=\footnotesize]
+  (leg_i) {Irreducible $\lambda^{irr}$};
+
+\end{tikzpicture}

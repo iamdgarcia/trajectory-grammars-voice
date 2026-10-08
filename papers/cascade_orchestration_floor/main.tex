@@ -1,0 +1,121 @@
+\documentclass[11pt,a4paper]{article}
+
+% Core packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=1in]{geometry}
+
+% Bibliography
+\usepackage[numbers,sort&compress]{natbib}
+
+% Figures and tables
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+
+% TikZ
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,backgrounds,calc}
+
+% Math
+\usepackage{amsmath,amssymb,amsthm}
+
+% Links
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+% Headers
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\thepage}
+\setlength{\headheight}{14pt}
+
+%% -----------------------------------------------------------------------
+%% PAPER METADATA -- fill in before compiling
+%% -----------------------------------------------------------------------
+\title{Start Fast, Stop Fast: Interruptibility and the Cessation Floor of\\ Realtime Cascade Voice Agents}
+
+% Author block (manual; no authblk dependency)
+\author{Daniel Garc\'ia Pe\~na\\
+  \small Department of Energy and Process Control, University of Oviedo, Oviedo, Spain.\\
+  \small AI Engineering, Unicaja Bank, Spain.
+  \texttt{info@iamdgarcia.com}}
+
+\date{\today}
+
+%% Theorem environments (mirror the companion latency-floor paper)
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{example}{Example}
+\newtheorem{remark}{Remark}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Perceived responsiveness of a realtime cascade voice agent has two floors: response \emph{onset}
+(how fast the agent can first be heard) and response \emph{cessation} (how fast it fully stops
+when the user interrupts). The onset floor is well characterised; the cessation floor is neither
+standardly defined nor formally bounded. We introduce the two-floor model, prove a
+phase-conditioned cessation floor (detect/decide/cease/resume) that grows with in-flight audio
+$\approx$ queue depth $\times$ frame, and show how tool round-trips sit on the onset side unless
+dispatched to a background execution clock. A new API-serializability lemma makes tool persistence
+under cancellation safe: an interrupted turn cancels generation while pending tool batches commit
+atomically. We argue decoupled-clocks (event-driven) scheduling is the idiomatic configuration
+that owns both floors, validate the semantics with a small tested orchestrator, and anchor the
+quantitative claims with a monotonic-clock smoke measurement: cessation is linear in in-flight
+audio ($109$~ms at buffer depth 1 vs $609$~ms at depth 6), generation cancellation is prompt
+and depth-independent, and resume after interruption is dominated by tool round-trip cost
+($<$1~ms in-memory vs $\sim$1~s remote).
+Together the two floors give a complete, stage-level account of perceived responsiveness for
+cascade agents, extending the onset-side guarantee to the orchestration that schedules
+reasoning, tools, and interruption handling.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:introduction}
+\input{sections/01_introduction}
+
+\section{Background and Related Work}
+\label{sec:background}
+\input{sections/02_background}
+
+\section{The Two-Floor Framework}
+\label{sec:framework}
+\input{sections/03_framework}
+
+\section{Analysis: Ceasing and Hiding Latency}
+\label{sec:analysis}
+\input{sections/04_analysis}
+
+\section{The Practical Question: Which Cascade Architecture?}
+\label{sec:practical}
+\input{sections/05_practical_question}
+
+\section{Open Problems}
+\label{sec:open_problems}
+\input{sections/06_open_problems}
+
+\section{Discussion}
+\label{sec:discussion}
+\input{sections/07_discussion}
+
+\section{Conclusion}
+\label{sec:conclusion}
+\input{sections/08_conclusion}
+
+\bibliographystyle{plainnat}
+\bibliography{main}
+
+\end{document}

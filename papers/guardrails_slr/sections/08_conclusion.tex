@@ -1,0 +1,55 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+This paper has presented a systematic literature review of guardrails for large
+language models, focusing on two deployment-critical but underexplored dimensions:
+real-time operation and multimodal contexts.
+
+The central empirical finding is a pervasive reproducibility crisis.
+Across 75 primary sources and 237 extracted claims, exactly five
+claims survived author-verified scrutiny (three temporally separated self-review
+passes by the same single author, each at least two weeks apart, with unanimous
+agreement required; see Section~\ref{subsec:verification_protocol}).
+The five confirmed findings are narrow but important: (1) the dual reward model
+architecture and threshold arbitration from Llama~2~\cite{touvron2023llama2};
+(2) safety context distillation as a weight-embedding technique~\cite{touvron2023llama2};
+(3) the instruction-following classification framing of Llama Guard~\cite{inan2023llama};
+(4) the multi-turn conversational priming attack amplifying jailbreaks by
+29--71\%~\cite{russinovich2024greatescalation}; and (5) a meta-finding that
+evaluation-protocol choices alone shift reported attack-success rates by up to
+30 percentage points~\cite{li2024salad} --- an evaluation-fragility result that
+is itself a cross-cutting finding from the 72 remaining corpus papers rather than
+a result of any single study.
+Everything else---the specific latency figures, the precise attack success rates,
+the comparative accuracy claims---collapsed under structured self-review.
+
+The taxonomy developed in this review organises existing mechanisms along three
+axes---placement, implementation layer, and modality coverage---and reveals that:
+real-time in-generation (streaming) safety checking has no verified solution;
+audio and video safety is entirely absent from the academic literature despite
+active deployment; and session-level context, necessary to resist multi-turn
+attacks, is not incorporated in any verified runtime guardrail system.
+
+The open-problems catalogue in Section~\ref{sec:open_problems} identifies nine
+specific research gaps (RP1, RT1--RT3, MM1--MM3, FT1, FG1) across reproducibility,
+streaming safety, cross-modal alignment, fine-tuning robustness, and formal
+guarantees.
+These represent the highest-priority directions for a field whose deployment
+urgency has outpaced its scientific rigour.
+
+We hope this review serves both as a reference for researchers seeking to build
+on verified foundations and as a call to action for the evaluation-first methodology
+that the field requires.
+The per-claim audit artefact, the full annotated reference corpus (including the
+complete per-paper modality matrix), and the reproducibility analysis code are
+available from the corresponding author on request.
+
+\section*{Acknowledgements}
+The author thanks the open-source research community for maintaining publicly
+accessible preprint repositories without which this review would not have been
+possible.
+Two discrepant inclusion decisions arising during the title/abstract screening
+phase were resolved by consultation with external domain experts (one specialist
+in LLM safety evaluation and one specialist in multimodal machine learning);
+the author is grateful for their judgement on those borderline cases, which
+affected the final corpus composition.

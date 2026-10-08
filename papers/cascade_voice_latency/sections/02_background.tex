@@ -1,0 +1,140 @@
+% §2 Background
+\subsection{Cascade Voice Architectures}
+
+A cascade voice architecture chains three independently developed components.
+
+\paragraph{Speech recognition.}
+The \emph{automatic speech recognition} (ASR) component converts raw audio input to text.
+Modern ASR systems are based on encoder-decoder transformers \citep{radford2022whisper}
+or connectionist temporal classification models \citep{graves2006ctc}.
+ASR latency has two subcomponents:
+\emph{buffering latency}, the time required to accumulate sufficient audio before decoding begins,
+which is determined by the end-of-utterance detection (VAD) threshold and cannot be reduced below
+the duration of the final word or phrase of the user's turn,
+and \emph{decoding latency}, the time to run the recognition model on the buffered audio,
+which is reducible with faster hardware or smaller models.
+Voice activity detection systems \citep{raux2008optimizing} trigger the end-of-utterance signal
+that releases the audio buffer to the ASR model.
+The VAD threshold is a critical parameter: a low threshold reduces buffering latency but
+increases the rate of premature cut-offs, while a high threshold increases buffering latency
+but improves transcription accuracy.
+Specaugment \citep{park2019specaugment} and related data augmentation techniques improve
+ASR robustness without affecting the latency decomposition.
+
+\paragraph{Language model.}
+The language model (LM) component receives the ASR transcript as text input and produces a
+text response.
+\emph{First-token latency} (also called time-to-first-token, TTFT) is the delay between the LM
+receiving input and emitting its first output token.
+TTFT is determined by the time to prefill the model's key-value cache with the input context.
+For autoregressive transformers \citep{vaswani2017attention}, this is linear in context length
+and quadratic in sequence length for self-attention.
+Subsequent token generation proceeds at a rate determined by memory bandwidth,
+not compute \citep{leviathan2023fast}.
+The LM is the only cascade stage that performs open-ended reasoning;
+all other stages perform fixed-function transformations.
+
+\paragraph{Speech synthesis.}
+The \emph{text-to-speech} (TTS) component converts the LM's text output to audio.
+Classic systems such as Tacotron~2 \citep{shen2018natural} and WaveNet \citep{oord2016wavenet}
+generate audio non-autoregressively from a complete text input.
+Streaming TTS systems can begin audio generation after receiving a short initial text segment,
+reducing the time before audio playback begins at the cost of potentially lower quality
+for very short prefixes.
+The first audio chunk emitted by the TTS model must reach the playback buffer before the
+user hears any agent speech;
+this buffering delay is part of the irreducible floor when the TTS model cannot begin
+synthesis without a minimum text prefix.
+
+\paragraph{Total silence gap.}
+The total silence gap in a cascade architecture is the time from the end of the user's utterance
+to the beginning of the agent's audio response.
+Under the standard (non-streaming) cascade configuration, this equals the sum of:
+ASR buffering latency, ASR decoding latency, LM first-token latency, and TTS initial audio latency.
+We refer to this sum as the \emph{silence gap} throughout this paper.
+The cascade architecture is distinguished from alternative designs precisely by the fact that
+these four components contribute additively and sequentially to the silence gap.
+
+\subsection{Native Voice Models}
+
+Native voice models process speech input and produce speech output within a single end-to-end
+neural network, eliminating the inter-component boundaries present in cascade architectures.
+The key structural difference is that native models can begin producing audio output before
+all input audio has been received, enabling sub-200~ms response latencies under favourable
+network conditions.
+
+OpenAI's Realtime API \citep{openai2024realtimeapi} exposes a GPT-4o variant that accepts
+audio input and produces audio output directly via a WebSocket connection,
+with reported response latencies of 320--500~ms.
+Google's Gemini Live \citep{google2024geminivoice} provides a similar capability
+with streaming audio input and output.
+Both systems represent the current state of the art for low-latency voice interaction.
+
+Native voice models eliminate ASR and TTS as separate stages.
+They process audio tokens directly, enabling the model to begin generating audio
+before the user has finished speaking and to detect barge-in events internally.
+The latency of a native voice model is therefore dominated by the time from receiving
+sufficient audio context to emitting the first audio output token,
+which is bounded below by the model's forward pass time on the input context.
+
+Native voice models support function calling in audio mode~\citep{openai2024realtimeapi};
+however, tool-call turns require the model to pause audio generation while the external tool executes,
+partially reintroducing sequential latency that increases with the number of tool calls.
+This characteristic makes native voice models less suited for applications requiring
+real-time access to databases, APIs, or other external services with non-trivial round-trip latency.
+Cascade architectures retain a structural advantage for auditable, tool-intensive applications,
+motivating the analysis in this paper.
+
+\subsection{Human Turn-Taking and Perceptual Thresholds}
+
+Human conversation is governed by tight timing constraints.
+\citet{levinson2015timing} report that the modal inter-turn interval in natural conversation
+is approximately 0~ms (overlapping speech) to 200~ms across typologically diverse languages.
+\citet{stivers2009universals} confirm this finding across ten unrelated languages,
+establishing the 200~ms threshold as a near-universal feature of human turn-taking.
+Response gaps exceeding 700--800~ms are perceived as face-threatening or indicative of
+uncertainty \citep{levinson2015timing}.
+These findings have been replicated in laboratory settings with synthesised speech,
+suggesting that the perceptual threshold applies to machine voices as well as human voices.
+
+We adopt $\tau_{human} = 200$~ms as the upper bound on the silence gap within which a voice
+agent is perceived as conversationally natural.
+We note that this threshold is context-dependent:
+task-oriented dialogue (e.g., information retrieval) tolerates longer gaps than casual conversation,
+and individual users vary in their sensitivity.
+Our formal analysis treats $\tau_{human}$ as a parameter; the 200~ms value is used in worked
+examples.
+The term \emph{turn-taking threshold} $\tau_{human}$ is used throughout this paper to refer
+to this perceptual boundary.
+
+\subsection{Tool-Using Agents and the ReAct Pattern}
+
+The ReAct pattern \citep{yao2023react} interleaves \emph{reasoning} steps, in which the language
+model generates a chain-of-thought, with \emph{acting} steps, in which the model calls an
+external tool and observes its result.
+A $k$-step ReAct agent executes $k$ reasoning--action cycles before producing its final response.
+This pattern improves task completion rates on multi-step reasoning benchmarks
+but introduces additional latency before the agent can begin its final response.
+
+In voice deployments, ReAct agents are typically implemented using structured output generation:
+each LM inference step produces either a \texttt{tool\_call} action (with arguments) or a
+\texttt{message} action (the final response to the user).
+Frameworks such as LangGraph \citep{langgraph2024} orchestrate these cycles,
+routing tool call results back to the LM as observations.
+Each cycle adds a full LM inference pass (prefill + decode) and a tool execution round-trip to the
+silence gap before the user hears any audio response.
+Chain-of-thought reasoning \citep{wei2023chainofthought} improves response quality but
+further increases TTFT by extending the generated sequence before the final answer token.
+The compounding effect of multiple ReAct cycles on the silence gap is one of the central
+analytical results of this paper, developed formally in Section~\ref{sec:react_extension}.
+Recent work on voice agent system design \citep{dong2024building} identifies multi-step
+tool use as a primary source of perceived latency in deployed cascade voice agents,
+motivating the formal treatment we provide here.
+
+\subsection{Spoken Dialogue Systems and Incremental Processing}
+
+The spoken dialogue systems (SDS) community has long studied the sequential latency accumulation problem in cascade speech pipelines~\citep{schlangen2011general,skantze2021turn}.
+\citet{schlangen2011general} introduce a general formal model of incremental dialogue processing in which each module produces output incrementally, motivating overlap between pipeline stages as the primary mechanism for latency reduction.
+\citet{skantze2021turn} survey turn-taking in conversational systems and human-robot interaction, providing an engineering-facing bridge between psycholinguistic turn-taking norms and deployed dialogue system timing.
+\citet{raux2008optimizing} demonstrate empirically how end-of-utterance threshold configuration affects perceived response latency in deployed voice systems.
+Our work is distinguished from this literature by deriving a formal lower bound on the irreducible latency floor as a function of pipeline topology, and by connecting this bound explicitly to the human conversational gap tolerance threshold and to multi-step tool-using agents.

@@ -1,0 +1,115 @@
+% §2 Background and Related Work
+\emph{References note:} all related-work references in this paper were verified against the
+arXiv API and Crossref on 2026-09-01, including a 2025--26 sweep that surfaced the
+full-duplex and interruption benchmark wave discussed in Section~\ref{sec:background} (\S2.7).
+
+We position this paper against five bodies of work.
+For each we state what it contributes and, explicitly, where it stops short of a formal
+cessation floor.
+
+\subsection{Incremental processing and revocable output}
+The closest formal ancestor of a cessation floor is the incremental dialogue-processing
+literature.
+Schlangen and Skantze \citep{schlangen2011general} model dialogue systems as incrementally
+communicating modules whose output units are produced left to right and can be revised or
+cancelled.
+Toolkits such as InproTK instantiate precisely this revocability for incremental speech
+synthesis \citep{baumann2012prosodic}.
+That line of work established that output increments are \emph{cancellable} behaviours, but it
+was developed for pre-LLM statistical components, carries no agent-orchestration or
+tool-execution semantics, and offers no lower-bound arithmetic for interruption reaction.
+Our paper is exactly the missing latency-bound layer: it keeps revocability as the substrate
+and asks how fast, per architecture, the agent can \emph{fully stop} while a tool waits.
+
+\subsection{Endpointing, barge-in, and interruption policy}
+Endpointing is the known latency-versus-reliability trade of detecting when the user stopped
+talking: firing late adds silence to the onset floor, firing early risks cutting the user off
+\citep{raux2008optimizing}.
+Subsequent deployed work extracts the barge-in vs response-delay trade at scale
+\citep{raux2012optimizing}.
+Bohus and Horvitz \citep{bohus2011interruptions} go further and treat interruption as an
+engagement \emph{decision}: sometimes the right behaviour is to keep talking, and deciding
+whether to yield is policy, not physics.
+These are the empirical and policy pillars our decomposition builds on.
+Their gap is the same one: none states a lower bound on how long the agent's audio tail keeps
+sounding after the user interrupts, nor how that bound depends on the architecture.
+
+\subsection{Turn-taking timing and the two directions of responsiveness}
+Human conversation shows modal gaps near $0$--$200$~ms with frequent sub-$100$~ms transitions
+and ordered overlaps, not errors \citep{levinson2015timing,stivers2009universals,schegloff2000overlap}.
+Quantitative corpus work further shows that a large share of transitions occur at or below
+approximately $100$~ms, so a single threshold under-describes the distribution
+\citep{heldner2010gaps}.
+Backchannel placement is itself a timed behaviour: listeners tend to respond around a fixed
+window after prosodic cues \citep{ward2000backchannel}.
+Synthetic agents, for their part, lack a standard method for evaluating turn-taking behaviour
+at all \citep{skantze2021turn}.
+We use this literature to separate two responsiveness directions: producing one's first word
+(onset) and releasing the floor (cessation), and we treat overlap as an orderly behaviour the
+agent must be fast enough to support.
+
+\subsection{Native full-duplex models}
+End-to-end speech models such as Moshi demonstrate full-duplex dialogue with roughly $200$~ms of
+streaming latency and visible interruption handling \citep{defossez2024moshi}, and commercial
+APIs expose native speech-in/speech-out with built-in function calling
+\citep{openai2024realtimeapi,google2024geminivoice}.
+These systems are the architectural contrast for our per-topology cessation analysis: their
+interruption reaction is bounded by codec-frame granularity, whereas a cascade's is bounded by
+whatever audio is already in its synthesis queue.
+
+\subsection{Agent orchestration, tools, and inference}
+ReAct interleaves reasoning and tool acting \citep{yao2023react}, and graph frameworks such as
+LangGraph make the resulting loops stateful and check-pointed \citep{langgraph2024}.
+Chain-of-thought prompts make each reasoning step a visible latency component
+\citep{wei2023chainofthought}.
+Speculative decoding accelerates the reducible decode term without touching first-token or tool
+delay \citep{leviathan2023fast}, and streaming long-context service is a serving-layer
+concern \citep{xiao2023streamingllm}.
+Finally, guardrail classification is increasingly placed inside the pipeline, where it must fit
+a deadline rather than run after the fact \citep{dong2024building}.
+This body of work motivates our setting: agents that reason, call tools, and are constrained by
+a latency budget.
+What it lacks is a formal treatment of \emph{interruptibility} as a schedulable property of
+the orchestration rather than a property of any single component.
+
+A separate line of engineering practice attacks tool latency directly: retrieval
+round-trips are overlapped with drafting \citep{specrag2024}, intent prefetching lets an
+assistant answer without a tool call at all \citep{agentsnotenough2024}, and the newest
+full-duplex benchmarks evaluate tool use under streaming conditions
+\citep{lin2026fdbv3}.
+These are empirical existence proofs of the type-B/C hiding window we formalise in
+Theorem~\ref{thm:tool_hiding}; none of them states a composition rule for when hiding is
+possible or what unhideable type-A cost remains.
+On the orchestration-operational side, graph frameworks already expose interrupt and
+checkpoint primitives for human-in-the-loop reentry \citep{langgraph2024}; our point is that
+such primitives are treated as operational features rather than as a schedulable latency
+property.
+
+\subsection{Recent full-duplex and interruption benchmarks}
+A concurrent 2025--26 wave of benchmarks measures turn-taking and interruption behaviour
+empirically.
+Full-Duplex-Bench evaluates overlap handling in full-duplex spoken dialogue models
+\citep{lin2025fullduplexbench}, its v3 extends this to tool use under streaming conditions
+\citep{lin2026fdbv3}, and Easy Turn addresses turn-taking detection robustness
+\citep{li2025easyturn}.
+IHBench evaluates post-interruption recovery in structured-workflow voice agents
+\citep{salimi2026ihbench}.
+These works define and measure interruption and recovery \emph{outcomes} -- task success,
+overlap accuracy, recovery outcome -- empirically.
+None of them derives a formal lower bound on reaction latency per architecture (cascade vs
+full-duplex vs decoupled), nor the phase-conditioned decomposition of the stop path.
+The present paper supplies that missing formal account and is thus complementary to, not in
+competition with, this benchmark wave.
+
+\subsection{Position relative to the onset floor}
+Our companion paper \citep{latencyfloor2025} bounds response onset for cascades and derives a
+$k$-step silence-gap bound
+for tool-using agents.
+It treats the orchestration inside the language stage as a black box and stops at onset,
+closing its open-problems discussion by explicitly flagging barge-in reaction as
+untreated.
+This paper opens that box: it bounds the other direction of responsiveness and shows that the
+orchestrator's scheduling policy, not the components, decides whether reducible latency is
+hidden or paid.
+Its reactive cessation floor and the companion's predictive turn-end ceiling together delimit
+the intervention window an agent can exploit.

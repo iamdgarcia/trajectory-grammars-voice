@@ -1,0 +1,41 @@
+{
+  "60c45354-1c67-427e-b0ae-a74405336510": {
+    "projects": [
+      {
+        "path": "C:\\Users\\U77225D\\Desktop\\proyectos\\document_process_saas",
+        "lastUsed": 1788347269764
+      },
+      {
+        "path": "C:\\Users\\U77225D\\Desktop\\code",
+        "lastUsed": 1788347224230
+      },
+      {
+        "path": "C:\\Users\\U77225D\\Desktop\\code\\iabto-ms-bc",
+        "lastUsed": 1788346404861
+      },
+      {
+        "path": "C:\\Users\\U77225D\\Desktop\\proyectos\\ai_research_factory-master",
+        "lastUsed": 1788337422450
+      }
+    ],
+    "lastCwd": "C:\\Users\\U77225D\\Desktop\\proyectos\\document_process_saas",
+    "goalPrefs": {
+      "reviewModel": null,
+      "maxRounds": 0,
+      "locked": true
+    }
+  },
+  "2bfb0d95-dfb7-4e54-9567-9d6670a1f0b6": {
+    "projects": [
+      {
+        "path": "C:\\Users\\U77225D\\Desktop\\code\\iabto-ms-bc",
+        "lastUsed": 1788354459189
+      },
+      {
+        "path": "C:\\Users\\U77225D\\Desktop\\proyectos\\ai_research_factory-master",
+        "lastUsed": 1788354421716
+      }
+    ],
+    "lastCwd": "C:\\Users\\U77225D\\Desktop\\code\\iabto-ms-bc"
+  }
+}

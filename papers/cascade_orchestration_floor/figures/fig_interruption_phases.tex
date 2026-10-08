@@ -1,0 +1,19 @@
+% The three interruption phases and the react path each one takes.
+\begin{tikzpicture}[>=Stealth, font=\small, node distance=9mm and 14mm,
+  box/.style={draw, rounded corners, align=center, minimum height=8mm}]
+  % Phase 1
+  \node[box] (pgen) {phase-gen\\nothing audible};
+  \node[box, right=of pgen] (rg) {cancel generation task};
+  \node[right=of rg] (og) {$\delta_{cease} \approx 0$};
+  \draw[->] (pgen) -- (rg); \draw[->,gray] (rg) -- (og);
+  % Phase 2
+  \node[box, below=of pgen] (ppl) {phase-play\\audio delivered};
+  \node[box, right=of ppl] (rpl) {flush delivery clock\\ in-flight tail plays};
+  \node[right=of rpl] (opl) {$\delta_{cease} \approx d\cdot\tau_f$};
+  \draw[->] (ppl) -- (rpl); \draw[->,gray] (rpl) -- (opl);
+  % Phase 3
+  \node[box, below=of ppl] (ptl) {phase-tool\\tool waiting};
+  \node[box, right=of ptl] (rtl) {execution persists\\resume on completion};
+  \node[right=of rtl] (otl) {$\delta_{resume}$};
+  \draw[->] (ptl) -- (rtl); \draw[->,gray] (rtl) -- (otl);
+\end{tikzpicture}

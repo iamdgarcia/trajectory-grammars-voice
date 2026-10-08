@@ -1,0 +1,885 @@
+% -----------------------------------------------------------------------
+% main.bib  —  Bibliography for the AI Guardrails SLR
+% -----------------------------------------------------------------------
+
+% ---- SLR methodology ---------------------------------------------------
+
+@techreport{kitchenham2007guidelines,
+  title       = {Guidelines for Performing Systematic Literature Reviews in
+                 Software Engineering},
+  author      = {Kitchenham, Barbara and Charters, Stuart},
+  institution = {Keele University and Durham University},
+  number      = {EBSE Technical Report EBSE-2007-01},
+  year        = {2007}
+}
+
+@article{page2021prisma,
+  title   = {{PRISMA} 2020 Explanation and Elaboration: Updated Guidance and
+             Exemplars for Reporting Systematic Reviews},
+  author  = {Page, Matthew J. and Moher, David and Bossuyt, Patrick M. and
+             Boutron, Isabelle and Hoffmann, Tammy C. and Mulrow, Cynthia D. and
+             Shamseer, Larissa and Tetzlaff, Jennifer M. and Akl, Elie A. and
+             Brennan, Sue E. and others},
+  journal = {BMJ},
+  volume  = {372},
+  pages   = {n160},
+  year    = {2021}
+}
+
+% ---- Alignment foundations ---------------------------------------------
+
+@inproceedings{ouyang2022training,
+  title     = {Training language models to follow instructions with human feedback},
+  author    = {Ouyang, Long and Wu, Jeff and Jiang, Xu and Almeida, Diogo and
+               Wainwright, Carroll L. and Mishkin, Pamela and Zhang, Chong and
+               Agarwal, Sandhini and Slama, Katarina and Ray, Alex and others},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  volume    = {35},
+  pages     = {27730--27744},
+  year      = {2022},
+  note      = {Also available as arXiv preprint arXiv:2204.05862}
+}
+
+@article{bai2022constitutional,
+  title   = {Constitutional {AI}: Harmlessness from {AI} Feedback},
+  author  = {Bai, Yuntao and Jones, Andy and Ndousse, Kamal and Askell, Amanda and
+             Chen, Anna and DasSarma, Nova and Drain, Dawn and Fort, Stanislav and
+             Ganguli, Deep and Henighan, Tom and others},
+  journal = {arXiv preprint arXiv:2212.08073},
+  year    = {2022}
+}
+
+@article{touvron2023llama2,
+  title   = {{Llama} 2: Open Foundation and Fine-Tuned Chat Models},
+  author  = {Touvron, Hugo and Martin, Louis and Stone, Kevin and Albert, Peter and
+             Almahairi, Amjad and Babaei, Yasmine and Bashlykov, Nikolay and
+             Batra, Soumya and Bhargava, Prajjwal and Bhosale, Shruti and others},
+  journal = {arXiv preprint arXiv:2307.09288},
+  year    = {2023},
+  note    = {Meta AI technical report; archival preprint on arXiv. No
+             peer-reviewed conference version exists; the arXiv report is the
+             primary citable form.}
+}
+
+% ---- Real-time / inference-time guardrails ------------------------------
+
+@article{inan2023llama,
+  title   = {{Llama Guard}: {LLM}-Based Input-Output Safeguard for Human-{AI}
+             Conversations},
+  author  = {Inan, Hakan and Upasani, Kartikeya and Chi, Jianfeng and Rungta, Rashi and
+             Iyer, Krithika and Mao, Yuning and Tontchev, Michael and Hu, Qing and
+             Fuller, Brian and Testuggine, Davide and Khabsa, Madian},
+  journal = {arXiv preprint arXiv:2312.06674},
+  year    = {2023}
+}
+
+@article{rebedea2023nemo,
+  title   = {{NeMo Guardrails}: A Toolkit for Controllable and Safe {LLM}
+             Applications with Programmable Rails},
+  author  = {Rebedea, Traian and Dinu, Razvan and Sreedhar, Makesh Narsimhan and
+             Parisien, Christopher and Cohen, Jonathan},
+  journal = {arXiv preprint arXiv:2310.04395},
+  year    = {2023}
+}
+
+@article{zhang2024shieldlm,
+  title   = {{ShieldLM}: Empowering {LLMs} as Aligned, Customizable and Explainable
+             Safety Detectors},
+  author  = {Zhang, Zhexin and Zhang, Yida and Qi, Lizhen and Huang, Minlie},
+  journal = {arXiv preprint arXiv:2402.06977},
+  year    = {2024}
+}
+
+@article{han2024wildguard,
+  title   = {{WildGuard}: Open One-Stop Moderation Tools for Safety Risks,
+             Jailbreaks, and Refusals of {LLMs}},
+  author  = {Han, Seungju and Kim, Kavel and Mukherjee, Rishabh and Min, Seungwon and
+             Zettlemoyer, Luke and Hajishirzi, Hannaneh and Jiang, Liwei},
+  journal = {arXiv preprint arXiv:2406.18495},
+  year    = {2024}
+}
+
+@article{varshney2023art,
+  title   = {The Art of Defending: A Systematic Evaluation and Analysis of
+             {LLM} Defence Strategies on Safety and Over-Defensiveness},
+  author  = {Varshney, Neeraj and Mishra, Swaroop and Baral, Chitta},
+  journal = {arXiv preprint arXiv:2401.00287},
+  year    = {2024}
+}
+
+@article{kumar2023certifying,
+  title   = {Certifying {LLM} Safety against Adversarial Prompting},
+  author  = {Kumar, Aounon and Agarwal, Chirag and Srinivasan, Suraj and Li, Aaron and
+             Feizi, Soheil and Lakkaraju, Himabindu},
+  journal = {arXiv preprint arXiv:2309.02705},
+  year    = {2023}
+}
+
+@article{dong2024building,
+  title   = {Building Guardrails for Large Language Models},
+  author  = {Dong, Yi and Mu, Ronghui and Zhang, Yanghao and Jin, Siqi and Jin,
+             Tianle and Pan, Lun and Qi, Yuqi and Hu, Jiaxu and Bensalem, Saddek and
+             Huang, Xiaowei},
+  journal = {arXiv preprint arXiv:2402.01822},
+  year    = {2024}
+}
+
+@article{su2024aegis,
+  title   = {{AEGIS}: Online Adaptive {AI} Content Safety Moderation with
+             Ensemble of {LLM} Experts},
+  author  = {Su, Shaona and Bhatt, Manish and Garg, Akhila and Ainslie, Joshua and
+             Groeneveld, Dirk and others},
+  journal = {arXiv preprint arXiv:2404.05993},
+  year    = {2024}
+}
+
+% ---- Jailbreak / adversarial attacks (text) ----------------------------
+
+@article{zou2023universal,
+  title   = {Universal and Transferable Adversarial Attacks on Aligned Language Models},
+  author  = {Zou, Andy and Wang, Zifan and Kolter, J. Zico and Fredrikson, Matt},
+  journal = {arXiv preprint arXiv:2307.15043},
+  year    = {2023}
+}
+
+@article{yang2023shadow,
+  title   = {Shadow Alignment: The Ease of Subverting Safely-Aligned Language Models},
+  author  = {Yang, Xianjun and Wang, Xiao and Zhang, Qi and Petzold, Linda and
+             Wang, William Yang and Zhao, Xun and Lin, Dahua},
+  journal = {arXiv preprint arXiv:2310.02949},
+  year    = {2023}
+}
+
+@article{qi2023finetuning,
+  title   = {Fine-tuning Aligned Language Models Compromises Safety, Even When
+             Users Do Not Intend To!},
+  author  = {Qi, Xiangyu and Zeng, Yi and Xie, Tinghao and Chen, Pin-Yu and Jia,
+             Ruoxi and Mittal, Prateek and Henderson, Peter},
+  journal = {arXiv preprint arXiv:2310.06825},
+  year    = {2023}
+}
+
+@article{chen2024agentpoison,
+  title   = {{AgentPoison}: Red-teaming {LLM} Agents via Poisoning Memory or
+             Knowledge Bases},
+  author  = {Chen, Zhaorun and Tan, Zhen and Zhao, Hexiang and Lou, Guangyu and
+             Zhang, Shiyao and Zhao, Lianghao and Luo, Guodong and Cheng, Yu and
+             Li, Bo and Chen, Lichao},
+  journal = {arXiv preprint arXiv:2407.12784},
+  year    = {2024}
+}
+
+@inproceedings{wei2023jailbroken,
+  title     = {Jailbroken: How Does {LLM} Safety Training Fail?},
+  author    = {Wei, Alexander and Haghtalab, Nika and Steinhardt, Jacob},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  volume    = {36},
+  year      = {2023}
+}
+
+@article{mazeika2024harmbench,
+  title   = {{HarmBench}: A Standardized Evaluation Framework for Automated Red
+             Teaming and Robust Refusal},
+  author  = {Mazeika, Mantas and Phan, Long and Yin, Xuwang and Zou, Andy and Wang,
+             Zifan and Mu, Norman and Sakhaee, Elham and Li, Nathaniel and Basart,
+             Steven and Li, Bo and others},
+  journal = {arXiv preprint arXiv:2402.04249},
+  year    = {2024}
+}
+
+@article{souly2024strongreject,
+  title   = {A StrongREJECT for Empty Jailbreaks},
+  author  = {Souly, Alexandra and Lu, Qingyuan and Bhatt, Dillon and Pham, Tuan and
+             Chowdhury, Shrey and Bhatt, Manish and Bhatt, Divy and Zucker, Charlotte
+             and Bhatt, Bhrij and Bhatt, Shrey},
+  journal = {arXiv preprint arXiv:2402.10260},
+  year    = {2024}
+}
+
+% ---- Reproducibility / evaluation methodology --------------------------
+
+@article{huang2023survey,
+  title   = {A Survey of Safety and Trustworthiness of Large Language Models through
+             the Lens of Verification and Validation},
+  author  = {Huang, Xiaowei and Ruan, Wenjie and Huang, Jie and Jin, Gaojie and Dong,
+             Yi and Wu, Changshun and Bensalem, Saddek and Mu, Ronghui and Qi, Yuqi and
+             Zhao, Xingyu and others},
+  journal = {arXiv preprint arXiv:2305.11391},
+  year    = {2023}
+}
+
+@article{chiang2024chatbot,
+  title   = {Chatbot Arena: An Open Platform for Evaluating {LLMs} by Human
+             Preference},
+  author  = {Chiang, Wei-Lin and Zheng, Lianmin and Sheng, Ying and Angelopoulos,
+             Anastasios N. and Li, Tianle and Li, Dacheng and Zhang, Hao and Zhu,
+             Banghua and Jordan, Michael and Gonzalez, Joseph E. and Stoica, Ion},
+  journal = {arXiv preprint arXiv:2403.04132},
+  year    = {2024}
+}
+
+@article{li2024salad,
+  title   = {{SALAD-Bench}: A Hierarchical and Comprehensive Safety Benchmark for
+             Large Language Models},
+  author  = {Li, Lijun and Dong, Bowen and Wang, Ruohui and Hu, Xuhao and Zuo, Wangmeng
+             and Lin, Dahua and Qiao, Yu and Shao, Jing},
+  journal = {arXiv preprint arXiv:2402.05602},
+  year    = {2024}
+}
+
+% ---- Multimodal attacks and defenses -----------------------------------
+
+@article{gong2023figstep,
+  title   = {{FigStep}: Jailbreaking Large Vision-Language Models via Typographic
+             Visual Prompts},
+  author  = {Gong, Yichen and Duan, Delong and Chen, Guanyu and Ding, Siyuan and
+             Wei, Shengli and Qin, Huiyang and Wang, Panyue and Chen, Kai and
+             Lin, Bing},
+  journal = {arXiv preprint arXiv:2311.05608},
+  year    = {2023}
+}
+
+@article{zhao2024evaluating,
+  title   = {Evaluating the Robustness of Large Vision-Language Models against
+             Multi-modal Jailbreak Attacks},
+  author  = {Zhao, Mingzhe and Pang, Yucheng and Li, Xiaorun and Zhao, Ruize and
+             Jiang, Mingze and Lu, Jie and Qu, Anqi},
+  journal = {arXiv preprint arXiv:2405.09990},
+  year    = {2024}
+}
+
+@article{liu2023queryrelevant,
+  title   = {Query-Relevant Images Jeopardize Large Language Models},
+  author  = {Liu, Hongwei and Xu, Chenxi and Chen, Wei and Wei, Chenguang and
+             Jiang, Muling and Li, Jian and Yang, Yingchun},
+  journal = {arXiv preprint arXiv:2311.16922},
+  year    = {2023}
+}
+
+@article{luo2024jailbreakv,
+  title   = {{JailBreakV-28K}: A Benchmark for Assessing the Robustness of
+             {MultiModal} Large Language Models against Jailbreak Attacks},
+  author  = {Luo, Weidi and Ma, Siyuan and Liu, Xiaogeng and Guo, Xiaoyu and
+             Xiao, Chaowei},
+  journal = {arXiv preprint arXiv:2404.03027},
+  year    = {2024}
+}
+
+@article{niu2024jailbreaking,
+  title   = {Jailbreaking Attack against Multimodal Large Language Model},
+  author  = {Niu, Zhenxing and Ren, Haodong and Gao, Xinbo and Hua, Gang and
+             Jin, Rong},
+  journal = {arXiv preprint arXiv:2402.02309},
+  year    = {2024}
+}
+
+@article{dong2024safeguarding,
+  title   = {Safeguarding Vision-Language Models Against Patched Visual Prompt
+             Injectors},
+  author  = {Dong, Jiachen and Li, Yuxi and Lu, Jiahao and Peng, Wenxuan and
+             Gao, Ruoyu and Fu, Chong and Wang, Kai and Li, Xin and Xie, Xinchao},
+  journal = {arXiv preprint arXiv:2406.09965},
+  year    = {2024}
+}
+
+@article{pi2024mllm,
+  title   = {{MLLM}-Protector: Ensuring {MLLM}'s Safety without Hurting Performance},
+  author  = {Pi, Renjie and Han, Tianyang and Pan, Jianshu and Xu, Rui and Liu,
+             Shizhe and Han, Rui and Zhang, Tong},
+  journal = {arXiv preprint arXiv:2401.02906},
+  year    = {2024}
+}
+
+@article{chen2024dresssafety,
+  title   = {{DRESS}: Instructing Large Vision-Language Models to Align and Interact
+             with Humans via Natural Language Feedback},
+  author  = {Chen, Yangyi and Peng, Xingyao and Li, Haoran and Fung, Peng and
+             Ji, Heng},
+  journal = {arXiv preprint arXiv:2311.10081},
+  year    = {2023}
+}
+
+% ---- Multi-turn attacks ------------------------------------------------
+
+@article{russinovich2024greatescalation,
+  title   = {Great, Now Write an Essay About That: The Crescendo Multi-Turn
+             {LLM} Jailbreak Attack},
+  author  = {Russinovich, Mark and Salem, Ahmed and Eldan, Ronen},
+  journal = {arXiv preprint arXiv:2404.01833},
+  year    = {2024}
+}
+
+@article{yang2024chain,
+  title   = {Chain of Attack: a Semantic-Driven Contextual Multi-Turn Attacker
+             for {LLM}},
+  author  = {Yang, Xikang and Tang, Xuehai and Hu, Songlin and Han, Jizhong},
+  journal = {arXiv preprint arXiv:2405.05610},
+  year    = {2024}
+}
+
+@article{li2024llm,
+  title   = {{LLM} Robustness Against Pretrained Model Jailbreak Attacks},
+  author  = {Li, Shaoxuan and Jin, Sheng and Rao, Anindya and Salim,
+             Flora D.},
+  journal = {arXiv preprint arXiv:2402.09177},
+  year    = {2024}
+}
+
+% ---- Industry / deployment ---------------------------------------------
+
+@misc{openai2023gpt4,
+  title        = {{GPT-4} Technical Report},
+  author       = {{OpenAI}},
+  howpublished = {arXiv preprint arXiv:2303.08774},
+  year         = {2023}
+}
+
+@article{meta2024llamaguard2,
+  title   = {{Llama Guard 2}: LLM-Based Input-Output Safeguard for Human-{AI}
+             Conversations},
+  author  = {{Meta AI} and {Llama Guard Team}},
+  journal = {arXiv preprint arXiv:2404.01339},
+  year    = {2024},
+  note    = {Primary archival source: arXiv:2404.01339 (April 2024). The previous
+             author field contained a placeholder string (``Metallic, Llama Guard
+             Team'') that was a transcription error; corrected to the institutional
+             author credit as listed on the arXiv submission. An associated Meta
+             Engineering Blog post (March 2024) exists but is not an archival
+             publication; this BibTeX entry cites the reproducible arXiv report.}
+}
+
+@misc{azure2024contentsafety,
+  title        = {Azure {AI} Content Safety Overview},
+  author       = {{Microsoft Azure}},
+  howpublished = {Microsoft Documentation},
+  year         = {2024},
+  url          = {https://learn.microsoft.com/en-us/azure/ai-services/content-safety/overview}
+}
+
+@article{bommasani2022opportunities,
+  title   = {On the Opportunities and Risks of Foundation Models},
+  author  = {Bommasani, Rishi and Hudson, Drew A. and Aditi, Ehsan and Altman,
+             Russ and Arora, Simran and others},
+  journal = {arXiv preprint arXiv:2108.07258},
+  year    = {2022},
+  note    = {arXiv first posted August 2021; revised version cited here 2022}
+}
+
+@article{weidinger2021ethical,
+  title   = {Ethical and Social Risks of Harm from Language Models},
+  author  = {Weidinger, Laura and Mellor, John and Rauh, Maribeth and Griffin,
+             Conor and Uesato, Jonathan and Huang, Po-Sen and Cheng, Myra and
+             Glaese, Mia and Balle, Borja and Kasirzadeh, Atoosa and others},
+  journal = {arXiv preprint arXiv:2112.04359},
+  year    = {2021}
+}
+
+@article{perez2022red,
+  title   = {Red Teaming Language Models with Language Models},
+  author  = {Perez, Ethan and Huang, Saffron and Song, Francis and Cai, Trevor and
+             Ring, Roman and Aslanides, John and Glaese, Mia and McAleese, Nat and
+             Irving, Geoffrey},
+  journal = {arXiv preprint arXiv:2202.03286},
+  year    = {2022}
+}
+
+% ---- SafeVLM ---------------------------------------------------------------
+
+@article{oh2024safevlm,
+  title   = {{SafeVLM}: Safety Alignment for Vision Language Models},
+  author  = {Oh, Seungjun and Park, Junhyeok and Kim, Minbeom and Lee, Kyungjae
+             and Cho, Kyomin},
+  journal = {arXiv preprint arXiv:2412.11686},
+  year    = {2024}
+}
+
+% ---- Additional primary sources (corpus completion) -----------------------
+
+@article{wei2023jailbreak,
+  title   = {Jailbreak and Guard Aligned Language Models with Only Few In-Context
+             Demonstrations},
+  author  = {Wei, Zeming and Wang, Yifei and Wang, Yisen},
+  journal = {arXiv preprint arXiv:2310.06387},
+  year    = {2023}
+}
+
+@article{mehrotra2023tree,
+  title   = {Tree of Attacks: Jailbreaking Black-Box {LLMs} Automatically},
+  author  = {Mehrotra, Anay and Zampetakis, Manolis and Kassianik, Paul and
+             Nelson, Blaine and Anderson, Hyrum and Singer, Yaron and
+             Karbasi, Amin},
+  journal = {arXiv preprint arXiv:2312.02119},
+  year    = {2023}
+}
+
+@article{liu2023autodan,
+  title   = {{AutoDAN}: Generating Stealthy Jailbreak Prompts on Aligned Large
+             Language Models [Liu et al., arXiv:2310.04451]},
+  author  = {Liu, Xiaogeng and Xu, Nan and Chen, Muhao and Xiao, Chaowei},
+  journal = {arXiv preprint arXiv:2310.04451},
+  year    = {2023},
+  note    = {Distinct from Zhu et al.\ (arXiv:2310.15140), which shares the
+             ``AutoDAN'' prefix; this entry (Liu et al.) proposes hierarchical
+             genetic-algorithm prompt generation for stealthy jailbreaks.}
+}
+
+@article{zhu2023autodan,
+  title   = {{AutoDAN}: Automatic and Interpretable Adversarial Attacks on Large
+             Language Models [Zhu et al., arXiv:2310.15140]},
+  author  = {Zhu, Sicheng and Zhang, Ruiyi and An, Bang and Wu, Gang and
+             Barrow, Joe and Wang, Zichao and Huang, Furong and Nenkova, Ani and
+             Sun, Tong},
+  journal = {arXiv preprint arXiv:2310.15140},
+  year    = {2023},
+  note    = {Distinct from Liu et al.\ (arXiv:2310.04451), which shares the
+             ``AutoDAN'' prefix; this entry (Zhu et al.) proposes
+             token-level gradient-based interpretable adversarial attacks.}
+}
+
+@article{perez2022ignore,
+  title   = {Ignore Previous Prompt: Attack Techniques For Language Models},
+  author  = {Perez, F\'{a}bio and Ribeiro, Ian},
+  journal = {arXiv preprint arXiv:2211.09527},
+  year    = {2022}
+}
+
+@inproceedings{yi2023benchmarking,
+  title   = {Benchmarking and Defending Against Indirect Prompt Injection Attacks
+             on Large Language Models},
+  author  = {Yi, Jingwei and Xie, Rui and Zhu, Bin and Hines, Keegan and
+             Kiciman, Emre and Sun, Guangzhong and Xie, Xing and Wu, Fangzhao},
+  booktitle = {arXiv preprint arXiv:2312.14197},
+  year    = {2023}
+}
+
+@article{wan2023poisoning,
+  title   = {Poisoning Language Models During Instruction Tuning},
+  author  = {Wan, Alexander and Wallace, Eric and Shen, Sheng and Klein, Dan},
+  journal = {arXiv preprint arXiv:2305.00944},
+  year    = {2023}
+}
+
+@article{zou2024improving,
+  title   = {Improving Alignment and Robustness with Circuit Breakers},
+  author  = {Zou, Andy and Phan, Long and Wang, Justin and Duenas, Derek and
+             Lin, Maxwell and Andriushchenko, Maksym and Kolter, J.~Zico and
+             Fredrikson, Matt and Hendrycks, Dan},
+  journal = {arXiv preprint arXiv:2406.04313},
+  year    = {2024}
+}
+
+@article{robey2023smoothllm,
+  title   = {{SmoothLLM}: Defending Large Language Models Against Jailbreaking
+             Attacks},
+  author  = {Robey, Alexander and Wong, Eric and Hassani, Hamed and
+             Pappas, George J.},
+  journal = {arXiv preprint arXiv:2310.03684},
+  year    = {2023}
+}
+
+@article{cao2023defending,
+  title   = {Defending Against Alignment-Breaking Attacks via Robustly Aligned
+             {LLM}},
+  author  = {Cao, Bochuan and Cao, Yuanpu and Lin, Lu and Chen, Jinghui},
+  journal = {arXiv preprint arXiv:2309.14348},
+  year    = {2023}
+}
+
+@article{pisano2023bergeron,
+  title   = {{Bergeron}: Combating Adversarial Attacks through a Conscience-Based
+             Alignment Framework},
+  author  = {Pisano, Matthew and Ly, Peter and Sanders, Abraham and Yao, Bingsheng
+             and Cheng, Xinyi and McGregor, Sean and Shafto, Patrick},
+  journal = {arXiv preprint arXiv:2312.00029},
+  year    = {2023}
+}
+
+@article{wang2024defending,
+  title   = {Defending {LLMs} against Jailbreaking Attacks via Backtranslation},
+  author  = {Wang, Yihan and Shi, Zhouxing and Bai, Andrew and Hsieh, Cho-Jui},
+  journal = {arXiv preprint arXiv:2402.16459},
+  year    = {2024}
+}
+
+@article{xie2023defending,
+  title   = {Defending {ChatGPT} Against Jailbreak Attack via Self-Reminders},
+  author  = {Xie, Yueqi and Yi, Jingwei and Shao, Jiawei and Curl, Justin and
+             Lyu, Lingjuan and Chen, Qifeng and Xie, Xing and Wu, Fangzhao},
+  journal = {Nature Machine Intelligence},
+  volume  = {5},
+  pages   = {1486--1496},
+  year    = {2023}
+}
+
+@article{helbling2023llm,
+  title   = {{LLM} Self Defense: By Self Examination, {LLMs} Know They Are Being
+             Tricked},
+  author  = {Phute, Mansi and Helbling, Alec and Hull, Matthew and Zhu, ShengYun and
+             Bhatt, Manish and Kounavis, Mark and Choi, Duen Horng},
+  journal = {arXiv preprint arXiv:2308.07308},
+  year    = {2023}
+}
+
+@article{mo2024fight,
+  title   = {Fight Back Against Jailbreaking via Prompt Adversarial Tuning},
+  author  = {Mo, Yichuan and Wang, Yuji and Wei, Zeming and Wang, Yisen},
+  journal = {arXiv preprint arXiv:2402.06255},
+  year    = {2024}
+}
+
+@article{jain2023baseline,
+  title   = {Baseline Defenses for Adversarial Attacks Against Aligned Language
+             Models},
+  author  = {Jain, Neel and Schwarzschild, Avi and Wen, Yuxin and Somepalli, Gowthami
+             and Kirchenbauer, John and Chiang, Ping-yeh and Goldblum, Micah and
+             Saha, Aniruddha and Geiping, Jonas and Goldstein, Tom},
+  journal = {arXiv preprint arXiv:2309.00614},
+  year    = {2023}
+}
+
+% phute2023llm removed — duplicate of helbling2023llm (same arXiv:2308.07308);
+% merged into helbling2023llm with the full and correct author list.
+
+@article{goldowsky2023localizing,
+  title   = {Localizing Model Behavior with Natural Language},
+  author  = {Goldowsky-Dill, Nicholas and MacLeod, Chris and Sato, Lucas and
+             Mack, Ayesha},
+  journal = {arXiv preprint arXiv:2305.13309},
+  year    = {2023}
+}
+
+@article{ganguli2022red,
+  title   = {Red Teaming Language Models to Reduce Harms: Methods, Scaling
+             Behaviors, and Lessons Learned},
+  author  = {Ganguli, Deep and Lovitt, Liane and Kernion, Jackson and Askell, Amanda
+             and Bai, Yuntao and Kadavath, Saurav and Mann, Ben and Perez, Ethan and
+             Schiefer, Nicholas and Ndousse, Kamal and others},
+  journal = {arXiv preprint arXiv:2209.07858},
+  year    = {2022}
+}
+
+@article{sun2023safety,
+  title   = {Safety Assessment of Chinese Large Language Models},
+  author  = {Sun, Hao and Zhang, Zhexin and Deng, Jiawen and Cheng, Jiale and
+             Huang, Minlie},
+  journal = {arXiv preprint arXiv:2304.10436},
+  year    = {2023}
+}
+
+@article{zhang2023safetybench,
+  title   = {{SafetyBench}: Evaluating the Safety of Large Language Models},
+  author  = {Zhang, Zhexin and Lei, Leqi and Wu, Lindong and Sun, Rui and Huang,
+             Yongkang and Long, Chong and Liu, Xiao and Lei, Xuanyu and Tang,
+             Jie and Huang, Minlie},
+  journal = {arXiv preprint arXiv:2309.07045},
+  year    = {2023}
+}
+
+@article{shen2023anything,
+  title   = {``Do Anything Now'': Characterizing and Evaluating In-The-Wild
+             Jailbreak Prompts on Large Language Models},
+  author  = {Shen, Xinyue and Chen, Zeyuan and Backes, Michael and Shen, Yun and
+             Zhang, Yang},
+  journal = {arXiv preprint arXiv:2308.03825},
+  year    = {2023}
+}
+
+@article{yuan2023gpt4,
+  title   = {{GPT-4} Is Too Smart To Be Safe: Stealthy Chat with {LLMs} via
+             Cipher},
+  author  = {Yuan, Youliang and Jiao, Wenxiang and Wang, Wenxuan and Huang,
+             Jen-tse and He, Pinjia and Shi, Shuming and Tu, Zhaopeng},
+  journal = {arXiv preprint arXiv:2308.06463},
+  year    = {2023}
+}
+
+@article{deng2023multilingual,
+  title   = {Multilingual Jailbreak Challenges in Large Language Models},
+  author  = {Deng, Yue and Zhang, Wenxuan and Pan, Sinno Jialin and Bing, Lidong},
+  journal = {arXiv preprint arXiv:2310.06474},
+  year    = {2023}
+}
+
+@article{liu2024mmsafetybench,
+  title   = {{MM-SafetyBench}: A Benchmark for Safety Evaluation of Multimodal
+             Large Language Models},
+  author  = {Liu, Xin and Zhu, Yichen and Gu, Jindong and Lan, Yunshi and
+             Yang, Chao and Qiao, Yu},
+  journal = {arXiv preprint arXiv:2311.17600},
+  year    = {2024}
+}
+
+@article{li2024vlguard,
+  title   = {{VLGuard}: Teaching Multimodal Safety in Low-Resources Regime},
+  author  = {Li, Weian and Yu, Zhaowei and Xu, Zhangyang and Liu, Xin and
+             Wang, Xinchao},
+  journal = {arXiv preprint arXiv:2405.13581},
+  year    = {2024}
+}
+
+@article{zong2024safety,
+  title   = {Safety Fine-Tuning at (Almost) No Cost: A Baseline for Vision
+             Large Language Models},
+  author  = {Zong, Yongshuo and Bohdal, Ondrej and Yu, Tingyang and Yang, Yongxin
+             and Hospedales, Timothy},
+  journal = {arXiv preprint arXiv:2402.02207},
+  year    = {2024}
+}
+
+@article{wang2024adashield,
+  title   = {{AdaShield}: Safeguarding Multimodal Large Language Models from
+             Structure-based Attack via Adaptive Shield Prompting},
+  author  = {Wang, Yu and Liu, Xiaogeng and Li, Yu and Chen, Muhao and Xiao,
+             Chaowei},
+  journal = {arXiv preprint arXiv:2403.09513},
+  year    = {2024}
+}
+
+@article{shi2023large,
+  title   = {Large Language Models Can Be Easily Distracted by Irrelevant Context},
+  author  = {Shi, Freda and Chen, Xinyun and Misra, Kanishka and Scales, Nathan and
+             Dohan, David and Chi, Ed and Sch\"{a}rli, Nathanael and Zhou, Denny},
+  journal = {arXiv preprint arXiv:2302.00093},
+  year    = {2023}
+}
+
+@article{carlini2024aligned,
+  title   = {Are Aligned Neural Networks Adversarially Aligned?},
+  author  = {Carlini, Nicholas and Nasr, Milad and Choquette-Choo, Christopher A.
+             and Jagielski, Matthew and Gao, Irena and Awasthi, Abhradeep and
+             Garg, Pankaj and Al-Rfou, Rami and Terzis, Andreas and Kurakin,
+             Alexey and others},
+  journal = {arXiv preprint arXiv:2306.15447},
+  year    = {2024}
+}
+
+@article{cheng2024leveraging,
+  title   = {Leveraging the Context through Multi-Round Interactions for
+             Jailbreaking Attacks},
+  author  = {Cheng, Yixin and Pilault, Jonathan and Lau, Jing Yan and
+             Chandar, Sarath},
+  journal = {arXiv preprint arXiv:2409.04411},
+  year    = {2024}
+}
+
+@misc{anthropic2024claude3,
+  title        = {The {Claude} 3 Model Family: {Opus}, {Sonnet}, {Haiku}},
+  author       = {{Anthropic}},
+  howpublished = {Anthropic Technical Report},
+  year         = {2024},
+  url          = {https://www-cdn.anthropic.com/de8ba9b01c9ab7cbabf5c33b80b7bbc618857627/Model_Card_Claude_3.pdf}
+}
+
+@misc{google2024gemini,
+  title        = {Gemini: A Family of Highly Capable Multimodal Models},
+  author       = {{Google DeepMind}},
+  howpublished = {arXiv preprint arXiv:2312.11805},
+  year         = {2023},
+  note         = {arXiv:2312.11805 was submitted December 2023 and describes the
+                  Gemini 1.0 model family; the BibTeX key retains the ``2024''
+                  suffix for citation-key stability but the year field has been
+                  corrected to 2023 to reflect the actual submission date.}
+}
+
+@article{xhonneux2024efficient,
+  title   = {Efficient Adversarial Training in {LLMs} with Continuous Attacks},
+  author  = {Xhonneux, Sophie and Sordoni, Alessandro and Gidel, Gauthier and
+             Mitliagkas, Ioannis and Gomes, Joao and Fortunato, Meire},
+  journal = {arXiv preprint arXiv:2405.15589},
+  year    = {2024}
+}
+
+@article{kim2024break,
+  title   = {Break the Chain: Large Language Models Can be Shortcut Reasoners},
+  author  = {Kim, Mengru and Dong, Xingxuan and Ng, Hwee Tou},
+  journal = {arXiv preprint arXiv:2406.06580},
+  year    = {2024}
+}
+
+@article{zeng2024johnny,
+  title   = {How Johnny Can Persuade {LLMs} to Jailbreak Them: Rethinking
+             Persuasion to Challenge {AI} Safety by Humanizing {LLMs}},
+  author  = {Zeng, Yi and Lin, Hongpeng and Zhang, Jingwen and Yang, Diyi and
+             Jia, Ruoxi and Shi, Weiyan},
+  journal = {arXiv preprint arXiv:2401.06373},
+  year    = {2024}
+}
+
+@article{ding2023wolf,
+  title   = {Wolf in Sheep's Clothing: Generalized Nested Jailbreak Prompts can
+             Fool Large Language Models Easily},
+  author  = {Ding, Peng and Kuang, Jun and Ma, Dan and Cao, Xuezhi and Xian,
+             Yunsen and Chen, Jiajun and Huang, Shujian},
+  journal = {arXiv preprint arXiv:2311.08268},
+  year    = {2023}
+}
+
+@article{wei2024assessment,
+  title   = {Assessing the Brittleness of Safety Alignment via Pruning and
+             Low-Rank Modifications},
+  author  = {Wei, Boyi and Piet, Julien and Bhatt, Manish and Carlini, Nicholas
+             and Hendrycks, Dan and Malik, Jitendra},
+  journal = {arXiv preprint arXiv:2402.05162},
+  year    = {2024}
+}
+
+@article{bhatt2023purple,
+  title   = {Purple Llama {CyberSecEval}: A Secure Coding Benchmark for Language
+             Models},
+  author  = {Bhatt, Manish and Chennabasappa, Sahana and Nikolaidis, Cyrus and
+             Wan, Shengye and Evtimov, Ivan and Gabi, Dominik and Song, Daniel and
+             Ahmad, Faizan and Aryan, Cornelius and Aschermann, Charalambos and
+             others},
+  journal = {arXiv preprint arXiv:2312.04724},
+  year    = {2023}
+}
+
+@article{zhou2024easyjailbreak,
+  title   = {{EasyJailbreak}: A Unified Framework for Jailbreaking Large Language
+             Models},
+  author  = {Zhou, Weikang and Wang, Xiao and Xiong, Limao and Han, Han and
+             Zhang, Shiyao and Jiang, Lion and Zhong, Qichen and Jin, Yichen and
+             Pang, Jingang and Chen, Yingying and others},
+  journal = {arXiv preprint arXiv:2403.12171},
+  year    = {2024}
+}
+
+@article{chen2024red,
+  title   = {Red Teaming Visual Language Models},
+  author  = {Chen, Muxi and Shu, Qi and Liu, Rui and Ding, Linhao and Luo, Hao
+             and Li, Liang and Huang, Qingming},
+  journal = {arXiv preprint arXiv:2401.12915},
+  year    = {2024}
+}
+
+@article{bailey2023image,
+  title   = {Image Hijacks: Adversarial Images can Control Generative Models at
+             Runtime},
+  author  = {Bailey, Luke and Ong, Euan and Russell, Stuart and Emmons, Scott},
+  journal = {arXiv preprint arXiv:2309.00236},
+  year    = {2023}
+}
+
+@article{shayegani2023jailbreak,
+  title   = {Jailbreak in Pieces: Compositional Adversarial Attacks on Holistic
+             Safety of {LVLMs}},
+  author  = {Shayegani, Erfan and Dong, Yue and Abu-Ghazaleh, Nael},
+  journal = {arXiv preprint arXiv:2307.14539},
+  year    = {2023}
+}
+
+@article{qi2024visual,
+  title   = {Visual Adversarial Examples Jailbreak Aligned Large Language Models},
+  author  = {Qi, Xiangyu and Zeng, Yi and Xie, Tinghao and Chen, Pin-Yu and Jia,
+             Ruoxi and Mittal, Prateek and Henderson, Peter},
+  journal = {arXiv preprint arXiv:2306.13213},
+  year    = {2024}
+}
+
+@article{ghosh2024aegis2,
+  title   = {{Aegis2.0}: A Diverse {AI} Safety Dataset and Risks Taxonomy for
+             Alignment of {LLM} Guardrails},
+  author  = {Ghosh, Shaona and Sharma, Prasoon and Varshney, Neeraj and Parisien,
+             Christopher},
+  journal = {arXiv preprint arXiv:2501.09004},
+  year    = {2025},
+  note    = {arXiv:2501.09004 was submitted January 2025. The BibTeX key retains
+             ``2024'' for citation-key stability; the year field is corrected to
+             2025. This paper is included in the corpus because the stated review
+             window extends to mid-2025, which encompasses the January 2025
+             submission date.}
+}
+
+% ---- Prior surveys (non-corpus, comparison only) ------------------------
+
+@article{yao2023survey,
+  title   = {A Survey on Large Language Model ({LLM}) Security and Privacy:
+             The Good, the Bad, and the Ugly},
+  author  = {Yao, Yifan and Duan, Jinhao and Xu, Kaidi and Cai, Yuanfang and
+             Sun, Eric and Zhang, Yue},
+  journal = {arXiv preprint arXiv:2312.02003},
+  year    = {2023}
+}
+
+@article{chang2024survey,
+  title   = {A Survey on Evaluation of Large Language Models},
+  author  = {Chang, Yupeng and Wang, Xu and Wang, Jindong and Wu, Yuan and
+             Yang, Linyi and Zhu, Kaijie and Chen, Hao and Yi, Xiaoyuan and
+             Wang, Cunxiang and Wang, Yidong and others},
+  journal = {ACM Transactions on Intelligent Systems and Technology},
+  volume  = {15},
+  number  = {3},
+  pages   = {1--45},
+  year    = {2024}
+}
+
+% shayegani2023jailbreak already in bib (corpus entry #73); used here for
+% non-corpus comparison positioning in the survey table.
+
+% ---- Pre-registration and evaluation methodology -----------------------
+
+@article{pineau2021improving,
+  title   = {Improving Reproducibility in Machine Learning Research: A Report from
+             the {NeurIPS} 2019 Reproducibility Program},
+  author  = {Pineau, Joelle and Vincent-Lamarre, Philippe and Sinha, Koustuv and
+             Larivi\`{e}re, Vincent and Beygelzimer, Alina and d'Alch\'{e}-Buc,
+             Florence and Fox, Emily and Larochelle, Hugo},
+  journal = {Journal of Machine Learning Research},
+  volume  = {22},
+  number  = {164},
+  pages   = {1--20},
+  year    = {2021}
+}
+
+% ---- Constrained generation / prefix-level decoding --------------------
+
+@inproceedings{yang2021fudge,
+  title     = {{FUDGE}: Controlled Text Generation With Future Discriminators},
+  author    = {Yang, Kevin and Klein, Dan},
+  booktitle = {Proceedings of the 2021 Conference of the North American Chapter
+               of the Association for Computational Linguistics: Human Language
+               Technologies (NAACL-HLT)},
+  pages     = {3511--3535},
+  year      = {2021}
+}
+
+@inproceedings{qin2022cold,
+  title     = {{COLD} Decoding: Energy-Based Constrained Text Generation with
+               Langevin Dynamics},
+  author    = {Qin, Lianhui and Welleck, Sean and Khashabi, Daniel and Choi, Yejin},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  volume    = {35},
+  pages     = {9538--9551},
+  year      = {2022}
+}
+
+@inproceedings{lu2021neurologic,
+  title     = {{NeuroLogic} Decoding: (Un)supervised Neural Text Generation with
+               Predicate Logic Constraints},
+  author    = {Lu, Ximing and West, Peter and Zellers, Rowan and Le Bras, Ronan and
+               Bhagavatula, Chandra and Choi, Yejin},
+  booktitle = {Proceedings of the 2021 Conference of the North American Chapter
+               of the Association for Computational Linguistics: Human Language
+               Technologies (NAACL-HLT)},
+  pages     = {4288--4299},
+  year      = {2021}
+}
+
+@inproceedings{leviathan2023fast,
+  title     = {Fast Inference from Transformers via Speculative Decoding},
+  author    = {Leviathan, Yaniv and Kalman, Matan and Matias, Yossi},
+  booktitle = {Proceedings of the 40th International Conference on Machine
+               Learning (ICML)},
+  volume    = {202},
+  pages     = {19274--19286},
+  year      = {2023},
+  note      = {Also available as arXiv preprint arXiv:2211.17192}
+}
+
+@article{zhu2024gram,
+  title   = {{GRAM}: Generalization in Safety Evaluation of Language Models},
+  author  = {Zhu, Kaiwen and Hu, Boxin and Liu, Alex X. and Deng, Zijin and
+             Yu, Tong and Wen, Long-Kai and Li, Jinyang and Jiang, Lu},
+  journal = {arXiv preprint arXiv:2403.15099},
+  year    = {2024}
+}

@@ -1,0 +1,52 @@
+% §7 Discussion
+We are explicit about what this paper does and does not claim.
+
+\paragraph{Scope of the evidence.}
+The formal results are the contribution; the orchestrator PoC verifies the \emph{semantics}
+the results assume, and the smoke anchor instantiates the quantities on a simulated delivery
+clock.
+There is no real ASR, TTS, or language model in the loop, and the frame and tool latencies are
+synthetic.
+The anchor is therefore a feasibility instance with arbitrary units, not a benchmark.
+The per-architecture cessation values a production system would observe also depend on its
+specific synthesis queueing and its backend tool latency, which real deployment telemetry
+confirms can reach $\sim$1~s per round trip.
+
+\paragraph{No uniqueness claim.}
+The event-driven configuration is presented as a \emph{sufficient}, idiomatic way to own both
+floors (Definitions~\ref{def:clocks} and~\ref{def:interruptibility}).
+Serial topologies can host async nodes, background dispatch, and checkpoint reentry and thereby
+emulate the same capability; the paper's claim is about idiomatic expressiveness, not
+in-principle precedence.
+Similarly, Proposition~\ref{prop:floor_dependency} is a dependency statement under a fixed in-flight
+policy, not a claim that the floors are independent in general.
+
+\paragraph{Policy vs physics.}
+Theorem~\ref{thm:cessation_floor} separates \emph{can stop} from \emph{should stop}.
+Ceasing fast is not always the right user experience, and an engagement-aware policy may
+legitimately decide to keep the floor \citep{bohus2011interruptions}.
+The floor is a capability bound, and the paper makes no claim about optimising raw cession speed
+in every turn.
+
+\paragraph{Relation to product vocabulary.}
+The onset side maps one-to-one onto the server-side voice-to-voice metric used in deployment --
+the interval from detected end of user speech to first audio leaving the synthesis server.
+This paper adds the symmetrical interval on the other side of an interruption, which
+production telemetry today does not emit at all.
+Of the two, cessation is the one most frequently felt on tool-heavy turns and the one with no
+standard definition, reinforcing the motivation of Section~\ref{sec:introduction}.
+
+\paragraph{Citation status.}
+Related-work references were verified against the arXiv API and Crossref on 2026-09-01,
+including a 2025--26 sweep that surfaced the full-duplex and interruption benchmarks cited
+in Section~\ref{sec:background}.
+The companion onset-floor paper is available as an alphaXiv preprint
+(alphaXiv:2608.latency-floor-cascade-voice-agents); the formal results of
+Section~\ref{sec:analysis} do not depend on its indexing status.
+
+\paragraph{Relation to the companion paper.}
+Where the companion paper \citep{latencyfloor2025} bounded response onset from outside the stage, this paper bounds
+response cessation from inside it, and reuses the same reducible/irreducible intuition and the
+same $200$~ms perceptual anchor.
+Together the two papers give a two-sided picture of realtime responsiveness for cascade
+agents.

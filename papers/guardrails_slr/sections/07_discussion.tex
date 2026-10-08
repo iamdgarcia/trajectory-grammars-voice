@@ -1,0 +1,180 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Why Real-Time and Multimodal Are Harder}
+
+The reproducibility crisis documented in Section~\ref{sec:open_problems} is not
+uniformly distributed across the guardrail literature.
+It is \emph{especially severe} in real-time and multimodal settings, and the
+reasons are structural.
+
+\paragraph{Latency eliminates the strongest tools}
+The most accurate safety mechanisms---LLM-as-judge pipelines, multi-step
+constitutional reasoning---are incompatible with streaming delivery.
+A post-generation judge that adds 1--2 seconds of latency is acceptable in a batch
+API; it is a critical regression in a chat interface where first-token latency
+drives user experience.
+The real-time constraint therefore forces practitioners toward weaker, faster
+mechanisms (small classifiers, heuristic filters) whose safety guarantees are
+correspondingly harder to establish.
+
+\paragraph{Modality boundaries break text-trained alignment}
+Safety alignment as currently practised is fundamentally text-centric.
+RLHF, constitutional AI, and safety context distillation all operate on the
+text representation of model behaviour.
+Multimodal fine-tuning introduces a new input pathway that was not considered
+during alignment training.
+The visual encoder, audio encoder, and their projections into the language model's
+embedding space are potential entry points for misaligned behaviour, and aligning
+them requires either extending the alignment training to cover multimodal inputs
+explicitly or adding modality-specific classifiers as external guardrails.
+
+\paragraph{The evaluation gap is widest here}
+The evaluation-protocol fragility documented in Section~\ref{subsec:reproducibility}
+is compounded in real-time and multimodal settings.
+Latency measurements depend on hardware, batching strategy, and network conditions,
+none of which are standardised.
+Multimodal attack success rates depend on image resolution, encoding format, and
+the specific VLM version, all of which vary across evaluations.
+The result is that published claims in these domains are the least reproducible
+in the entire guardrail literature.
+
+\subsection{Implications for Guardrail Design}
+\label{subsec:implications}
+
+The following design principles are derived exclusively from the five surviving verified claims and from the structural null findings (streaming gap, audio/video gap documented in Section~\ref{sec:background}); they do not rest on unverified quantitative claims from the broader corpus.
+
+\paragraph{Session-level context is mandatory}
+The confirmed finding that multi-turn conversational priming amplifies jailbreaks
+by 29--71\%~\cite{russinovich2024greatescalation} (derived from verified finding~4~\cite{russinovich2024greatescalation,li2024llm}) implies that any guardrail
+operating only on the current turn is structurally insufficient against a capable
+adversary.
+Guardrails must maintain and inspect session-level context, which complicates
+stateless inference architectures and increases memory requirements.
+
+\paragraph{Modality-specific classifiers as a bridge}
+Until multimodal alignment training is sufficiently mature, modality-specific
+classifiers (image-content filters, audio-speech classifiers) can serve as a
+first-pass guardrail layer before content reaches the language model backbone
+(motivated by the audio/video absence documented in Section~\ref{subsec:audiovideo} and the taxonomy cell analysis in Section~\ref{sec:background}).
+This approach is architecturally compatible with existing deployment patterns and
+does not require retraining the underlying VLM.
+Its limitation is that it cannot detect cross-modal attacks where the harmfulness
+only emerges from the combination of text and image.
+The evidential basis for this principle differs from the session-context and evaluation-first principles: it derives from a structural absence (no audio/video safety mechanisms in the corpus) rather than from a positive verified finding.
+The prescription --- invest in modality-specific classifiers --- follows from the problem definition, not from demonstrated effectiveness; effectiveness data does not yet exist.
+
+\paragraph{Evaluation-first development}
+The reproducibility crisis suggests that guardrail development should adopt an
+evaluation-first methodology: define the evaluation protocol before implementing
+the mechanism (derived from verified finding~5: evaluation-protocol choices shift reported ASR by up to 30 percentage points~\cite{li2024salad}).
+This mirrors test-driven development (TDD) in software engineering and is
+aligned in spirit with the pre-registration movement in machine learning, which
+advocates committing to evaluation criteria before observing results to prevent
+post-hoc selection of favourable conditions~\cite{pineau2021improving}.
+The analogy is useful but structurally inexact in three ways that require explicit
+adaptation.
+\emph{First}, unlike software unit tests that pass or fail deterministically,
+safety evaluations have continuous outputs (attack success rates, false-positive
+rates) that must be interpreted relative to a pre-registered threshold, not
+compared post-hoc against the best available baseline.
+\emph{Second}, because adversaries are adaptive, the attack set itself must be
+updated before each evaluation cycle to include attacks published after the
+guardrail was designed, preventing the evaluation from becoming a fixed target
+that the mechanism eventually overfits --- a disanalogy absent from software
+testing, where the test suite is typically stable.
+\emph{Third}, software unit tests are independent by design: a failing test
+isolates a specific code path.
+Safety evaluations are \emph{correlated across prompts}: an attack that succeeds
+on prompt $A$ is correlated with success on semantically similar prompt $B$,
+because both exploit the same vulnerability in the model's decision boundary.
+This correlation structure means that a guardrail evaluated on $n$ attack prompts
+provides less independent evidence than $n$ unit tests; effective coverage requires
+deliberately diverse attack sets that span harm categories and attack methodologies,
+not merely large $n$.
+These three adaptations are required for the TDD analogy to function prescriptively
+in the safety evaluation context.
+Concretely: a team developing a streaming safety classifier should specify---before
+writing any classifier code---the exact attack prompts, generation budget,
+judge model version, harm categories, and acceptable false-positive rate at which
+the classifier will be considered successful.
+The ``test suite'' should span at least the four attack families documented in
+Section~\ref{sec:multimodal} (typographic, adversarial perturbation, indirect
+injection, text-channel) to avoid exploiting correlation between prompt types.
+This pre-registration prevents the post-hoc selection of evaluation conditions
+that favour the proposed mechanism, which is the most common route to the
+irreproducible results documented in this review.
+
+\subsection{Are Five Verified Claims Sufficient?}
+
+A legitimate challenge to this review is whether five verified findings constitute
+a sufficient evidentiary foundation for the open-problems agenda developed in
+Section~\ref{sec:open_problems}.
+We argue that sufficiency must be judged against the intended use of the review,
+not against an absolute threshold.
+
+The five verified findings are not randomly distributed: they include the
+field's most fully documented architectural mechanism (Llama Guard's classification
+framing), its most reproducible implementation technique (safety context
+distillation), its most concrete arbitration protocol (dual reward model with a
+specified threshold), its most robust attack finding (multi-turn priming
+amplification), and a meta-finding about evaluation methodology variability.
+Together they identify \emph{what the field can currently stand on} — a narrow but
+loadbearing set of verified facts.
+
+The open problems in Section~\ref{sec:open_problems} are each grounded in one of
+two ways: either in the absence of a verified claim in an area where the literature
+asserts results (RT1--RT3, FG1, MM1), or in a verified structural fact that implies
+an unmet requirement (MM2 follows directly from the Crescendo finding; FT1 follows
+from the threat model established by Qi et al., whose numerics are unverified but
+whose threat model is logically sound).
+No open problem in the catalogue rests solely on an unverified claim treated as
+established fact.
+
+The alternative view — that five verified claims indicate the field is too
+immature for a definitive SLR — is also defensible.
+A survey that confirms so little may be premature as a synthesis but is premature
+in a useful direction: it documents the evidentiary vacuum precisely enough that
+future work can be measured against it.
+The contribution of this review is therefore the methodology and the null result
+as much as any positive synthesis.
+
+\subsection{Limitations of This Review}
+
+This review is subject to several limitations.
+
+First, and most self-referentially, this review's central argument is a
+reproducibility critique, yet its own screening, quality assessment, and
+claim-verification were all performed by a single author.
+The structured self-review protocol (Section~\ref{subsec:verification_protocol})
+mitigates anchoring bias through temporally separated passes but cannot substitute
+for genuinely independent multi-reviewer screening.
+The following procedural compensations were applied to partially offset the single-author constraint: all inclusion/exclusion criteria were operationalised in a pre-specified codebook before screening began; an audit trail was maintained recording the primary reason for each exclusion; and the claim verification protocol's three-pass structure with mandatory unanimous agreement functions as a within-author reliability check, since a claim cannot survive if the same author's judgment differs across temporally separated passes.
+These compensations do not substitute for independent multi-reviewer screening but do provide partial structural protection against anchoring bias in both the corpus assembly and the claim verification phases.
+This is not merely a procedural limitation: the five verified claims that constitute
+the headline empirical finding survived scrutiny under one codebook applied by one
+author; a second independent coder applying the same codebook to a random sample
+might return a higher or lower count, and the direction is unknown.
+The five verified claims should therefore be understood as a \emph{lower bound}
+on the reproducible findings in the literature under this codebook, not as the
+definitive count.
+A future replication using two or more independent reviewers with formally
+computed pairwise inter-rater agreement (e.g.\ Cohen's $\kappa$ or Krippendorff's
+$\alpha$) across the full corpus would strengthen confidence in both the inclusion
+decisions and the claim-verification outcomes, and is the highest-priority
+direction for follow-on methodological work.
+The three design principles in Section~\ref{subsec:implications} are accordingly grounded only in the five verified claims and structural null findings; readers should treat them as expert synthesis derived from a narrow but robustly verified evidential base, not as conclusions from the full unverified corpus.
+
+Second, the structured self-review protocol's strictness may have caused
+under-counting of genuine but imprecisely stated findings; claims that could not
+be assessed as fully specified were treated equivalently to refuted ones.
+Third, the review covers only publicly accessible papers; internal safety
+research at major AI laboratories is not represented.
+Fourth, the rapidly evolving pace of the field means that findings reported here
+may be superseded by developments after the review cutoff date of mid-2025.
+Fifth, the absence of verified findings about audio and video safety reflects
+the state of the literature, not a deliberate exclusion; systematic search was
+conducted for these modalities.
+Sixth, the inclusion boundary between reviewed systems and contrast baselines was applied using the following principle: a paper is included as a reviewed system if its primary contribution is a guardrail mechanism for the production inference pipeline (regardless of whether the mechanism operates at training or inference time); it is treated as a contrast baseline if its primary contribution is a training procedure whose safety benefit is incidental to another objective (e.g., fine-tuning for capability).
+DRESS~\cite{chen2024dresssafety} is classified as a contrast baseline because its contrastive decoding approach was proposed as a generation quality improvement with safety as a secondary benefit; VLGuard~\cite{li2024vlguard} is classified as a reviewed system because its training objective is explicitly safety-oriented.
+This principle was applied consistently across all included papers; a complete inclusion/exclusion record is available in Appendix~\ref{sec:appendix}.

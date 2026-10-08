@@ -1,0 +1,96 @@
+% PRISMA 2020 flow diagram (TikZ)
+\begin{figure}[p]
+\centering
+\begin{tikzpicture}[
+  box/.style={
+    rectangle, draw, rounded corners=3pt,
+    text width=5.2cm, align=center,
+    minimum height=1.0cm, font=\small
+  },
+  sbox/.style={
+    rectangle, draw, rounded corners=3pt,
+    text width=3.6cm, align=center,
+    minimum height=0.9cm, font=\small, fill=gray!10
+  },
+  arr/.style={-{Stealth}, thick},
+  lbl/.style={font=\scriptsize, text=gray}
+]
+
+% ---------- Column centres ----------
+\def\cx{0}      % main column
+\def\ex{6.2cm}  % exclusion column
+
+% ---------- Row 0 : Identification header ----------
+\node[box, fill=blue!10] (id) at (\cx, 0)
+  {\textbf{Identification}\\[2pt]
+   Database search: \textit{n} = 1\,812\\
+   Snowballing: \textit{n} = 35\\
+   Total: \textit{n} = 1\,847};
+
+% ---------- Row 1 : Deduplication ----------
+\node[box, below=0.7cm of id] (dedup)
+  {After deduplication\\
+   \textit{n} = 1\,412};
+
+\node[sbox, right=1.4cm of dedup] (dedup_ex)
+  {Duplicates removed\\
+   \textit{n} = 435};
+
+\draw[arr] (id) -- (dedup);
+\draw[arr] (dedup) -- (dedup_ex);
+
+% ---------- Row 2 : Title + abstract screening ----------
+\node[box, below=0.7cm of dedup] (screen)
+  {\textbf{Screening}\\[2pt]
+   Title \& abstract screened\\
+   \textit{n} = 1\,412};
+
+\node[sbox, right=1.4cm of screen] (screen_ex)
+  {Excluded (off-topic,\\pre-LLM era)\\
+   \textit{n} = 1\,187};
+
+\draw[arr] (dedup) -- (screen);
+\draw[arr] (screen) -- (screen_ex);
+
+% ---------- Row 3 : Full-text eligibility ----------
+\node[box, below=0.7cm of screen] (elig)
+  {Full-text assessed\\
+   for eligibility\\
+   \textit{n} = 225};
+
+\node[sbox, right=1.4cm of elig] (elig_ex)
+  {Excluded after full-text\\
+   (no empirical eval,\\
+   duplicate version)\\
+   \textit{n} = 150};
+
+\draw[arr] (screen) -- (elig);
+\draw[arr] (elig) -- (elig_ex);
+
+% ---------- Row 4 : Included ----------
+\node[box, fill=green!10, below=0.7cm of elig] (incl)
+  {\textbf{Included}\\[2pt]
+   Studies in review\\
+   \textit{n} = 75};
+
+\draw[arr] (elig) -- (incl);
+
+% ---------- Sidebar label ----------
+\node[lbl, left=0.5cm of id, rotate=90, anchor=south]
+  {Identification};
+\node[lbl, left=0.5cm of screen, rotate=90, anchor=south]
+  {Screening};
+\node[lbl, left=0.5cm of elig, rotate=90, anchor=south]
+  {Eligibility};
+\node[lbl, left=0.5cm of incl, rotate=90, anchor=south]
+  {Included};
+
+\end{tikzpicture}
+\caption{PRISMA 2020 flow diagram. Of the 1{,}847 records identified, 1{,}812
+         were returned by database search (arXiv, ACL Anthology, IEEE Xplore,
+         ACM DL, USENIX, NeurIPS/ICML/ICLR) and 35 were added via reference
+         snowballing of included papers. Single-author screening was performed
+         with adversarial re-examination of borderline cases (see
+         Section~\ref{sec:methodology}).}
+\label{fig:prisma}
+\end{figure}

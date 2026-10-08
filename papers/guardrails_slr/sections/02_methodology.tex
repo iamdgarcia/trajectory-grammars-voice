@@ -1,0 +1,568 @@
+\section{Methodology}
+\label{sec:methodology}
+
+\noindent\textbf{Note on review classification.}
+This review was conducted by a single author and accordingly cannot satisfy the dual-screener requirement of PRISMA 2020.
+It is classified throughout as a \emph{structured literature review} rather than a PRISMA-compliant systematic review.
+PRISMA-format elements (flow diagram, exclusion counts, search strategy reporting) are retained for transparency and reproducibility, with the caveat that the corpus was assembled under single-author constraints.
+The implications of this for the review's headline finding (five of 237 claims verified) are quantified in the sensitivity analysis in Section~\ref{subsec:verification_protocol}.
+
+We follow a structured literature review protocol drawing on the guidelines of
+Kitchenham and Charters~\cite{kitchenham2007guidelines} and the PRISMA 2020
+statement~\cite{page2021prisma}, adapted for single-author execution as described below.
+
+\subsection{Research Questions}
+
+The review is structured around four primary research questions (RQs):
+
+\begin{description}
+  \item[RQ1] What architectural approaches are used to implement guardrails for LLMs,
+             and how do they differ in placement, implementation layer, and modality
+             coverage?
+  \item[RQ2] What mechanisms have been proposed for real-time, inference-time, and
+             streaming guardrails, and what are their documented latency and accuracy
+             characteristics?
+  \item[RQ3] What safety challenges are specific to multimodal LLMs, and what
+             defences have been proposed?
+  \item[RQ4] What are the principal reproducibility limitations and open problems
+             in the current guardrail literature?
+\end{description}
+
+\subsection{Search Strategy}
+
+We searched the following databases: arXiv (cs.AI, cs.CL, cs.CR, cs.LG), ACL
+Anthology, IEEE Xplore, ACM Digital Library, USENIX Security proceedings, and
+the NeurIPS/ICML/ICLR proceedings (2022--2025).
+The review window is \textbf{January 2022 to 30 June 2025} (inclusive); all
+corpus papers have an arXiv submission date or formal publication date that falls
+within this window.
+This cutoff is applied consistently throughout the paper; the single entry
+submitted in January 2025 (Aegis2.0, arXiv:2501.09004) falls within the window.
+The lower bound of 2022 is motivated by the emergence of instruction-tuned LLMs
+as production systems: the deployment of InstructGPT~\cite{ouyang2022training}
+and the public release of ChatGPT in late 2022 mark the point at which guardrails
+became a practical engineering requirement rather than a theoretical concern.
+Papers published before 2022 that are cited in this review (Weidinger~et~al.\
+2021~\cite{weidinger2021ethical}; Bommasani~et~al.\ arXiv v1 August
+2021~\cite{bommasani2022opportunities}; Perez~et~al.\ 2022~\cite{perez2022red};
+FUDGE 2021~\cite{yang2021fudge}; NeuroLogic 2021~\cite{lu2021neurologic}) are
+background or adjacent-field references, not primary corpus members; the corpus
+composition note in Section~\ref{sec:methodology} (Data Extraction subsection)
+classifies them accordingly.
+Search strings were constructed from three concept clusters and executed as follows.
+
+\paragraph{Primary Boolean query string}
+Applied across ACM DL, IEEE Xplore, Springer Link, and arXiv:
+\begin{quote}\footnotesize\sloppy
+(``large language model'' OR ``LLM'' OR ``foundation model'')
+AND (``guardrail'' OR ``safety filter'' OR ``content moderation'' OR ``output filter'' OR ``alignment'' OR ``safety mechanism'')
+AND (``real-time'' OR ``streaming'' OR ``latency'' OR ``token-by-token'' OR ``multimodal'' OR ``vision-language'' OR ``audio'' OR ``video'' OR ``jailbreak'' OR ``adversarial'')
+\end{quote}
+
+\paragraph{Secondary query (broadening for coverage)}
+\begin{quote}\footnotesize\sloppy
+(``LLM safety'' OR ``AI safety'' OR ``content filtering'')
+AND (``runtime'' OR ``inference-time'' OR ``deployment'')
+AND (``2022'' OR ``2023'' OR ``2024'' OR ``2025'')
+\end{quote}
+
+\paragraph{arXiv-specific mechanism}
+arXiv was searched via the web interface (\texttt{arxiv.org/search}) using the cs.AI, cs.CL, and cs.CR category filters with the primary query applied to title and abstract fields.
+The arXiv API was not used; searches were conducted manually with results sorted by relevance and filtered by submission date (January 2022 -- June 2025).
+Readers attempting to replicate this search should note that the arXiv web interface does not produce a stable, versioned query URL; result ordering and coverage may differ across sessions due to index updates, and exact replication of the retrieved set is not guaranteed from the interface alone.
+
+\paragraph{Search execution dates}
+All database searches were conducted in May--June 2025.
+ACM DL: June~1, 2025.
+IEEE Xplore: June~2, 2025.
+Springer Link: June~3, 2025.
+arXiv: June~4--7, 2025 (multiple passes across cs.AI, cs.CL, cs.CR).
+USENIX proceedings: June~8, 2025.
+
+\paragraph{USENIX inclusion justification}
+USENIX Security and USENIX SOUPS were included because they represent the primary publication venues for security-oriented LLM research that does not appear in IEEE or ACM databases; prior surveys (Dong et al.\ 2024, Yao et al.\ 2023) similarly include USENIX venues.
+
+\paragraph{Snowball stopping criterion}
+Forward and backward citation snowball was applied to all included papers.
+Snowball was terminated when a complete forward/backward pass yielded no citation not already present in the corpus.
+This required three rounds; the third round added zero new papers.
+
+The three concept clusters underlying the primary query were:
+
+\begin{enumerate}
+  \item \textit{Target}: ``large language model'' OR ``LLM'' OR ``foundation model''
+        OR ``vision-language model'' OR ``VLM'' OR ``multimodal''
+  \item \textit{Mechanism}: ``guardrail'' OR ``safety'' OR ``alignment'' OR
+        ``moderation'' OR ``content filter'' OR ``jailbreak''
+  \item \textit{Constraint}: ``real-time'' OR ``inference-time'' OR ``streaming'' OR
+        ``latency'' OR ``online'' OR ``multimodal'' OR ``cross-modal''
+\end{enumerate}
+
+Strings were combined with AND across clusters.
+One term in the Constraint cluster warrants a note on search precision: the term
+``online'' is a high-recall, low-precision choice that matches papers on online
+learning, online platforms, and real-time systems more broadly, many of which are
+off-topic.
+Its inclusion was motivated by the desire to capture all papers framing safety as
+an online decision problem; the precision cost is visible in the exclusion counts
+below (510 records excluded for ``no guardrail mechanism'' at the title/abstract
+stage, a count inflated by off-topic ``online'' matches).
+Estimated title/abstract precision is approximately 19\% (355 advanced to full
+text from 1,847 screened), which is within the typical range for broad SLR searches
+in fast-moving fields but confirms that the search string was tuned for recall
+rather than precision.
+
+Database search returned 1,812 records.
+Forward and backward reference snowballing was applied to all included papers,
+adding a further 35 records (total identification: 1,847; see Figure~\ref{fig:prisma}).
+\begin{sloppypar}
+The PRISMA 2020 exclusion-stage breakdown is as follows (figures also encoded
+in the flow diagram).
+\textit{Title/abstract screening}: 1,847 records screened;
+1,492 excluded (pre-LLM NLP safety $n=412$; no guardrail mechanism $n=510$;
+pure policy/legal $n=298$; duplicate/superseded $n=272$);
+355 advanced to full-text review.
+\textit{Full-text screening}: 355 assessed;
+280 excluded (no empirical/formal evaluation $n=134$;
+not novel $n=89$; inaccessible $n=31$; out-of-scope $n=26$);
+75 studies included in the final corpus.
+\end{sloppypar}
+
+\subsection{Inclusion and Exclusion Criteria}
+
+\paragraph{Included} Peer-reviewed papers and arXiv preprints reporting: (i) novel
+guardrail mechanisms for LLMs; (ii) attacks against LLM safety mechanisms; (iii)
+evaluation frameworks or benchmarks for LLM safety; (iv) surveys or analyses of
+LLM safety with primary empirical content.
+
+\paragraph{Excluded} Papers focused exclusively on classical NLP safety (pre-LLM
+era); pure policy or legal analyses without technical content; papers without any
+empirical or formal evaluation; duplicates (earlier version superseded by a later
+published version).
+
+\subsection{Screening Process}
+
+Title and abstract screening was performed by the single author.
+Full-text screening was applied to all papers passing abstract screening.
+PRISMA 2020 requires two independent screeners to establish inter-rater reliability
+(IRR); this requirement is not met and cannot be satisfied post-hoc by any
+intra-author measure.
+\textbf{This is a structural defect in the methodology, not a cosmetic limitation.}
+The absence of a second independent screener means that systematic biases in
+inclusion judgements — for instance, a tendency to include papers whose abstracts
+pattern-match to the author's prior reading — cannot be detected or corrected.
+No intra-author procedure can substitute for genuine inter-rater agreement.
+This review is accordingly classified as a structured literature review rather than a PRISMA-compliant systematic review;
+all PRISMA-format elements (flow diagram, exclusion counts) are retained for transparency,
+with the understanding that the corpus was assembled under this constraint.
+
+To mitigate the structural disadvantage of single-author screening, the following procedural compensations were applied:
+(i) a pre-specified codebook with operationalised inclusion/exclusion criteria was finalised before screening began and was not modified during screening;
+(ii) an audit trail was maintained in a versioned extraction spreadsheet recording the inclusion decision and primary reason for each screened paper;
+(iii) borderline inclusion decisions were resolved by consulting the primary literature of the citing paper (i.e., if a borderline paper was cited by a clearly-in-scope paper for a specific claim, the borderline paper was included);
+(iv) the claim verification protocol used three temporally separated passes with mandatory unanimous agreement, which functions as a within-author reliability check on the claim extraction.
+
+To document the degree of intra-author consistency (not as a substitute for IRR,
+but as a transparency disclosure), test-retest reliability was assessed on a
+10\% random sample ($n = 22$ papers) in which the author conducted a blinded
+re-screening four weeks after the initial pass.
+Agreement on inclusion/exclusion was 91\% (20/22 papers; 95\% Wilson score
+confidence interval 71\%--99\%); the two discrepant cases were resolved by
+consulting a third-party domain expert.
+This figure is reported as \emph{test-retest reliability only}: because all
+passes were conducted by the same author, Cohen's $\kappa$ — which formally
+requires two distinct raters — is undefined and is not reported.
+The 91\% raw agreement rate \emph{does not} constitute inter-rater reliability
+in the PRISMA sense and does not mitigate the structural limitation described
+above.
+With $n=22$, the measure has insufficient statistical power to distinguish
+adequate from inadequate screening consistency: the Wilson interval lower bound
+of 71\% is consistent with a true intra-author agreement rate that would not
+satisfy any standard IRR threshold.
+The single-author screening therefore remains a limitation that readers should
+weight when interpreting the corpus composition, and is discussed further in
+Section~\ref{sec:discussion}.
+This review used single-rater assessment throughout; independent inter-rater reliability (Cohen's $\kappa$ or Krippendorff's $\alpha$) could not be computed, and the three-pass structure, pre-specified codebook, and sensitivity analysis serve collectively as the primary procedural compensations for this limitation.
+A PRISMA flow diagram summarising inclusion and exclusion counts is presented
+in Figure~\ref{fig:prisma}.
+
+\input{figures/fig_prisma}
+
+\subsection{Quality Assessment}
+
+\paragraph{Quality appraisal instrument}
+Each included primary study was appraised using a five-criterion quality instrument adapted from the Mixed Methods Appraisal Tool (MMAT) and the Joanna Briggs Institute (JBI) checklist for systematic reviews:
+\begin{enumerate}
+  \item Clear research question or design objective stated
+  \item Study design appropriate for the research question (experimental, empirical, analytical, or formal)
+  \item Evaluation methodology described with sufficient detail for replication
+  \item Threat model or adversarial assumptions explicitly stated (where applicable)
+  \item Limitations acknowledged by the authors
+\end{enumerate}
+Each criterion was scored as Met (1), Partially Met (0.5), or Not Met (0), giving a total quality score in the range [0, 5].
+Studies scoring below 2.0 were flagged for heightened scrutiny during claim extraction but were not excluded from the corpus --- exclusion occurred only at the title/abstract and full-text screening phases based on topical relevance criteria, not on quality score.
+Heightened scrutiny meant that claims extracted from sub-threshold studies were subjected to a mandatory additional verification note during each pass, explicitly recording whether the low quality score introduced ambiguity in the claim's reproducibility assessment; the pass/fail verdict criteria themselves were not relaxed or tightened relative to higher-scoring studies.
+
+\paragraph{Relationship between quality ratings and the 237-claim pool}
+Quality scores were not used as a threshold for claim inclusion: all quantitative and architectural assertions meeting the codebook definition (Section~\ref{subsec:verification_protocol}) were extracted from all included studies regardless of their quality score.
+This choice was deliberate.
+The review's primary hypothesis was that the literature's evidentiary basis is weak; excluding low-quality studies before claim extraction would have biased the verification outcome toward survival, understating the reproducibility crisis.
+The five surviving claims are distributed across quality tiers: Claims~1 and~2 (safety context distillation and dual reward architecture, from Touvron et al.) derive from a study scoring 4.5/5; Claim~3 (Llama Guard architecture) from a study scoring 4.0/5; Claim~4 (Crescendo multi-turn amplification) from a study scoring 3.5/5; Claim~5 (SALAD-Bench evaluation fragility) from a study scoring 4.0/5.
+The 232 refuted claims span all quality tiers, confirming that refutation rate is not primarily a function of study quality but of evaluation-protocol underspecification --- the most common failure mode (41\% of refutations).
+
+Each included paper was also assessed on four dimensions:
+(i) \textit{reproducibility}—whether experiments can be replicated from the
+information provided;
+(ii) \textit{generalisability}—whether results are validated on more than one model
+or dataset;
+(iii) \textit{adversarial rigour}—whether the paper considers adaptive attacks or
+only static evaluation;
+(iv) \textit{deployment relevance}—whether the proposed mechanism addresses a
+realistic deployment constraint (latency, API access level, streaming).
+
+\noindent Papers were rated Low (L) / Medium (M) / High (H) on each dimension.
+Ratings were assigned after reading the full text of each paper; all four dimensions
+were rated by the same single author.
+As a partial calibration check, eight papers (approximately 10\% of the corpus,
+selected by systematic sampling) were re-rated on all four dimensions after an
+interval of four weeks without reference to the initial ratings.
+Raw agreement between first and second ratings was 78\% (25/32 dimension-level
+comparisons); the seven discrepancies all involved boundary cases between adjacent
+categories (e.g.\ L vs.\ M), not disagreements of two categories.
+This figure is reported as intra-author consistency only and cannot substitute for
+inter-rater reliability.
+The distribution figures in Table~\ref{tab:quality} should therefore be understood
+as directional indicators of corpus-wide quality patterns, not precisely calibrated
+ordinal measurements: the integers reflect the single author's consistent application
+of criteria across readings, with boundary-case uncertainty of approximately
+$\pm 1$--2 papers per cell.
+Table~\ref{tab:quality} summarises the quality distribution across the 75
+included papers.
+
+\begin{table}[t]
+  \caption{Quality assessment distribution across 75 included papers.
+           Ratings: L = Low, M = Medium, H = High.
+           All ratings are by a single author; see text for intra-author
+           consistency check (78\% raw agreement on 10\% re-rated sample).
+           Integer counts carry boundary-case uncertainty of approximately
+           $\pm$1--2 papers per cell and should be treated as directional
+           indicators, not precisely calibrated measurements.}
+  \label{tab:quality}
+  \centering
+  \begin{tabular}{lrrr}
+    \toprule
+    \textbf{Dimension} & \textbf{L} & \textbf{M} & \textbf{H} \\
+    \midrule
+    Reproducibility       & 41 & 27 & 7  \\
+    Generalisability      & 18 & 38 & 19 \\
+    Adversarial rigour    & 33 & 29 & 13 \\
+    Deployment relevance  & 22 & 34 & 19 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The distribution confirms the reproducibility crisis: 55\% of papers receive a
+Low reproducibility rating, meaning their core experiments cannot be replicated
+from the information provided.
+Ratings inform the confidence level assigned to specific claims in the review.
+
+\subsection{Data Extraction}
+
+For each included paper we extracted: proposed mechanism, attack surface addressed,
+evaluation datasets and metrics, reported performance figures, latency or overhead data
+(where available), and the authors' own limitations discussion.
+Extraction was performed against a pre-specified codebook (eight fields per paper,
+defined before any primary-source reading began) to reduce post-hoc field selection.
+The codebook template is available from the corresponding author on request.
+
+\paragraph{Corpus composition and bibliography scope}
+Table~\ref{tab:corpus} enumerates all 75 primary corpus papers explicitly and
+in full.
+This enumeration is the authoritative corpus definition; the BibTeX file
+(\texttt{main.bib}) additionally contains eleven \emph{non-corpus} references:
+two SLR methodology references (Kitchenham \& Charters; PRISMA 2020); three
+background/framing references (Bommasani et al.; Weidinger et al.; Perez et al.\
+2022 red-teaming); four constrained-generation adjacent references (FUDGE, COLD
+Decoding, NeuroLogic, speculative decoding); and two industry technical reports
+cited solely to confirm the absence of reproducible audio/video safety evaluations
+(Anthropic Claude~3 model card; Google Gemini technical report).
+Every other entry in \texttt{main.bib} corresponds to a row in
+Table~\ref{tab:corpus}.
+
+\small
+\begin{longtable}{rp{12.0cm}c}
+\caption{Complete enumeration of the 75 primary corpus papers, sorted by theme.
+         \textbf{Status}: P = arXiv preprint; W = workshop; C = peer-reviewed
+         conference; J = peer-reviewed journal.
+         C and J entries have undergone formal peer review; P entries have not.}
+\label{tab:corpus} \\
+\toprule
+\textbf{\#} & \textbf{Reference} & \textbf{St.} \\
+\midrule
+\endfirsthead
+\multicolumn{3}{c}{\tablename~\thetable{} (continued)} \\
+\toprule
+\textbf{\#} & \textbf{Reference} & \textbf{St.} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{3}{r}{\itshape Continued on next page} \\
+\endfoot
+\bottomrule
+\endlastfoot
+    \multicolumn{3}{l}{\textit{Alignment foundations and intrinsic safety (4)}} \\
+    1  & Bai et al.\ 2022 — Constitutional AI~\cite{bai2022constitutional} & P \\
+    2  & Ouyang et al.\ 2022 — InstructGPT / RLHF~\cite{ouyang2022training} & C \\
+    3  & Touvron et al.\ 2023 — Llama~2~\cite{touvron2023llama2} & P \\
+    4  & Qi et al.\ 2023 — Fine-tuning safety degradation~\cite{qi2023finetuning} & P \\
+    \midrule
+    \multicolumn{3}{l}{\textit{Real-time and inference-time guardrails (10)}} \\
+    5  & Inan et al.\ 2023 — Llama Guard~\cite{inan2023llama} & P \\
+    6  & Rebedea et al.\ 2023 — NeMo Guardrails~\cite{rebedea2023nemo} & P \\
+    7  & Zhang et al.\ 2024 — ShieldLM~\cite{zhang2024shieldlm} & P \\
+    8  & Han et al.\ 2024 — WildGuard~\cite{han2024wildguard} & P \\
+    9  & Dong et al.\ 2024 — Building Guardrails~\cite{dong2024building} & P \\
+    10 & Su et al.\ 2024 — AEGIS~\cite{su2024aegis} & P \\
+    11 & Ghosh et al.\ 2025 — Aegis2.0~\cite{ghosh2024aegis2} & P \\
+    12 & Kumar et al.\ 2023 — Certifying LLM safety~\cite{kumar2023certifying} & P \\
+    13 & Varshney et al.\ 2024 — Systematic defence evaluation~\cite{varshney2023art} & P \\
+    14 & Zou et al.\ 2024 — Circuit Breakers~\cite{zou2024improving} & P \\
+    \midrule
+    \multicolumn{3}{l}{\textit{Jailbreak attacks (text) (20)}} \\
+    15 & Zou et al.\ 2023 — GCG universal adversarial attacks~\cite{zou2023universal} & P \\
+    16 & Yang et al.\ 2023 — Shadow alignment~\cite{yang2023shadow} & P \\
+    17 & Wei et al.\ 2023 — Jailbroken (NeurIPS)~\cite{wei2023jailbroken} & C \\
+    18 & Wei et al.\ 2023 — In-context demonstrations jailbreak~\cite{wei2023jailbreak} & P \\
+    19 & Mehrotra et al.\ 2023 — Tree of Attacks~\cite{mehrotra2023tree} & P \\
+    20 & Liu et al.\ 2023 — AutoDAN (stealthy)~\cite{liu2023autodan} & P \\
+    21 & Zhu et al.\ 2023 — AutoDAN (interpretable)~\cite{zhu2023autodan} & P \\
+    22 & Perez \& Ribeiro 2022 — Ignore previous prompt~\cite{perez2022ignore} & P \\
+    23 & Shen et al.\ 2023 — ``Do Anything Now'' wild jailbreaks~\cite{shen2023anything} & P \\
+    24 & Yuan et al.\ 2023 — Cipher jailbreaks~\cite{yuan2023gpt4} & P \\
+    25 & Deng et al.\ 2023 — Multilingual jailbreaks~\cite{deng2023multilingual} & P \\
+    26 & Ding et al.\ 2023 — Nested jailbreak prompts~\cite{ding2023wolf} & P \\
+    27 & Zeng et al.\ 2024 — Persuasion-based jailbreaks~\cite{zeng2024johnny} & P \\
+    28 & Mo et al.\ 2024 — Prompt adversarial tuning~\cite{mo2024fight} & P \\
+    29 & Ganguli et al.\ 2022 — Red teaming~\cite{ganguli2022red} & P \\
+    30 & Kim et al.\ 2024 — Shortcut reasoning jailbreaks~\cite{kim2024break} & P \\
+    31 & Xhonneux et al.\ 2024 — Efficient adversarial training~\cite{xhonneux2024efficient} & P \\
+    32 & Wei et al.\ 2024 — Brittleness of safety alignment~\cite{wei2024assessment} & P \\
+    33 & Carlini et al.\ 2024 — Adversarial alignment~\cite{carlini2024aligned} & P \\
+    34 & Wan et al.\ 2023 — Instruction-tuning poisoning~\cite{wan2023poisoning} & P \\
+    \midrule
+    \multicolumn{3}{l}{\textit{Defence mechanisms (text) (9)}} \\
+    35 & Robey et al.\ 2023 — SmoothLLM~\cite{robey2023smoothllm} & P \\
+    36 & Cao et al.\ 2023 — Robustly aligned LLM~\cite{cao2023defending} & P \\
+    37 & Pisano et al.\ 2023 — Bergeron~\cite{pisano2023bergeron} & P \\
+    38 & Wang et al.\ 2024 — Backtranslation defence~\cite{wang2024defending} & P \\
+    39 & Xie et al.\ 2023 — Self-reminders (Nature MI)~\cite{xie2023defending} & J \\
+    40 & Phute/Helbling et al.\ 2023 — LLM Self Defense~\cite{helbling2023llm} & P \\
+    41 & Jain et al.\ 2023 — Baseline adversarial defences~\cite{jain2023baseline} & P \\
+    42 & Goldowsky-Dill et al.\ 2023 — Localizing model behaviour~\cite{goldowsky2023localizing} & P \\
+    43 & Shi et al.\ 2023 — Irrelevant context distraction~\cite{shi2023large} & P \\
+    \midrule
+    \multicolumn{3}{l}{\textit{Evaluation and benchmarking (8)}} \\
+    44 & Li et al.\ 2024 — SALAD-Bench~\cite{li2024salad} & P \\
+    45 & Mazeika et al.\ 2024 — HarmBench~\cite{mazeika2024harmbench} & P \\
+    46 & Souly et al.\ 2024 — StrongREJECT~\cite{souly2024strongreject} & P \\
+    47 & Zhu et al.\ 2024 — GRAM~\cite{zhu2024gram} & P \\
+    48 & Zhou et al.\ 2024 — EasyJailbreak~\cite{zhou2024easyjailbreak} & P \\
+    49 & Zhang et al.\ 2023 — SafetyBench~\cite{zhang2023safetybench} & P \\
+    50 & Sun et al.\ 2023 — Chinese LLM safety assessment~\cite{sun2023safety} & P \\
+    51 & Bhatt et al.\ 2023 — Purple Llama CyberSecEval~\cite{bhatt2023purple} & P \\
+    \midrule
+    \multicolumn{3}{l}{\textit{Multi-turn attacks (5)}} \\
+    52 & Russinovich et al.\ 2024 — Crescendo~\cite{russinovich2024greatescalation} & P \\
+    53 & Yang et al.\ 2024 — Chain of Attack~\cite{yang2024chain} & P \\
+    54 & Li et al.\ 2024 — LLM robustness vs.\ jailbreak~\cite{li2024llm} & P \\
+    55 & Cheng et al.\ 2024 — Multi-round interaction attacks~\cite{cheng2024leveraging} & P \\
+    56 & Yi et al.\ 2023 — Indirect prompt injection~\cite{yi2023benchmarking} & P \\
+    \midrule
+    \multicolumn{3}{l}{\textit{Multimodal attacks and defences (17)}} \\
+    57 & Gong et al.\ 2023 — FigStep typographic attacks~\cite{gong2023figstep} & P \\
+    58 & Zhao et al.\ 2024 — Multimodal jailbreak evaluation~\cite{zhao2024evaluating} & P \\
+    59 & Liu et al.\ 2023 — Query-relevant image attacks~\cite{liu2023queryrelevant} & P \\
+    60 & Luo et al.\ 2024 — JailBreakV-28K~\cite{luo2024jailbreakv} & P \\
+    61 & Niu et al.\ 2024 — Multimodal jailbreaking attack~\cite{niu2024jailbreaking} & P \\
+    62 & Dong et al.\ 2024 — Patched visual prompt injection~\cite{dong2024safeguarding} & P \\
+    63 & Pi et al.\ 2024 — MLLM-Protector~\cite{pi2024mllm} & P \\
+    64 & Chen et al.\ 2023 — DRESS~\cite{chen2024dresssafety} & P \\
+    65 & Chen et al.\ 2024 — AgentPoison~\cite{chen2024agentpoison} & P \\
+    66 & Oh et al.\ 2024 — SafeVLM~\cite{oh2024safevlm} & P \\
+    67 & Liu et al.\ 2024 — MM-SafetyBench~\cite{liu2024mmsafetybench} & P \\
+    68 & Li et al.\ 2024 — VLGuard~\cite{li2024vlguard} & P \\
+    69 & Zong et al.\ 2024 — Safety fine-tuning at no cost~\cite{zong2024safety} & P \\
+    70 & Wang et al.\ 2024 — AdaShield~\cite{wang2024adashield} & P \\
+    71 & Chen et al.\ 2024 — Red-teaming VLMs~\cite{chen2024red} & P \\
+    72 & Bailey et al.\ 2023 — Image hijacks~\cite{bailey2023image} & P \\
+    73 & Shayegani et al.\ 2023 — Jailbreak in pieces~\cite{shayegani2023jailbreak} & P \\
+    \midrule
+    \multicolumn{3}{l}{\textit{Industry and deployment (2)}} \\
+    74 & Qi et al.\ 2024 — Visual adversarial examples~\cite{qi2024visual} & P \\
+    75 & Chiang et al.\ 2024 — Chatbot Arena~\cite{chiang2024chatbot} & P \\
+\end{longtable}
+\normalsize
+
+\subsection{Structured Claim Verification Protocol}
+\label{subsec:verification_protocol}
+
+The primary methodological contribution of this review is a structured
+claim-verification procedure applied to all extracted claims.
+The procedure uses temporally separated self-review passes by a single author to
+reduce anchoring bias; it is not adversarial verification in the sense of independent
+reviewers challenging each other's assessments.
+The protocol is defined as follows.
+
+\paragraph{Claim unit}
+A \emph{claim} is any quantitative assertion (e.g.\ ``attack success rate reduced
+from 79.8\% to 2.4\%'') or qualitative architectural assertion (e.g.\ ``the guardrail
+operates on token prefixes without buffering the full response'') that the paper
+presents as a result or a property of the proposed system.
+Architectural claims are distinguished from quantitative claims because they require
+different verification standards: architectural claims are assessed for internal
+consistency and alignment with disclosed implementation details, whereas quantitative
+claims are assessed for reproducibility from the provided experimental setup.
+
+\paragraph{Verification passes}
+Three temporally separated verification passes were conducted by the same author over a
+period of six weeks, each separated by at least two weeks to minimise anchoring
+effects.
+These passes are conducted by a single author; temporal separation reduces anchoring
+bias but does not constitute independent review by multiple researchers.
+In each pass, the author attempted to reproduce or refute each claim by:
+(i) checking whether the described experimental setup is sufficiently specified to
+replicate (datasets named and versioned, models identified with version tags,
+hyperparameters reported);
+(ii) cross-referencing numerical results against any available code repositories
+or independent reproductions in the literature;
+(iii) checking for internal consistency between the claim and other figures,
+tables, or proofs in the same paper.
+
+\paragraph{Pass/fail criteria}
+A pass (verdict: \textit{verified}) requires all three of the following conditions to hold in a given assessment pass:
+(i) the experimental setup is sufficiently specified that a qualified reader could reproduce the reported result without contacting the authors (datasets named and versioned, models identified, hyperparameters reported);
+(ii) no internal inconsistency is found between the claim and other results or proofs in the same paper;
+(iii) where an independent replication or corroborating study is available in the literature, the directional finding is consistent across sources.
+Condition~(i) establishes that a claim is transcribed accurately from the source and that its replication prerequisites are stated; it does not establish that the underlying experimental result has been independently reproduced or that the claim is free of benchmark contamination.
+Condition~(iii) is a corroborative check only: corroboration upgrades confidence, but absence of corroboration does not, by itself, cause a claim to fail.
+A claim is \textit{refuted} if any single pass finds that condition~(i) or condition~(ii) is not satisfied.
+A claim is \textit{unverifiable} if the source material required to assess condition~(i) is not publicly accessible.
+These criteria apply uniformly to both quantitative and architectural claims; the distinction affects how condition~(i) is operationalised (quantitative claims require numeric reproducibility; architectural claims require mechanistic reproducibility) but not the pass/fail logic itself.
+
+\paragraph{Sensitivity analysis on the single-rater constraint}
+The 98\% unverified figure rests on a single-rater audit.
+To bound the uncertainty this introduces, consider the following: if borderline cases constitute at most 20\% of the corpus ($0.20 \times 237 = 47.4$, rounded to 47 claims), and if a second independent rater disagrees with the first rater on at most half of those borderline cases ($0.50 \times 47 = 23.5$, rounded to 24 claims, representing the most pessimistic plausible disagreement rate under the operationalised pass/fail criteria), then the maximum number of verdicts that could be overturned is 24.
+The 20\% borderline rate is a structural assumption, not an empirically observed rate; it is stated as a worst-case bound.
+The direction of bias is also bounded: the structured self-review protocol's strictness --- treating ambiguous claims as refuted rather than verified --- more likely causes under-counting of genuine findings than over-counting.
+The five surviving claims should therefore be understood as a lower bound on reproducible findings under this codebook.
+If all 24 were overturned from \emph{Refuted} to \emph{Verified} --- an extreme upper bound --- the verified count would rise from 5 to 29, which is 12\% of the corpus.
+The central finding is therefore robust to plausible single-rater variability: even under the most pessimistic stated assumptions, the verified fraction remains below 15\%.
+
+\paragraph{Verification basis for surviving claims}
+Because condition~(iii) applies differently across the five surviving claims, we report the verification basis for each explicitly.
+Claim~1 (Llama~2 dual reward model threshold): verified by condition~(i) alone --- threshold and test-set metrics are reported with sufficient precision in the source paper~\cite{touvron2023llama2}.
+Claim~2 (Safety Context Distillation): verified by condition~(i) --- mechanism described at implementation level in~\cite{touvron2023llama2}.
+Claim~3 (Llama Guard architecture): verified by conditions~(i) and~(iii) --- corroborated by subsequent releases and independent usage reports~\cite{meta2024llamaguard2,inan2023llama}.
+Claim~4 (Crescendo multi-turn amplification): verified by conditions~(i) and~(iii) --- independent corroboration from Li~et~al.~\cite{li2024llm} using a different attack methodology.
+Claim~5 (SALAD-Bench evaluation-protocol fragility): verified by conditions~(i) and~(iii) --- directionally corroborated by HarmBench~\cite{mazeika2024harmbench}, StrongREJECT~\cite{souly2024strongreject}, GRAM~\cite{zhu2024gram}, and EasyJailbreak~\cite{zhou2024easyjailbreak}.
+Readers should note that Claims~1 and~2 are verified on the basis of internal reproducibility only; Claim~4 has the strongest independent corroboration of the five.
+
+\paragraph{Voting rule}
+A claim \emph{survives} verification if and only if it passes all three temporally
+separated self-review passes without identified inconsistency or unreproducibility
+(3-vote unanimous agreement).
+A claim is \emph{refuted} if any single pass identifies a material inconsistency,
+a missing prerequisite for reproduction, or a contradiction with accessible
+primary sources.
+Claims that cannot be assessed (e.g.\ because source material is behind a
+non-public institutional repository) are marked \emph{unverifiable} and treated
+equivalently to refuted for the purposes of the open-problems analysis.
+
+\paragraph{Per-claim audit artefact}
+To enable independent inspection of the verification outcomes, a structured
+machine-readable artefact is submitted alongside this manuscript.
+The artefact is a comma-separated spreadsheet in which each row corresponds to
+one extracted claim and contains the following fields:
+\texttt{claim\_id} (unique integer),
+\texttt{source\_key} (BibTeX key of the primary source),
+\texttt{claim\_text} (verbatim or lightly paraphrased assertion as extracted),
+\texttt{claim\_type} (\textit{quantitative} or \textit{architectural}),
+\texttt{pass1\_verdict} (\textit{verified} / \textit{refuted} / \textit{unverifiable}),
+\texttt{pass2\_verdict},
+\texttt{pass3\_verdict},
+\texttt{final\_verdict} (\textit{survived} if all three passes are \textit{verified};
+\textit{refuted} otherwise), and
+\texttt{refutation\_rationale} (free-text explanation for any pass that returned
+\textit{refuted} or \textit{unverifiable}).
+The artefact covers all 237 claims extracted during the review; the five rows
+with \texttt{final\_verdict = survived} correspond precisely to the five verified
+findings enumerated in Section~\ref{sec:open_problems}.
+The artefact is available from the corresponding author on request.
+The complete codebook (eight extraction fields with operationalised criteria) and the full 237-claim extraction table (all three pass verdicts and refutation rationales per claim) are available from the corresponding author on request;
+both artefacts are provided to referees and editors as part of the supplementary review package.
+
+\paragraph{Limitation}
+The use of a single author across all three passes is a limitation: although the
+inter-pass delay reduces anchoring, it cannot substitute for genuinely independent
+reviewers.
+The per-claim artefact makes the individual assessments transparent and allows
+any reader to contest specific verdicts; it does not, however, provide
+independently-generated second opinions on those verdicts.
+
+A second, distinct validity threat concerns the \emph{pre-specified codebook}
+itself.
+The codebook was designed before any primary-source reading began and specifies
+eight extraction fields per paper.
+If the codebook systematically omitted entire \emph{categories} of methodological
+flaw, then no paper exhibiting those flaws would have those flaws flagged across
+any of the three passes.
+Three such categories are worth enumerating explicitly.
+\emph{Confounded baselines}: the codebook checks whether the proposed guardrail
+and the comparison baseline use compatible attack sets and judge models, but it
+does not have a dedicated field capturing cases where the two systems differ on
+additional silent dimensions (e.g.\ training data vintage, RLHF iteration count)
+that could independently explain observed performance gaps.
+\emph{Undisclosed RLHF stage details}: the codebook records whether hyperparameters
+are reported but does not probe for the number of RLHF iterations, the checkpoint
+selection criterion, or the composition of the human-preference dataset---all of
+which can materially affect safety benchmark scores and are routinely omitted from
+published papers.
+\emph{Fine-tuning data contamination}: the codebook does not include a field
+checking whether evaluation benchmarks used by a paper overlap with the paper's
+own training or fine-tuning data, a form of contamination that inflates reported
+numbers without constituting fabrication.
+
+These three categories were not added to the codebook after the first pass, even
+though related concerns emerged during reading.
+The reason is methodological: adding fields post-hoc, after exposure to the data,
+converts the codebook into a post-hoc instrument and introduces the same
+confirmation risk the pre-specification was designed to prevent.
+Extending the codebook would have required a fourth pass, and the resulting verdicts
+could not be compared to the three-pass structure for earlier claims without
+introducing inconsistency.
+The appropriate resolution is a future independent re-extraction against a
+separately designed codebook that incorporates these categories from the outset.
+These three categories are flagged explicitly so that future reviewers applying the same codebook can assess whether their omission materially biases the five surviving claims;
+Whether inclusion of these three categories would alter the five surviving claims cannot be determined from the current codebook alone; this is flagged as a direction for follow-on methodological work.
+
+Temporal separation reduces anchoring bias \emph{within} the categories the
+codebook captures; it provides no protection against blind spots in category
+coverage.
+This threat cannot be resolved post-hoc without independent re-extraction against
+a separately designed codebook.
+Readers should therefore treat the five verified surviving claims as the set of
+claims that survived scrutiny under \emph{this codebook's extraction categories},
+not as the exhaustive set of reproducible findings in the literature.
+A minimum requirement for independent corroboration of the headline finding
+(5~of~237 claims verified) would be for a second independent coder to apply the
+same pre-specified codebook to a 20--25\% random sample of the 237 claims
+($n \approx 47$--59 claims) and report pairwise agreement on both claim
+extraction and pass verdicts.
+Such a check would establish whether the codebook produces consistent results
+across coders without requiring full re-extraction of all 237 claims.
+The codebook template is available from the corresponding author to permit
+external assessment of its category coverage and to enable this check.
+
+The protocol is disclosed at this level of detail so that future SLRs in this
+domain can adopt or extend it with multiple reviewers, a codebook designed by
+consensus, and formally computed inter-rater agreement.

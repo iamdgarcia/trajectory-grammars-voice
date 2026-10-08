@@ -1,0 +1,20 @@
+% Tool placement against the onset floor: only a serial type-A tool gates first audio;
+% background dispatch, lead-in hiding, and background clocks all move off the floor.
+\begin{tikzpicture}[>=Stealth, font=\small, box/.style={draw, rounded corners,
+  align=center, minimum height=7mm}]
+  % Onset floor band (top, horizontal)
+  \draw[fill=green!8, draw=green!35!black, dashed, rounded corners] (-2.2,3.2) rectangle (9.6,4.2);
+  \node[green!35!black] at (3.5,3.7) {onset floor: first-audio gate};
+  % Serial type A -> INTO the band (gates)
+  \node[box] (as) at (0,1.9) {type A, serial dispatch};
+  \draw[->,thick,green!35!black] (as.north) -- (1.4,3.2) node[midway,right,font=\scriptsize]{gates};
+  % Type A background -> away (down)
+  \node[box] (ab) at (0,0.7) {type A, background dispatch};
+  \draw[->,thick] (ab.south) -- (0,-0.5) node[midway,right,font=\scriptsize]{removed from floor};
+  % Type B -> away (down)
+  \node[box] (bt) at (4.2,0.7) {type B, deferrable};
+  \draw[->,thick,gray] (bt.south) -- (4.2,-0.5) node[midway,right,font=\scriptsize]{hidden under lead-in};
+  % Type C -> away (down)
+  \node[box] (ct) at (7.6,0.7) {type C, later turn};
+  \draw[->,thick,gray] (ct.south) -- (7.6,-0.5) node[midway,right,font=\scriptsize]{background tool clock};
+\end{tikzpicture}

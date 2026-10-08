@@ -1,0 +1,93 @@
+\documentclass[11pt,a4paper]{article}
+
+% Core packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=1in]{geometry}
+
+% Bibliography
+\usepackage[numbers,sort&compress]{natbib}
+
+% Figures and tables
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+
+% TikZ
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,backgrounds,calc}
+
+% Math
+\usepackage{amsmath,amssymb,amsthm}
+
+% Links
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+% Headers
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\thepage}
+
+% Author block
+\usepackage{authblk}
+
+%% -----------------------------------------------------------------------
+%% PAPER METADATA -- fill in before compiling
+%% -----------------------------------------------------------------------
+\title{PAPER TITLE}
+
+\author[1,2]{Daniel Garc\'ia Pe\~na}
+\affil[1]{Department of Computer Science, University of Oviedo, Oviedo, Spain.}
+\affil[2]{AI Engineering, Unicaja Bank, Spain.
+  \texttt{info@iamdgarcia.com}}
+% Add co-authors below following the same pattern
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Abstract text here. 150--250 words. State: problem, gap, contribution, method, key result.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:introduction}
+\input{sections/01_introduction}
+
+\section{Background}
+\label{sec:background}
+\input{sections/02_background}
+
+\section{Methodology}
+\label{sec:methodology}
+\input{sections/03_methodology}
+
+\section{Analysis}
+\label{sec:analysis}
+\input{sections/04_analysis}
+
+\section{Open Problems}
+\label{sec:open_problems}
+\input{sections/05_open_problems}
+
+\section{Discussion}
+\label{sec:discussion}
+\input{sections/06_discussion}
+
+\section{Conclusion}
+\label{sec:conclusion}
+\input{sections/07_conclusion}
+
+\bibliographystyle{plainnat}
+\bibliography{main}
+
+\end{document}

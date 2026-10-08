@@ -1,0 +1,74 @@
+% §7 Open Problems
+Our formal analysis reveals several open research directions that go beyond the scope of this paper.
+
+\paragraph{Learned barge-in prediction.}
+Current barge-in systems react to voice activity after it begins.
+A predictive system would detect \emph{intent to speak} from prosodic cues (rising pitch, trailing cadence, filled pause) before the user actually starts speaking.
+The agent can then pre-emptively silence its response.
+This would effectively reduce the perceptual silence gap for interruption turns below zero---the agent stops before the user begins.
+Formalising the prediction problem and establishing the tradeoff between false-positive barge-in rate and turn-taking smoothness is an open problem.
+
+\paragraph{Safety in cascade voice systems.}
+The cascade architecture introduces safety risks at each inter-component boundary.
+ASR transcription errors can transform benign speech into harmful text inputs.
+TTS injection attacks could exploit the text interface of the TTS component to produce audio content not intended by the LM.
+Voice-channel jailbreaks may exploit prosodic or phonetic properties of the audio input that are discarded by ASR transcription.
+A formal threat model for cascade voice systems, analogous to the text-based guardrail frameworks of \citet{dong2024building}, does not yet exist.
+
+\paragraph{Voice-aware agent planning.}
+The ReAct agent in our model is latency-unaware.
+It selects tool calls and reasoning depth based solely on task requirements.
+A voice-aware agent would reason about its remaining silence budget ($\tau_{human} - \Lambda_{\text{elapsed}}$) as a first-class planning constraint.
+It would prefer shallower reasoning chains and pre-cached tool results when the budget is nearly exhausted.
+Formalising this as a constrained planning problem and studying the quality-latency tradeoff it induces is an open direction.
+
+\paragraph{Principled hybrid routing policies.}
+Hybrid routing (Section~\ref{sec:design_levers}) requires a policy for classifying incoming turns as simple (cascade-suitable) or complex (native-suitable).
+No principled approach to learning this routing policy currently exists.
+Key challenges include defining the optimal routing objective (minimise cost subject to CCC satisfaction, or maximise quality subject to budget).
+Handling turns that are initially classified as simple but escalate (the LM discovers mid-reasoning that a tool call is needed) is a further challenge.
+Maintaining conversational context across pipeline switches (the native model and the cascade LM have different context representations) remains open.
+
+\paragraph{Commit latency--accuracy Pareto frontier for streaming ASR.}
+Theorem~\ref{thm:streaming_floor} shows that the streaming cascade floor $\Lambda^*_{SC}$
+is dominated by the ASR commit latency $\delta_N$.
+Reducing $\delta_N$ below 100~ms---the threshold at which the CCC becomes satisfiable
+(Corollary~\ref{cor:streaming_ccc})---requires increasing the lookahead depth of the ASR
+model, which decreases word error rate at the cost of increased $\delta_N$, or decreasing
+lookahead, which reduces $\delta_N$ at the cost of higher WER.
+No published work characterises this Pareto frontier for modern neural streaming ASR systems
+paired with LLM-scale language models.
+Formalising the tradeoff as a constrained optimisation---minimise expected $\delta_N$ subject
+to a WER budget---and studying the optimal operating point across utterance types and domains
+is an open problem with direct engineering impact.
+
+\paragraph{Speculative cascade: early generation on partial transcripts.}
+A natural extension of streaming ASR is to begin LM \emph{generation} (not just prefill)
+on the stable ASR prefix before EOU is confirmed---analogously to speculative decoding
+\citep{leviathan2023fast} but at the ASR hypothesis level.
+Let $p_{accept}$ be the probability that the ASR does not revise any token that changes the
+semantics of the LM's first response token.
+The expected silence gap is:
+\begin{equation}
+  \mathbb{E}[\Lambda_{spec}] = p_{accept} \cdot \Lambda_{early}
+    + (1 - p_{accept}) \cdot (\Lambda^*_{SC} + \lambda_{replan})
+\end{equation}
+Deriving $p_{accept}$ as a function of ASR model type and query distribution,
+bounding the replan cost $\lambda_{replan}$,
+and characterising the quality degradation from incorrect speculative generation
+(especially when TTS has already begun audio playback from the wrong draft) are open problems.
+The SDS literature \citep{schlangen2011general} treats revocability informally;
+a formal quantitative treatment for transformer LM--streaming ASR pairs does not yet exist.
+
+\paragraph{Probabilistic EOU detection as a design lever.}
+Current EOU detection is reactive: the VAD window $d_{eou}$ is a fixed silence threshold.
+Prosodic and syntactic predictors can estimate $P(\text{EOU} \mid \text{acoustic features},
+C_{pre})$ before acoustic silence begins, triggering LM generation when this probability
+exceeds a threshold $\theta$.
+This converts $d_{eou}$ from a deterministic floor to a stochastic variable:
+$d_{eou}(\theta) = \mathbb{E}[\text{anticipation horizon}] - P_{fal}(\theta) \cdot \lambda_{restart}$,
+where $P_{fal}(\theta)$ is the false-EOU rate and $\lambda_{restart}$ is the cost of
+restarting after a false trigger.
+Characterising the optimal $\theta$ that minimises expected $\Lambda^*_{SC}$ subject to
+a tolerable false-EOU rate, and establishing a revised impossibility condition when
+$d_{eou}$ is treated as a stochastic design variable, is an open formal problem.

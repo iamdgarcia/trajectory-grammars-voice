@@ -1,0 +1,15 @@
+% One-page-per-figure preview for visual QA (not part of the paper).
+\documentclass[11pt]{article}
+\usepackage[margin=8mm]{geometry}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,backgrounds,calc}
+\usepackage{amsmath,amssymb}
+\pagestyle{empty}
+\begin{document}
+\input figures/fig_two_floors \clearpage
+\input figures/fig_interruption_phases \clearpage
+\input figures/fig_event_loop \clearpage
+\input figures/fig_tool_hiding
+\end{document}

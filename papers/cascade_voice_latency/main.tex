@@ -1,0 +1,133 @@
+\documentclass[11pt,a4paper]{article}
+
+% Core packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=1in]{geometry}
+
+% Bibliography
+\usepackage[numbers,sort&compress]{natbib}
+
+% Figures and tables
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+
+% TikZ
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,backgrounds,calc,decorations.pathreplacing}
+
+% Math
+\usepackage{amsmath,amssymb,amsthm}
+
+% Theorem environments
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{example}{Example}
+\newtheorem{remark}{Remark}
+
+% Links
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+% Headers
+\usepackage{fancyhdr}
+\setlength{\headheight}{14pt}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\thepage}
+
+% Author block
+\usepackage{authblk}
+
+\title{The Latency Floor of Cascade Voice Agents:\\
+Formal Bounds and Design Levers}
+
+\author[1,2]{Daniel Garc\'ia Pe\~na}
+\affil[1]{Department of Energy and Process Control, University of Oviedo, Oviedo, Spain.}
+\affil[2]{AI Engineering, Unicaja Bank, Spain.
+  \texttt{info@iamdgarcia.com}}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Voice-based conversational agents are built using two competing paradigms:
+native audio models, which process speech end-to-end, and cascade architectures,
+which chain speech recognition, a text language model, and speech synthesis in
+series.
+Cascade agents are cheaper, more auditable, and easier to equip with tools, but
+suffer from a perceived silence gap between user utterance and agent response
+that native models largely eliminate.
+We present the first formal analysis of this gap.
+We model the cascade pipeline as a directed acyclic graph of latency-contributing
+stages and decompose each stage's latency into a reducible component, improvable
+with faster models or hardware, and an irreducible component determined by
+architectural structure.
+We prove a \emph{Latency Floor Theorem}: the total silence gap has a lower bound
+$\Lambda^*$ that no cascade architecture can cross without changing its topology.
+We derive the \emph{Cascade Competitiveness Criterion}, the formal condition under
+which a cascade agent achieves perceptual equivalence with a native voice model.
+We extend the model to tool-using ReAct agents and prove that each reasoning step
+compounds the silence gap by a full latency cycle, making competitiveness
+increasingly unlikely for multi-step agents.
+Finally, we classify six design levers --- streaming synthesis, barge-in
+detection, filler generation, speculative decoding, parallel tool execution, and
+hybrid routing --- by the latency component each addresses and the headroom each
+recovers.
+Our analysis gives practitioners a principled basis for choosing between cascade
+and native voice architectures and for engineering cascade agents that approach
+the perceptual quality of native systems.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:introduction}
+\input{sections/01_introduction}
+
+\section{Background}
+\label{sec:background}
+\input{sections/02_background}
+
+\section{Formal Pipeline Model}
+\label{sec:pipeline_model}
+\input{sections/03_pipeline_model}
+
+\section{The Latency Floor Theorem}
+\label{sec:latency_floor}
+\input{sections/04_latency_floor}
+
+\section{Tool-Using Agents: The ReAct Extension}
+\label{sec:react_extension}
+\input{sections/05_react_extension}
+
+\section{Design Lever Taxonomy}
+\label{sec:design_levers}
+\input{sections/06_design_levers}
+
+\section{Open Problems}
+\label{sec:open_problems}
+\input{sections/07_open_problems}
+
+\section{Discussion}
+\label{sec:discussion}
+\input{sections/08_discussion}
+
+\section{Conclusion}
+\label{sec:conclusion}
+\input{sections/09_conclusion}
+
+\bibliographystyle{plainnat}
+\bibliography{main}
+
+\end{document}

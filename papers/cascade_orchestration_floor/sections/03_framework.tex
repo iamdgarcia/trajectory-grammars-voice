@@ -1,0 +1,89 @@
+% §3 The Two-Floor Framework
+We formalise responsiveness as two floors, model the orchestration that determines them, and
+define the vocabulary used throughout the analysis.
+All latency values refer to a fixed in-flight policy: a fixed endpointing configuration, a
+fixed TTS buffer depth, and a fixed decode speed.
+
+\begin{definition}[Responsiveness floors]
+\label{def:floors}
+For a single agent turn, \emph{response onset} is the interval from the detectable end of the
+user's turn to the first audible unit of the agent's response.
+\emph{Response cessation} is the interval from the first detectable onset of a user
+interruption to the moment no further audibility of the agent's prior turn remains.
+\end{definition}
+
+Onset is the object of the companion Latency Floor Theorem and its Cascade Competitiveness
+Criterion.
+Cessation is the object of this paper.
+The two intervals are disjoint in time but not in their dependencies: both read the same
+detection subsystem, buffer policy, and decode speed.
+
+\begin{definition}[Three clocks]
+\label{def:clocks}
+An orchestrator maintains three clocks over a turn.
+The \emph{generation clock} tracks the language model's streamed output.
+The \emph{delivery clock} tracks what has been handed to the speech synthesis and playback
+path.
+The \emph{tool clock} tracks tool execution scheduled in the background.
+Control flow is expressed as events: a user turn, a tool completion, a delivery-started,
+delivery-completed, or delivery-interrupted.
+\end{definition}
+
+The decoupling of the three clocks is the orchestration property under study.
+A \emph{serial} topology couples all three clocks inside one call stack; a
+\emph{concurrent} topology schedules them independently.
+
+\begin{definition}[Interruption phases]
+\label{def:phases}
+An interruption lands in one of three phases of the agent's turn:
+\emph{phase-gen} while generation runs but nothing is yet audible,
+\emph{phase-play} while audio is being delivered, and
+\emph{phase-tool} while the agent waits on a background tool.
+\end{definition}
+
+The phase determines what ``stopping'' means and which floor is re-entered afterwards.
+
+\begin{definition}[Tool typing]
+\label{def:tool_typing}
+A tool is of
+\emph{type A} if its result is required before any response audio can be produced,
+\emph{type B} if its result can be deferred past the streaming-TTS lead-in, and
+\emph{type C} if its result is needed only for a later turn.
+\end{definition}
+
+Type-A tools gate first audio and therefore sit on the onset floor; types B and C admit
+hiding behind delivery lead-in or background execution.
+
+\begin{definition}[Interruptibility]
+\label{def:interruptibility}
+An orchestrator is \emph{generation-interruptible} if cancelling the active model stream is a
+first-class primitive.
+It is \emph{execution-persistent} if cancelling generation does not cancel background tool
+execution: pending tool calls continue, complete, and re-enter the model with their results.
+\end{definition}
+
+These two predicates jointly describe the capability that a cessation analysis operates on;
+how \emph{fast} the capability is realised is set by the in-flight granularity of the
+delivery and tool clocks.
+
+\begin{definition}[API-valid history]
+\label{def:apivalid}
+A conversation history is \emph{API-valid} if it contains no assistant message whose tool-call
+batch lacks its complete set of tool-result messages, for the model provider's function-calling
+protocol.
+\end{definition}
+
+API-validity is the serializability constraint that tool persistence must respect: a pending
+batch cannot be flushed to the provider, and cannot be abandoned without making the history
+unplayable.
+
+\subsection{An event system as the mechanism}
+We instantiate the three clocks as an event-driven orchestrator: user texts and tool
+completions are generic events; delivery status is reported back by the transport
+(started, completed, interrupted); and interruption cancels the generation task without
+touching the tool dispatcher.
+Interrupted delivery is recorded and exposed as internal context on the next model
+invocation, so the agent knows its previous response may not have been heard.
+This instantiation is the object of the PoC validation in
+Section~\ref{sec:analysis}; it is the configuration against which the serial topologies of
+Section~\ref{sec:practical} are compared, not a uniqueness claim.

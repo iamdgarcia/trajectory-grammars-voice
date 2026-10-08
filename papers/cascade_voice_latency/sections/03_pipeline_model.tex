@@ -1,0 +1,161 @@
+% §3 Formal Pipeline Model
+We develop a formal model of the cascade voice pipeline that separates
+structurally removable latency from latency imposed by the pipeline topology.
+
+\subsection{Stages and the Pipeline DAG}
+
+\begin{definition}[Pipeline Stage]
+A \emph{pipeline stage} $s_i$ is a computational unit that receives a discrete input
+$x_i$ and produces a discrete output $y_i = f_i(x_i)$ after a latency of
+$\lambda_i(x_i) \geq 0$ seconds, where $\lambda_i$ may depend on the input.
+\end{definition}
+
+\begin{definition}[Cascade Pipeline DAG]
+\label{def:cascade_dag}
+A \emph{cascade pipeline} is a directed acyclic graph $G = (S, E)$ where
+$S = \{s_1, \ldots, s_n\}$ is a set of pipeline stages and
+$E \subseteq S \times S$ is a set of dependency edges.
+An edge $(s_i, s_j) \in E$ indicates that $s_j$ cannot begin execution until $s_i$
+has produced its complete output.
+The standard cascade voice pipeline has $S = \{s_{asr}, s_{lm}, s_{tts}\}$ and
+edges $E = \{(s_{asr}, s_{lm}), (s_{lm}, s_{tts})\}$, forming a linear chain.
+\end{definition}
+
+\begin{definition}[EOU-Gated Cascade (EGC)]
+\label{def:egc}
+A cascade pipeline $G$ is \emph{EOU-gated} if:
+(a)~$s_{asr}$ begins decoding only after an end-of-utterance signal is confirmed;
+(b)~no stage $s_j$ begins execution until its predecessor $s_{j-1}$ has produced its
+complete output; and
+(c)~all stage execution occurs in the post-speech interval $[0, \infty)$,
+where $t = 0$ denotes the EOU event.
+Theorems~\ref{thm:latency_floor} and~\ref{thm:react} and
+Corollary~\ref{cor:impossibility} apply to EGC pipelines.
+\end{definition}
+
+\begin{definition}[Streaming Cascade (SC)]
+\label{def:sc}
+A cascade pipeline $G$ is a \emph{streaming cascade} if:
+(a)~$s_{asr}$ produces a sequence of incrementally committed partial transcripts
+$\{C_{pre}(t) : t \in [-T_{speech}, 0]\}$ during the user utterance of duration
+$T_{speech}$, where $C_{pre}(t) \subseteq C_{full}$ for all $t$;
+(b)~$s_{lm}$ may begin prefilling its key-value cache on $C_{pre}(t)$ at any
+$t < 0$ (during speech); and
+(c)~the EOU event at $t = 0$ releases $s_{lm}$ to begin its decode phase, which
+cannot start before $t = 0$.
+The \emph{residual context} $C_{residual} = C_{full} \setminus C_{pre}(0^-)$
+is the set of tokens whose prefill must occur post-EOU.
+The \emph{commit latency} $\delta_N$ is the delay between EOU and the moment
+$C_{full}$ is finalised by $s_{asr}$.
+\end{definition}
+
+\subsection{Reducible and Irreducible Latency}
+
+\begin{definition}[Reducible and Irreducible Latency]
+\label{def:decomposition}
+The latency of stage $s_i$ decomposes as:
+\begin{equation}
+  \lambda_i = \lambda_i^r + \lambda_i^{irr}
+\end{equation}
+where $\lambda_i^{irr}$ is defined as the infimum of $\lambda_i$ over all valid implementations of stage $s_i$:
+\begin{equation}
+  \lambda_i^{irr} := \inf_{\mathcal{I} \in \mathrm{valid}(s_i)} \lambda_i^{\mathcal{I}}
+\end{equation}
+A \emph{valid implementation} $\mathcal{I} \in \mathrm{valid}(s_i)$ is any choice of model weights, inference hardware, and serving configuration that preserves the stage's required input--output contract (i.e., the same mapping $x_i \mapsto y_i = f_i(x_i)$ is computed, up to equivalent quality).
+The \emph{reducible} component $\lambda_i^r := \lambda_i - \lambda_i^{irr} \geq 0$ is the gap between the current implementation's latency and this infimum.
+\end{definition}
+
+We characterise $\lambda_i^{irr}$ for each stage of the standard cascade pipeline.
+
+\paragraph{ASR irreducible latency.}
+Under the EOU-gated cascade (Definition~\ref{def:egc}), the ASR stage must buffer audio
+until end-of-utterance is detected before transcription can begin.
+Let $d_{eou}$ denote the duration of the end-of-utterance detector's analysis window.
+Then $\lambda_{asr}^{irr} \geq d_{eou}$, since no transcription can begin before the
+detector confirms the user has stopped speaking.
+For voice activity detection systems operating on 30~ms frames \citep{raux2008optimizing},
+$d_{eou}$ is typically 200--600~ms.
+Under the streaming cascade (Definition~\ref{def:sc}), $\lambda_{asr}^{irr}$ is replaced
+by the commit latency $\delta_N$ of the final word from EOU;
+for streaming RNN-T systems \citep{sainath2020streaming} $\delta_N \approx 150$--320~ms,
+which is strictly smaller than $d_{eou}$ for typical VAD thresholds.
+The Latency Floor Theorem and Impossibility Corollary (Section~\ref{sec:latency_floor})
+are stated for the EGC model; Section~\ref{sec:latency_floor} also derives the floor for SC.
+
+\paragraph{LM irreducible latency.}
+A transformer language model \citep{vaswani2017attention} must compute the prefill
+key-value cache over its full input context before generating the first output token.
+Let $|C|$ denote context length in tokens and $\alpha$ the per-token prefill cost.
+Then $\lambda_{lm}^{irr} \geq \alpha \cdot |C|$.
+This cost is architectural: it cannot be eliminated without changing the attention
+mechanism or the requirement to condition on the full context.
+
+\paragraph{TTS irreducible latency.}
+A TTS system must process at least a minimum text prefix
+before audio playback can begin.
+For autoregressive synthesis, this is the time to generate the first audio frame
+from the first input token.
+For non-streaming systems \citep{shen2018natural}, the entire text must be generated first,
+giving a much larger $\lambda_{tts}^{irr}$.
+
+\subsection{The Silence Gap}
+
+\begin{definition}[Silence Gap]
+\label{def:silence_gap}
+The \emph{silence gap} $\Lambda$ of a cascade pipeline is the elapsed time between
+the end of the user's utterance and the beginning of the agent's audio response.
+For a linear cascade pipeline with stages $s_{asr}, s_{lm}, s_{tts}$:
+\begin{equation}
+  \Lambda = \lambda_{asr} + \lambda_{lm} + \lambda_{tts}
+          = \sum_{i \in \{asr, lm, tts\}} (\lambda_i^r + \lambda_i^{irr})
+\end{equation}
+\end{definition}
+
+Figure~\ref{fig:pipeline_dag} illustrates the pipeline DAG and the decomposition of
+each stage's latency into reducible and irreducible components.
+
+\begin{figure}[t]
+  \centering
+  \resizebox{\linewidth}{!}{%
+    \input{figures/fig_pipeline_dag}%
+  }
+  \caption{The cascade voice pipeline as a directed acyclic graph.
+           Each stage's latency decomposes into a reducible component
+           (blue, improvable with faster models) and an irreducible component
+           (red, structurally determined).
+           The total silence gap $\Lambda$ spans all three stages;
+           its irreducible floor $\Lambda^*$ cannot be reduced without
+           changing the pipeline topology.}
+  \label{fig:pipeline_dag}
+\end{figure}
+
+\subsection{Worked Example}
+
+Table~\ref{tab:latency_example} provides representative latency values for a
+typical cloud-hosted cascade pipeline based on published and empirically observed figures.
+
+\begin{table}[t]
+  \centering
+  \caption{Representative latency decomposition for a cloud-hosted cascade pipeline.
+           Reducible values reflect current best-in-class implementations;
+           irreducible values are architectural lower bounds.
+           Values are representative estimates based on published benchmarks \citep{radford2022whisper,oord2016wavenet,vaswani2017attention}; empirical ranges vary by hardware, model size, and serving infrastructure.
+           The LM irreducible value of 100~ms assumes optimised serving on high-end hardware and is intended as the floor for the formal analysis, not a guaranteed real-world value.}
+  \label{tab:latency_example}
+  \begin{tabular}{lrrrr}
+    \toprule
+    Stage & $\lambda_i^{irr}$ (ms) & $\lambda_i^r$ (ms) & $\lambda_i$ (ms) \\
+    \midrule
+    ASR (Whisper-class \citep{radford2022whisper})  & 200  & 150 & 350 \\
+    LM  (GPT-4o-class, 8k context)                  & 100  & 250 & 350 \\
+    TTS (streaming synthesis)                        & 80   & 120 & 200 \\
+    \midrule
+    \textbf{Total}                                   & \textbf{380} & \textbf{520} & \textbf{900} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+In this example, the silence gap is 900~ms --- approximately 4.5$\times$ the human
+turn-taking threshold $\tau_{human} = 200$~ms.
+Even with infinitely fast reducible components ($\lambda_i^r \to 0$),
+the irreducible floor $\Lambda^* = 380$~ms remains nearly twice $\tau_{human}$.

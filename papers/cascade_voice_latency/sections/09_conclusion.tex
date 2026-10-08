@@ -1,0 +1,12 @@
+% §9 Conclusion
+We have presented the first formal characterisation of the irreducible latency floor as a function of cascade pipeline topology, together with formal conditions for perceptual competitiveness with native voice models.
+While the spoken dialogue systems literature \citep{schlangen2011general,skantze2021turn} motivates streaming as an engineering solution to sequential latency accumulation, our work is the first to derive a formal lower bound on the irreducible floor and to connect it explicitly to the Cascade Competitiveness Criterion and multi-step tool-using agents.
+Our Latency Floor Theorem (Theorem~\ref{thm:latency_floor}) establishes that the silence gap of any cascade pipeline has an irreducible lower bound $\Lambda^*$, the sum of irreducible per-stage latencies, that cannot be reduced by model improvements or hardware upgrades alone.
+The Cascade Competitiveness Criterion (Definition~\ref{def:ccc}) identifies the formal condition---$\Lambda \leq \tau_{human}$---under which a cascade agent achieves perceptual equivalence with a native voice model.
+For representative current systems, $\Lambda^* > \tau_{human}$, establishing an impossibility result (Corollary~\ref{cor:impossibility}): no standard cascade pipeline can be perceptually competitive in the strict sense.
+
+We extended the model to tool-using ReAct agents (Theorem~\ref{thm:react}) and proved that each reasoning step adds a full LM inference cycle to the irreducible floor, making CCC satisfaction increasingly unlikely for multi-step agents.
+Our design lever taxonomy classifies six engineering strategies by their structural impact: only streaming TTS and hybrid routing reduce $\Lambda^*$ itself; the remaining four are perceptual patches.
+
+Together, these results give practitioners a principled basis for architecture selection and system optimisation, and identify four open research directions: learned barge-in prediction, safety in cascade voice systems, voice-aware agent planning, and principled hybrid routing policies.
+As voice interfaces become a primary modality for human-AI interaction, formal understanding of their latency structure will be essential for designing systems that meet human conversational expectations.

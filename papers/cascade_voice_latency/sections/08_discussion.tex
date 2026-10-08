@@ -1,0 +1,37 @@
+% §8 Discussion
+\subsection{Practitioner Guidance}
+
+Our analysis yields concrete guidance for teams building cascade voice agents.
+
+\paragraph{When cascade is sufficient.}
+A cascade agent without tool use ($k=0$) with streaming TTS can achieve a silence gap as low as $\Lambda^* \approx 280$~ms (using representative values from Table~\ref{tab:latency_example} with $\lambda_{tts}^{irr}$ reduced to 0 by full streaming).
+This is close to but not within the 200~ms threshold.
+For applications where users tolerate slightly longer gaps (e.g., task-oriented dialogue where cognitive load reduces gap sensitivity), a streaming-TTS cascade is a reasonable choice.
+
+\paragraph{When tool use is required.}
+For $k \geq 1$, the silence gap grows by at least $\lambda_{lm}^{irr} \approx 100$~ms per step.
+Filler generation is strongly recommended for any tool-using cascade agent to mask the silence gap perceptually.
+Parallel tool execution should be implemented wherever tool calls are independent.
+For $k \geq 3$, the irreducible floor exceeds 500~ms regardless of optimisations.
+Users will perceive the delay as significant.
+In these cases, hybrid routing to a native voice model for tool-intensive turns is the only structural solution.
+
+\paragraph{When to choose native voice.}
+Native voice models are justified in three cases.
+First, the CCC cannot be satisfied by any combination of the structural levers (streaming TTS and hybrid routing).
+Second, the turn mix is dominated by short, conversational turns where the overhead of the cascade pipeline is felt most acutely.
+Third, barge-in and interruption handling quality is a hard requirement, since native models handle these natively without a separate VAD pipeline.
+The higher cost and reduced auditability of native models are the primary tradeoffs.
+
+\subsection{Limitations}
+
+The perceptual threshold $\tau_{human} = 200$~ms is derived from studies of natural human-human conversation \citep{levinson2015timing,stivers2009universals}.
+Human-agent interaction may have different norms.
+Users may calibrate expectations downward when they know they are speaking to an AI.
+Our analysis treats $\tau_{human}$ as a constant, but future work should treat it as a distribution conditioned on user, context, and task type.
+
+The latency decomposition in Definition~\ref{def:decomposition} assumes that irreducible latencies are stable across inputs.
+In practice, $\lambda_{lm}^{irr}$ grows with context length, and $\lambda_{asr}^{irr}$ grows with utterance complexity.
+A more complete model would express irreducible latencies as functions of input characteristics.
+
+Our model does not account for network latency between pipeline components, which adds a reducible but non-negligible contribution in cloud-hosted deployments.

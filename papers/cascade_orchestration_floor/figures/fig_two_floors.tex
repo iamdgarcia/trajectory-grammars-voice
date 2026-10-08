@@ -1,0 +1,22 @@
+% The two responsiveness floors on a single turn timeline.
+\begin{tikzpicture}[>=Stealth, font=\small]
+  % Timeline axis
+  \draw[thick,->] (0,0) -- (12,0);
+  % Marks
+  \draw (1,0) -- (1,-0.12); \node[below,align=center] at (1,-0.5) {end of \\ user speech};
+  \draw (6,0) -- (6,-0.12); \node[below,align=center] at (6,-0.5) {first agent \\ audio};
+  \draw (8.5,0) -- (8.5,-0.12); \node[below,align=center] at (8.5,-0.5) {interrupt \\ detected};
+  \draw (11.5,0) -- (11.5,-0.12); \node[below,align=center] at (11.5,-0.5) {fully \\ stopped};
+  % Agent audio bar
+  \draw[very thick,blue] (6,0) -- (8.5,0);
+  \node[blue,above] at (7.25,0.15) {agent audio};
+  % Onset span
+  \draw[<->,green!50!black] (1,0.7) -- (6,0.7);
+  \node[green!50!black,above] at (3.5,0.9) {onset floor $\Lambda_{on}$};
+  % Cessation span
+  \draw[<->,red] (8.5,0.7) -- (11.5,0.7);
+  \node[red,above] at (10,0.9) {cessation floor $\Lambda_c$};
+  % Shared subsystems note (box sized to the two text lines)
+  \draw[dashed] (0.4,-1.7) rectangle (11.6,-2.6);
+  \node[align=center] at (6.0,-2.15) {shared by both floors:\\ detection $\cdot$ buffer policy $\cdot$ decode speed};
+\end{tikzpicture}
