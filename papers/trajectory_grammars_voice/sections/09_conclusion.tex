@@ -1,0 +1,19 @@
+% §9 Conclusion
+We have presented the first formal trajectory layer for voice-agent conversations: a grammar over conversation states with terminal outcome classes, a sequential stopping rule with a decision-time guarantee, and an evaluation protocol wired to banking KPIs.
+The trajectory grammar (Definition~\ref{def:grammar}) models a conversation as a typed state space in which regressions become measurable cycles, and its cycle-depth statistic separates conversations that are merely long from conversations that are off-path.
+The Trajectory Stopping Theorem (Theorem~\ref{thm:stopping}) supplies what prior early-warning systems lack: an expected decision time bounded at $k^*$ turns at confidence $1-\delta$, with TRACER's tuned threshold \citep{nourbakhsh2026tracer} recovered as the fixed-sample instance of the rule.
+The banking KPI protocol (Section~\ref{sec:evaluation}) maps the terminal classes---containment, abandonment, handoff, compliance escape---to the production telemetry that contact centers already report \citep{nubank2026,silentabandonment2024}, with cost-weighted detection latency in place of aggregate accuracy.
+The intervention layer (Section~\ref{sec:intervention}) makes the prediction actionable: escalation, proactive clarification, and fraud-flag routing fire inside the conversation, and every intervention action is itself bounded by the published cessation floor \citep{garcia2026cessationfloor}.
+
+This paper is the fourth rung of a program that climbs from the turn to the conversation.
+The latency floor bounded the onset of a single response \citep{garcia2026latencyfloor}; the cessation floor bounded the end of one; semantic voice activity detection asked whether the transcript itself could drive turn decisions in Spanish \citep{garcia2026asking}; trajectory grammars now model the whole interaction as a decision object.
+The same apparatus carries across the rungs: the $k$-step ReAct bound becomes the grammar's cycle-length constraint, the detect--decide--cease--resume decomposition recurs at conversation scale, and the measured Spanish decision latencies ground every intervention budget.
+
+For conversational banking, the trajectory layer is the missing control surface between per-turn physics and per-episode evaluation.
+Component benchmarks score voice agents on task quality \citep{sierra2024taubench,tauvoice2026}, and learned forecasters can flag eventual failure from partial text \citep{nourbakhsh2026tracer,earlyeval2026}; neither tells an operating agent, mid-conversation, when to stop, ask, or hand off, under a guarantee.
+Closing that distance is what turns containment, abandonment, and compliance escape from monthly reports into live decision variables.
+
+Artifacts follow the release plan of the factory.
+The Spanish trajectory benchmark and the frozen evaluation splits will be published on Hugging Face, the grammar and stopping-rule reference implementation will be released on GitHub alongside the paper source, and any scaling experiments will run in the project's lab environment.
+Future work proceeds on the interfaces already opened: escalation as a cost-aware floor, multilingual outcome classes, simulation-calibrated drift, and compliance escapes as first-class trajectory events \citep{queuecontrol2026}.
+As voice agents take over the routine work of the branch, the discipline that keeps them accountable is the one this program has argued for throughout: formal floors at the turn scale, and now, formal trajectories at the conversation scale.

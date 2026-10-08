@@ -1,0 +1,262 @@
+% §3 The Trajectory Grammar
+We now define the paper's central formal object: a grammar over voice-agent conversations whose
+runs are trajectories and whose terminal classes are banking outcomes.
+The definition is deliberately machine-level: every state and transition corresponds to an event
+that a production cascade already emits, so grammaticality can be checked from telemetry alone.
+Existing agent benchmarks score conversations only at full-episode granularity
+\citep{sierra2024taubench,webarena2023}, and workflow mining recovers structure from completed
+logs \citep{salesforce2025workflows}; neither makes the conversation state first-class while the
+conversation is still running.
+A machine-level grammar also gives the operations team a shared vocabulary: when a reviewer asks
+why a call was handed off, the answer is a walk through $G$, not an anecdote.
+Finally, the grammar is the substrate on which the rest of the paper builds: Section~4 stops on it,
+Section~5 measures it, and Section~6 acts on it.
+
+\subsection{Conversation States and Typed Transitions}
+
+\begin{definition}[Trajectory Grammar]
+\label{def:grammar}
+A \emph{trajectory grammar} is a triple $G = (Q, \Sigma, \delta)$ where the state set
+$Q = Q_p \cup T$ partitions into progress states
+$Q_p = \{q_{greet}, q_{auth}, q_{intent}, q_{tool}, q_{clarify}, q_{confirm}, q_{close}\}$
+and terminal outcome classes
+$T = \{\theta_{cont}, \theta_{aban}, \theta_{hand}, \theta_{esc}\}$
+(contained, abandoned, handoff, compliance-escape).
+The alphabet $\Sigma$ is a finite set of \emph{typed} transitions (Table~\ref{tab:transitions}),
+and $\delta : Q \times \Sigma \rightharpoonup Q$ is a partial transition function.
+Each transition type carries a direction label: \emph{progress} types advance the conversation
+toward a service goal, and \emph{regression} types return the run to a previously visited
+non-terminal state.
+\end{definition}
+
+\begin{figure}[t]
+  \centering
+  \resizebox{\linewidth}{!}{%
+    \input{figures/fig_grammar}%
+  }
+  \caption{The trajectory grammar $G$.
+           Progress states (rounded) form the service spine; typed transitions ( labelled
+           arrows) carry the eight event classes of Table~\ref{tab:transitions};
+           regression types open cycles back into earlier states;
+           terminal classes (squares) absorb every well-formed run.}
+  \label{fig:grammar}
+\end{figure}
+
+The seven progress states cover the lifecycle of a banking call: identification, authentication,
+intent capture, tool execution, clarification, confirmation, and closing.
+The terminal classes are not generic success labels but the four production KPIs of conversational
+banking: containment rate, abandonment rate, handoff rate, and compliance-escape rate.
+Each class has an operational definition in telephony terms.
+$\theta_{cont}$ (contained) holds when the run reaches a terminal through $q_{close}$ after a
+confirmed service goal.
+$\theta_{aban}$ (abandoned) holds when the caller disconnects before any terminal confirmation,
+which in production surfaces as a hang-up event.
+$\theta_{hand}$ (handoff) holds when an \texttt{escalation} transition fires, transferring the
+caller to a human teller.
+$\theta_{esc}$ (compliance-escape) holds when the run reaches a terminal confirmation without the
+guarded \texttt{disclosure} transition having fired, which is precisely the false-success pattern
+reported for tool agents \citep{falsesuccess2026}.
+Industrial practice measures these quantities post hoc from telephony telemetry
+\citep{nubank2026,silentabandonment2024}; under the grammar they become properties of runs.
+This matters because final labels themselves mislead: agents can assert success while the task
+failed \citep{falsesuccess2026}, so a terminal class must be derivable from the event stream
+rather than from the agent's own closing statement.
+
+\begin{table}[t]
+\centering
+\caption{Typed transitions of the trajectory grammar.
+         Emitters are production components; regression types increment cycle depth.}
+\label{tab:transitions}
+\small
+\begin{tabular}{lllll}
+\toprule
+Type & Direction & Source $\to$ Target & Emitter & Class \\
+\midrule
+\texttt{user-answer}   & progress   & $q_{auth/intent/clarify/confirm} \to$ next spine state & orchestrator LM      & dialogue \\
+\texttt{agent-clarify} & either     & $q_{intent/confirm} \leftrightarrow q_{clarify}$       & orchestrator LM      & dialogue \\
+\texttt{tool-call}     & progress   & $q_{tool} \to q_{tool}$ (iteration)                    & orchestrator         & system \\
+\texttt{tool-fail}     & regression & $q_{tool} \to q_{tool}$ (retry)                        & backend tool         & system \\
+\texttt{endpoint-error}& regression & $q_{intent/confirm} \to q_{intent}$                    & ASR endpointer       & voice \\
+\texttt{user-bargein}  & event      & any $q_p \to q_p$ (audio channel)                      & barge-in detector    & voice \\
+\texttt{disclosure}    & progress   & $q_{confirm} \to q_{close}$ (guarded)                  & compliance layer     & compliance \\
+\texttt{escalation}    & progress   & any $q_p \to \theta_{hand}$                            & policy layer         & dialogue \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:transitions} assigns every transition type to the component that emits it, which
+is what makes the grammar checkable from telemetry: no state requires human annotation to
+identify.
+Two transition types are voice-physics events rather than dialogue acts: \texttt{endpoint-error}
+fires when the endpointer commits a turn boundary too early or too late, and \texttt{user-bargein}
+fires when the caller talks over the agent.
+Both are observable from the same detection stages that bound response onset and cessation in the
+published floors \citep{garcia2026latencyfloor,garcia2026cessationfloor}.
+The \texttt{agent-clarify} type is marked \emph{either} because a clarification is progress when
+it resolves an ambiguity and a regression when it re-opens a settled state; the grammar does not
+prejudge which, and the cycle count of Definition~\ref{def:cycledepth} is what decides.
+The \texttt{user-bargein} type leaves the state unchanged because a barge-in is a channel event,
+not a conversation state; its conversational meaning is an observation for the posterior of
+Definition~\ref{def:posterior}, not a state change.
+This separation keeps the grammar auditable: every state change has a named emitter in the
+orchestration stack, and channel events never mutate conversation state by themselves.
+
+\begin{definition}[Run]
+\label{def:run}
+A \emph{run} of $G$ is a finite alternating sequence
+$\sigma = q_0\, t_1\, q_1\, \cdots\, t_n\, q_n$ with $q_0 = q_{greet}$, $q_n \in T$, and each
+$(t_i, q_i)$ permitted by $\delta$.
+A \emph{partial run} is any proper prefix $\sigma_{\leq j}$ of a well-formed run that ends in a
+non-terminal state.
+The \emph{true outcome} of $\sigma_{\leq j}$ is the terminal class of the well-formed run that
+extends it, which is unique by absorption but unobserved while the conversation runs.
+Early outcome prediction is exactly the problem of guessing this unobserved terminal class from
+$\sigma_{\leq j}$, and Section~4 states when that guess may be acted on.
+$\sigma$ is \emph{well-formed} if every terminal class is absorbing, i.e., no transition departs
+from a state in $T$.
+Well-formedness is a safety property of the orchestration policy, not of the data: a run that
+continues after a terminal class is a policy bug, and the grammar makes such bugs detectable by
+inspection of $\delta$.
+\end{definition}
+
+\subsection{Cycles and the Drift Statistic}
+
+\begin{definition}[Cycle and cycle depth]
+\label{def:cycledepth}
+A \emph{cycle} of a run $\sigma$ is a maximal sub-run that departs from a state $q$ and later
+returns to $q$, where $q$ is non-terminal.
+The \emph{cycle depth} $D(\sigma)$ is the number of cycles in $\sigma$.
+\end{definition}
+
+The intuition is operational: one clarification after a failed balance lookup is normal service,
+whereas a third return to $q_{clarify}$ is a conversation going in circles.
+Cycle depth turns this intuition into a countable statistic that separates two failure modes that
+conversation-length measures conflate.
+Three properties fix the statistic's behaviour.
+First, $D(\sigma)$ counts returns, not repetitions: iterating \texttt{tool-call} inside
+$q_{tool}$ is spine progress, while returning to $q_{intent}$ after having confirmed is drift.
+Second, $D$ is monotone along a run, so the monitor maintains it online at zero detection cost
+beyond event counting.
+Third, $D$ is defined identically for real and simulated runs, which makes it portable to the
+protocols of \citet{sierra2024taubench} and the workflow corpora of
+\citet{salesforce2025workflows} without re-labelling.
+
+\begin{proposition}[Longer is not off-path]
+\label{prop:longer_offpath}
+There exist well-formed runs $\sigma_L$ and $\sigma_D$ of equal length $n$ with
+$D(\sigma_L) = 0$ and $D(\sigma_D) \geq 1$.
+Hence run length alone determines neither drift nor the terminal class, and any outcome detector
+keyed to conversation duration confuses the two.
+The distinction has direct operational value: a long call that is merely tool-heavy should not
+page a supervisor, while a short call with two clarification cycles may already be failing.
+\end{proposition}
+
+\begin{proof}
+Construct $\sigma_L$ as the direct spine
+$q_{greet} \to q_{auth} \to q_{intent} \to q_{tool} \to q_{confirm} \to q_{close} \to \theta_{cont}$
+padded with $n - 6$ \texttt{tool-call} iterations inside $q_{tool}$; no state is departed and
+revisited, so $D(\sigma_L) = 0$.
+Construct $\sigma_D$ with the same number of transitions but routing two of them through
+$q_{confirm} \to q_{clarify} \to q_{confirm}$ via \texttt{agent-clarify}, removing an equal number
+of \texttt{tool-call} iterations to hold length fixed; this sub-run departs from and returns to
+$q_{confirm}$, so $D(\sigma_D) \geq 1$.
+Both runs are well-formed and of length $n$, which proves the claim.
+\end{proof}
+
+\begin{figure}[t]
+  \centering
+  \resizebox{\linewidth}{!}{%
+    \input{figures/fig_cycles}%
+  }
+  \caption{Cycle depth as drift.
+           Two runs of equal length: the contained run (top) iterates \texttt{tool-call} within
+           $q_{tool}$ and stays on the spine; the drifted run (bottom) opens a
+           $q_{confirm} \to q_{clarify} \to q_{confirm}$ cycle.
+           Length is identical; only cycle depth distinguishes them.}
+  \label{fig:cycles}
+\end{figure}
+
+Cycle depth would be unbounded without a turn-scale trigger, and the published latency program
+supplies one.
+
+\begin{lemma}[Cycle-length bound]
+\label{lem:cyclebound}
+Fix a per-response deadline $\tau_{resp}$ and the latency parameters of the cascade pipeline, and
+let $\Lambda_k = \lambda_{asr} + k \cdot \lambda_{lm} + (k-1) \cdot \lambda_{tool} + \lambda_{tts}$
+be the $k$-step silence gap of \citet{garcia2026latencyfloor}.
+Let $k^* = \max\{k : \Lambda_k \leq \tau_{resp}\}$.
+Then:
+(i) any run segment between two consecutive user turns that emits more than $k^*$
+\texttt{tool-call} transitions violates the response deadline, and is therefore off-path for every
+deadline-conforming policy;
+(ii) under the patience-hazard model of \citet{silentabandonment2024}, the probability that the
+caller remains on the line decays with each deadline breach, so runs far beyond $k^*$ terminate
+in $\theta_{aban}$ with high probability.
+\end{lemma}
+
+\begin{proof}
+For (i), each \texttt{tool-call} iteration inside one orchestrated turn adds one LM step and one
+tool round-trip to the user-perceived silence gap, which grows linearly in $k$ by the compounding
+result of \citet{garcia2026latencyfloor}; emitting more than $k^*$ such transitions therefore
+produces a silence gap exceeding $\tau_{resp}$, which no deadline-conforming policy permits.
+For (ii), each breached deadline raises the instantaneous hang-up hazard estimated from
+contact-center patience data \citep{silentabandonment2024}; iterating the hazard over repeated
+breaches drives the survival probability to zero, which yields the high-probability claim.
+\end{proof}
+
+\begin{remark}
+\label{rem:drift_trigger}
+Lemma~\ref{lem:cyclebound} makes drift detection an event-counting rule, not a timeout: the
+monitor raises a drift alarm at the $(k^*{+}1)$-th \texttt{tool-call} event, in real time and
+without waiting for the response to complete.
+Because \texttt{tool-call} events are emitted by the orchestrator itself, the count is exact; the
+only probabilistic component is the caller-patience channel in claim (ii).
+The alarm's own detection latency is the monitor's decision time, which Section~4 bounds by a
+stopping rule and Section~5 accounts against the published floors.
+Two properties make $k^*$ usable in production rather than merely in theory.
+It is monotone in the deadline: relaxing $\tau_{resp}$ raises $k^*$, so the drift trigger adapts
+to policy rather than being hard-coded.
+And it is auditable: given the latency table of the deployed cascade, $k^*$ is a one-line
+computation that a reviewer can re-derive from the floor arithmetic of
+\citet{garcia2026latencyfloor} alone.
+\end{remark}
+
+\subsection{Multi-Channel Observation Model}
+
+\begin{definition}[Observation]
+\label{def:observation}
+At turn $k$ the monitor observes the tuple
+$o_k = (x_k, s_k, e_k, f_k)$:
+the partial transcript $x_{1:k}$;
+the turn-state sequence $s_{1:k}$ labelling each utterance as completion, backchannel, or
+interruption \citep{x2turn2026};
+the tool-event log $e_{1:k}$ emitted by the orchestrator; and
+the acoustic flags $f_{1:k}$ recording endpointing errors and barge-ins
+\citep{garcia2026cessationfloor}.
+Every channel is streaming: each component updates incrementally, so $o_k$ is available within one
+turn of real time and no channel requires the conversation to have ended.
+\end{definition}
+
+The channels are not interchangeable, and the transcript channel is the weakest one.
+Text-only turn-end decisions sit near chance on Spanish hard cuts (accuracy $0.40$--$0.54$), as
+measured in our semantic-VAD study \citep{garcia2026asking}; a grammar that conditioned only on
+$x_{1:k}$ would therefore inherit that blindness at conversation scale.
+The turn-state and tool-event channels carry exactly the information the text channel lacks:
+$s_k$ distinguishes completed intents from backchannels, and $e_k$ reports system-side progress
+that never surfaces in the transcript at all.
+
+\begin{definition}[Outcome posterior]
+\label{def:posterior}
+Given the observation history $o_{1:k}$, the outcome posterior is
+$p(\theta \mid o_{1:k})$ over terminal classes $\theta \in T$.
+\end{definition}
+
+The posterior is defined to be recomputable after every event, not only at turn boundaries,
+because every channel updates incrementally in a streaming cascade.
+Section~4 places a sequential stopping rule over $p(\theta \mid o_{1:k})$ and derives when the
+monitor may act on it.
+The price of early warning is paid per turn inside the same floor arithmetic as the response
+itself: the published cloud decision latencies (p99 $178$--$268$~ms) \citep{garcia2026asking}
+bound what each posterior update adds, and every intervention triggered by the posterior must
+additionally clear the cessation floor before the agent's audio actually stops
+\citep{garcia2026cessationfloor}.

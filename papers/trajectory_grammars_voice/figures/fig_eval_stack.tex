@@ -1,0 +1,43 @@
+% fig_eval_stack.tex — banking KPI wiring: trajectory classes to telemetry and interventions
+\begin{tikzpicture}[
+  font=\small,
+  box/.style={rectangle, rounded corners, draw, minimum height=0.75cm, inner sep=5pt, align=center},
+  kpi/.style={box, fill=olive!8},
+  layer/.style={box, fill=blue!6},
+  act/.style={box, fill=red!6},
+  every edge/.append style={-Stealth, font=\scriptsize},
+  node distance=0.55cm and 0.8cm,
+  
+]
+% sensing layer
+\node[layer] (sens) {sensing: partial transcript + turn states + tool events + endpointing/barge-in flags};
+% grammar layer
+\node[layer, below=of sens] (gram) {trajectory grammar $G=(Q,\Sigma,\delta)$: state estimate + cycle depth $D$};
+% stopping layer
+\node[layer, below=of gram] (stop) {stopping rule over $P(\theta\mid x_{1:k})$: decide at $k_{\mathrm{dec}}\leq k^\ast$, confidence $1-\delta$};
+% KPI classes
+\node[kpi, below left=0.8cm and -1.2cm of stop] (cont) {contained};
+\node[kpi, right=of cont] (aban) {abandoned};
+\node[kpi, right=of aban] (hand) {handoff};
+\node[kpi, right=of hand] (comp) {compliance-escape};
+% interventions
+\node[act, below=1.5cm of cont] (none) {continue (no action)};
+\node[act, below=1.5cm of aban] (probe) {proactive clarification};
+\node[act, below=1.5cm of hand] (esc) {warm transfer to teller};
+\node[act, below=1.5cm of comp] (fraud) {fraud flag + policy route};
+
+\draw (sens) -- (gram);
+\draw (gram) -- (stop);
+\draw (stop.south) -- ++(0,-0.35) -| (cont.north);
+\draw (stop.south) -- ++(0,-0.35) -| (aban.north);
+\draw (stop.south) -- ++(0,-0.35) -| (hand.north);
+\draw (stop.south) -- ++(0,-0.35) -| (comp.north);
+\draw (cont) -- (none);
+\draw (aban) -- (probe);
+\draw (hand) -- (esc);
+\draw (comp) -- (fraud);
+% latency accounting side note
+\node[box, fill=gray!8, right=1.0cm of stop.east, align=left, font=\scriptsize]
+  (lat) {decision latency $\leq \Lambda^\ast$ headroom\\ intervention clears cessation floor};
+\draw[dashed, gray] (stop) -- (lat);
+\end{tikzpicture}

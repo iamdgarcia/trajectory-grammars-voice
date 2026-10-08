@@ -1,0 +1,26 @@
+% fig_stopping.tex — stopping rule timeline over the outcome-class posterior
+\begin{tikzpicture}[xscale=1.05, yscale=1.0]
+% time axis: turns
+\draw[-Stealth, thick] (0,0) -- (11,0) node[below right, font=\small] {turn $k$};
+\foreach \k/\lbl in {1/{auth}, 3/{intent}, 5/{tool-loop}, 7/{clarify}, 9/{confirm}} {
+  \draw (\k,0.08) -- (\k,-0.08) node[below, font=\scriptsize] {\lbl};
+}
+% posterior curves (stylized) for two classes
+\draw[thick, blue!70!black] (0,1.0) .. controls (2,1.15) and (4,1.6) .. (6,2.3)
+  .. controls (8,2.9) and (9.4,3.3) .. (10.6,3.45)
+  node[right, font=\scriptsize, blue!70!black] {$P(\textit{contained}\mid x_{1:k})$};
+\draw[thick, red!70!black] (0,1.0) .. controls (2,0.95) and (3.5,1.05) .. (5,1.5)
+  .. controls (6.5,2.0) and (8.5,2.6) .. (10.6,3.1)
+  node[right, font=\scriptsize, red!70!black] {$P(\textit{handoff}\mid x_{1:k})$};
+% SPRT boundaries
+\draw[dashed, thick, gray] (0,3.3) -- (10.6,3.3) node[above, font=\scriptsize, pos=0.85] {accept $H_1$ ($\geq 1-\delta$)};
+\draw[dashed, thick, gray] (0,0.5) -- (10.6,0.5) node[below, font=\scriptsize, pos=0.85] {accept $H_0$};
+% crossing point: contained class crosses upper boundary at k*
+\fill[blue!70!black] (7.4,3.3) circle (2.2pt);
+\draw[-Stealth, blue!70!black] (7.4,3.3) -- (7.4,0) node[below, font=\scriptsize, blue!70!black] {$k_{\mathrm{dec}}$};
+% intervention window vs escalation-only threshold
+\draw[decorate, decoration={brace, mirror, amplitude=5pt}, thick, olive!70!black] (7.4,4.1) -- (10.6,4.1)
+  node[midway, above, font=\scriptsize, olive!70!black] {intervention window};
+\node[font=\scriptsize, olive!70!black, align=left, anchor=west] at (0.1,4.55)
+  {decision must land early enough to act: $t_{k_{\mathrm{dec}}} + \varepsilon$ before the escalation-only threshold, and the intervention itself must clear the cessation floor};
+\end{tikzpicture}

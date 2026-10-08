@@ -1,0 +1,44 @@
+% fig_grammar.tex — the trajectory grammar: states, typed transitions, terminal classes
+\begin{tikzpicture}[
+  node distance=1.15cm and 1.35cm,
+  state/.style={circle, draw, minimum size=1.05cm, font=\small, fill=blue!5},
+  terminal/.style={rectangle, rounded corners, draw, minimum width=1.5cm, minimum height=0.62cm, font=\small\itshape},
+  every edge/.append style={-Stealth, font=\scriptsize},
+  looplabel/.style={font=\scriptsize, align=center},
+  
+]
+\node[state] (gr) {gr};
+\node[state, right=of gr] (au) {au};
+\node[state, right=of au] (in) {in};
+\node[state, right=of in] (tl) {tl};
+\node[state, right=of tl] (cl) {cf};
+\node[state, right=of cl] (co) {cl};
+
+\node[terminal, below=2.1cm of in] (cont) {contained};
+\node[terminal, left=1.1cm of cont] (aban) {abandoned};
+\node[terminal, right=1.1cm of cont] (hand) {handoff};
+\node[terminal, below=0.7cm of cont] (comp) {compliance-escape};
+
+\draw (gr) edge[bend left=18] node[above]{answer} (au);
+\draw (au) edge[bend left=18] node[above]{verify} (in);
+\draw (in) edge[bend left=18] node[above]{request} (tl);
+\draw (tl) edge[bend left=18] node[above]{result} (cl);
+\draw (cl) edge[bend left=18] node[above]{confirm} (co);
+\draw (co) edge node[right]{close} (cont);
+
+% regression (cycle) edges
+\draw (tl) edge[bend left=30] node[looplabel, below]{tool-fail$\to$retry} (in);
+\draw (cl) edge[bend left=30] node[looplabel, below]{mismatch$\to$clarify} (in);
+\draw (au) edge[bend right=35, looseness=1.4] node[looplabel, below left]{re-auth} (au);
+\draw (co) edge[bend left=22] node[looplabel, above, sloped]{regress} (tl);
+
+% terminal edges
+\draw (cl) edge node[right]{no-confirm} (aban);
+\draw (cl) edge node[left]{defer} (hand);
+\draw (tl) edge node[looplabel, right]{policy breach} (comp);
+
+% drift annotations
+\begin{scope}[on background layer]
+  \node[fit=(in)(tl), draw, dashed, rounded corners, inner sep=6pt, label={[font=\scriptsize]below:drift zone: cycle depth $D$ counted here}] {};
+\end{scope}
+\end{tikzpicture}

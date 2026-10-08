@@ -1,0 +1,84 @@
+% §8 Discussion — scope, assumptions, limitations
+\label{sec:discussion_content}
+
+\subsection{Scope of the Claims}
+
+The contributions of this paper are conceptual and protocol-first.
+The trajectory grammar of Section~\ref{sec:grammar}, the stopping theorem of Section~\ref{sec:stopping}, and the KPI-tuned evaluation protocol of Section~\ref{sec:evaluation} are formal objects whose validity does not depend on any particular dataset.
+The empirical component runs on production Spanish call logs from a single deployment and on a public synthetic release derived from them under a GDPR-safe schema.
+We therefore claim a framework and a measurement protocol, not a leaderboard result.
+Where we report numbers, they characterise the protocol in one banking environment; they are not presented as transferable performance estimates.
+
+\subsection{Limitations}
+
+\paragraph{Class imbalance.}
+The outcome classes that matter most in banking are the rarest.
+Abandonment, fraud signatures, and compliance escapes are tail events in production traffic, and the trajectory grammar inherits this imbalance through its terminal classes.
+Rare-class evaluation on small test sets yields wide confidence intervals on class-conditional detection rates.
+Our protocol therefore reports class-conditional operating points with uncertainty quantification, and the stopping theorem's guarantee is stated per class rather than in the aggregate.
+Mitigation is procedural, not statistical magic: oversampling of rare classes in training splits, longer collection windows before freezing test partitions, and cost-weighted metrics that do not let the abundant contained class dominate the headline number.
+
+\paragraph{Single-bank, Spanish-first evidence.}
+All production evidence comes from one bank's Spanish-first cascade deployment.
+The grammar states (auth, intent, tool loop, clarification, confirm, close) are generic, but their transition frequencies, disclosure obligations, and escalation norms are regulatory- and institution-specific.
+Spanish call logs make the evidence stronger where it exists and narrower where it does not.
+The leave-one-campaign-out protocol of Section~\ref{sec:evaluation} partially addresses within-institution generalisation; cross-institution validity remains open, and multilingual trajectory classes are deferred to future work.
+We note that voice-agent benchmarking across languages is arriving quickly \citep{tauvoice2026}, which makes cross-lingual replication of the protocol feasible for others even though we do not deliver it here.
+
+\paragraph{Belief-state noise.}
+The observation model conditions on a state posterior derived from partial transcripts and tool-event logs, both of which are noisy.
+The cautionary example is concrete: TRACER's forecasting quality degrades measurably between oracle and generated belief states (AUC 0.741 versus 0.617 on MultiWOZ), and zero-shot transfer to a second benchmark collapsed \citep{nourbakhsh2026tracer}.
+Our own Spanish evidence points the same way: text-only turn signals sit near chance on hard cuts, which is why the grammar conditions on tool and interaction state rather than transcript text alone \citep{garcia2026asking}.
+The stopping theorem assumes the emission model is a calibrated posterior; miscalibration shifts the realised operating point away from the designed one.
+The protocol therefore includes a calibration audit before any reported operating point is frozen.
+
+\paragraph{Assumptions behind the stopping theorem.}
+The Trajectory Stopping Theorem inherits the standard SPRT assumptions: observations are treated as conditionally independent draws from the emission model given the true outcome class.
+Real conversations violate this in structured ways.
+Turns within a dialogue are correlated through user state (an impatient caller stays impatient), tool failures cluster (a degraded backend fails repeatedly), and the grammar's own cycle structure induces dependence between consecutive observations.
+We treat emission independence as an approximation and flag it as the theorem's load-bearing idealisation; the confidence sequences remain valid under mixing conditions weaker than independence, but we do not claim the banking trajectories satisfy those conditions.
+The practical consequence is that reported decision times are expectations under the model, and the evaluation protocol measures realised decision times against them, exposing the approximation empirically rather than hiding it.
+We also inherit the two-hypothesis structure of the classical SPRT: multi-class stopping is implemented as one-against-rest per class, which is conservative and spends part of the decision-time budget.
+
+\paragraph{The grammar is a model, not ground truth.}
+Every production conversation is mapped onto the grammar by an annotator procedure that is itself imperfect.
+Endpointing errors, barge-in mis-classifications, and ambiguous tool outcomes all inject label noise into the state sequence.
+The cycle-depth drift statistic is a property of the map, not of the conversation in itself.
+Two consequences follow.
+First, grammar-level metrics are comparable across systems only under a shared annotation procedure, which the protocol freezes and versions.
+Second, terminal classes are operational definitions: compliance escape means the conversation violated a disclosure rule as checked by the monitor, which is necessary but not sufficient for a legal characterisation.
+We make no claim that the grammar exhausts conversation structure; it is a lossy, auditable projection chosen because each state has an operational lever attached.
+
+\paragraph{Intervention claims are bounded by the floors.}
+Prediction is only actionable if the intervention clears the pipeline's physical constraints.
+An escalation decision that arrives faster than the cessation floor permits will overlap the agent's speech or arrive after the user has hung up \citep{garcia2026cessationfloor}.
+All intervention-timing claims in this paper are therefore conditional on the deployment's measured floors, and the protocol reports intervention latency alongside detection latency rather than treating prediction quality in isolation \citep{garcia2026latencyfloor}.
+
+\paragraph{No human-subjects claims.}
+This paper runs no controlled experiments on human users.
+Containment, abandonment, and handoff are computed from operational telemetry, not from randomised assignments of users to policies.
+We make no causal claim that a trajectory-triggered intervention improves user outcomes; establishing that requires a randomised design, which is future work.
+User-facing statements in this paper concern system behaviour (when the agent stops, escalates, or flags), not user psychology.
+
+\paragraph{Data release constraints.}
+Banking call logs are personal data.
+The public synthetic release preserves the schema, class structure, and timing distributions of the production corpus without containing any personal data, at the cost of diluting the very rare-class structure the protocol targets.
+Released numbers on synthetic data are reproducibility aids, not evidence; the load-bearing evidence remains the production evaluation under restricted access.
+
+\subsection{Relation to Adjacent Programmes}
+\label{sec:discussion_related}
+
+The framing deliberately occupies the intersection left open by three neighbouring programmes.
+Agent-benchmark programmes score full episodes in static environments \citep{sierra2024taubench,webarena2023} and characterise failure after the fact \citep{falsesuccess2026,earlyeval2026}.
+Process-structure programmes recover workflows from completed conversations \citep{salesforce2025workflows} without outcome semantics.
+Early-warning programmes forecast derailment or failure from partial context \citep{chang2019derailment,nourbakhsh2026tracer} with learned classifiers and no decision-time guarantees.
+Queue-control programmes decide escalation outside the conversation from system state \citep{queuecontrol2026,silentabandonment2024}.
+Production evaluation frameworks operationalise containment at scale without formal trajectory machinery \citep{nubank2026}.
+None of these supplies a conversation-internal stopping rule with an explicit decision-time budget wired to banking cost asymmetries, and classical evaluation foundations, which already insisted that quality exceeds task success \citep{walker1997paradise} and that breakdown is a turn-level event \citep{higashinaka2016breakdown}, prefigure but do not deliver the conversation-scale, latency-bounded version.
+The per-turn turn-state signals that our grammar consumes as emissions are themselves advancing rapidly \citep{x2turn2026}, which strengthens the observation layer this framework assumes without claiming its results.
+
+\subsection{Summary}
+
+The framework should be read as a contract: a grammar that fixes what counts as drift, a stopping rule that fixes when deciding is licensed, and a protocol that fixes what a deployment must report.
+Its empirical content is deliberately modest and confined to one Spanish banking deployment plus a synthetic public mirror.
+The intended use is as instrumentation for the next deployment iteration, where the open questions of Section~\ref{sec:open_problems} can be tested rather than assumed.

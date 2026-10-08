@@ -1,0 +1,51 @@
+% §7 Open Problems
+The trajectory grammar and its stopping rule settle the conversation-scale analogue of the onset and cessation problems, but the framework opens more questions than it closes.
+We group them into six directions.
+
+\paragraph{Multilingual trajectory classes and code-switching.}
+The state space $Q$ and the typed transition set $\Sigma$ are language-independent by construction, but the observation model is not.
+Endpointing behaviour, ASR error profiles, and turn-state emission probabilities all shift across languages and channels.
+Multilingual voice-agent benchmarks are arriving \citep{tauvoice2026}, yet they score task quality on full episodes and define no trajectory classes.
+Text-only turn-end decisions are near chance in Spanish \citep{garcia2026asking}, and utterance-scale turn-state models are only now appearing \citep{x2turn2026}, so the emissions that feed the posterior $p(\theta \mid x_{1:k})$ may degrade unevenly across locales.
+Whether the terminal classes --- contained, abandoned, handoff, compliance-escape --- retain their cost structure and their detectability outside Spanish is open.
+Code-switching callers add a further complication: a mid-conversation language switch changes both the acoustic and the lexical channels that the stopping rule consumes.
+A per-class, per-language turn-policy benchmark would supply the labelled emissions the grammar needs, and building it is the prerequisite for claiming the stopping constants beyond Spanish.
+
+\paragraph{The escalation floor.}
+The program now holds two floors: the onset floor $\Lambda^*$ \citep{garcia2026latencyfloor} and the cessation floor \citep{garcia2026cessationfloor}.
+A third suggests itself: the escalation floor, the minimum latency and reliability with which a conversation-internal decision to defer to a human can be executed.
+Queue-level control decides which tasks a bot should attempt, outside the conversation \citep{queuecontrol2026}; the grammar decides when to defer, inside it.
+Learning to defer under a hard latency budget is unformalized, and deferral that fires too late is observationally equivalent to no deferral at all.
+The cost model makes the asymmetry explicit: a false handoff wastes agent-minutes, while a missed escalation converts containment failures into abandonments or compliance escapes with unbounded cost.
+A deferral policy must also respect its own deadline: a handoff announcement that cannot clear the cessation floor cannot barge in on the agent mid-drift.
+Composing the three floors --- onset, cessation, escalation --- into a single schedulability condition for conversational control actions is, in our view, the next theorem of this program.
+
+\paragraph{Calibrated simulation of banking callers.}
+Synthetic users drive every agent benchmark \citep{sierra2024taubench}, including the multilingual ones \citep{tauvoice2026}, and their calibration to real callers is unmeasured.
+A trajectory policy that contains $0.9$ of simulated calls may fail against Spanish banking callers whose dominant failure mode is silent abandonment \citep{silentabandonment2024}.
+The missing artifact is a sim-to-real protocol: fit simulator parameters (impatience, silence tolerance, clarification behaviour) on a calibration split of real logs, hold out scenario classes, and report the rank correlation of policy scores and the divergence of trajectory-class distributions between simulated and real conversations.
+Offline early-exit machinery \citep{earlyeval2026} reduces evaluation cost but presumes the simulator is faithful; nothing in that line measures faithfulness.
+Partial-context forecasting was first validated on open-domain social derailment \citep{chang2019derailment}, where failure is visible and cheap to label; banking trajectories enjoy no such luxury.
+Until such a protocol exists, containment numbers measured against simulated callers should be treated as provisional.
+
+\paragraph{Compliance escapes and regulatory deadlines.}
+The compliance-escape terminal class carries unbounded cost $c(\theta_{dec}, \theta_{true})$, which makes it qualitatively different from the other three outcomes.
+Regulation imposes deadlines inside the conversation rather than after it: disclosure timing, consent capture, and the right to escalate to a human are obligations with their own clocks.
+No work schedules legal deadlines inside the conversation DAG; the guardrail-placement analogue --- obligations as stages with reducible and irreducible latency --- is unformalized.
+A trajectory monitor offers the natural mechanism: a deadline that will be missed is predictable from the partial trajectory, exactly the quantity the stopping rule estimates.
+Production evaluation practice at scale remains engineering reportage \citep{nubank2026}, with compliance scored post-hoc if at all.
+The open problem is a deadline calculus for obligations --- which deadlines are schedulable, which are maskable, and which force immediate escalation --- with the same rigour the latency floor applied to perceptual thresholds.
+
+\paragraph{False success and outcome verification.}
+The grammar supervises on terminal labels, and terminal labels are themselves unreliable.
+Agents assert task completion while the environment state disagrees, and the behaviour is systematic: across $9{,}876$ $\tau^2$-bench trajectories, false success appears as confident closing over silent failure \citep{falsesuccess2026}.
+If the labels are wrong, the posterior $p(\theta \mid x_{1:k})$ learns the wrong outcome distribution, and the stopping theorem inherits the bias.
+Classical evaluation theory already warned that task success underspecifies dialogue quality \citep{walker1997paradise}; false success sharpens the warning from measurement noise to adversarial mislabelling.
+Trajectory-level outcome verification --- auditing the asserted completion against the tool-event log and the grammar before the labels enter training --- is an open loop that would make the outcome taxonomy self-correcting.
+
+\paragraph{Cross-domain transfer of grammars.}
+Partial-dialogue forecasting does not transfer for free: TRACER moves from MultiWOZ to ABCD with AUC $0.771$ but collapses to $0.494$ on SGD \citep{nourbakhsh2026tracer}.
+The open question is which layer of the framework carries the transfer burden: the state space $Q$, the transition typing $\Sigma$, or the stopping constants $k^*$ and $\delta$.
+Recovered dialog workflows are a candidate prior over $Q$ and $\Sigma$ in a new domain \citep{salesforce2025workflows}, but they are extracted from completed conversations and carry no outcome labels.
+Banking may fragment further: card blocks, transfers, and fraud reports are distinct campaigns whose grammars may share states but not costs.
+Leave-one-campaign-out evaluation measures the damage empirically; a theory of when grammars transfer is missing.

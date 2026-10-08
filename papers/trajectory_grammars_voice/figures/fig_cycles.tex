@@ -1,0 +1,29 @@
+% fig_cycles.tex — contained vs drifted trajectories as grammar walks (cycle depth)
+\begin{tikzpicture}[xscale=1.0, yscale=1.0]
+% Panel A: contained call (low cycle depth)
+\begin{scope}
+  \node[font=\small\bfseries, anchor=west] at (-0.4,2.3) {(a) contained: $D=0$};
+  % turn dots along a line
+  \foreach \i in {0,...,9} { \fill[blue!60!black] (\i,0) circle (1.7pt); }
+  \draw[gray!60] (-0.4,0) -- (9.4,0);
+  % state strip
+  \node[font=\scriptsize, anchor=west] at (-0.4,-0.55) {gr $\to$ au $\to$ in $\to$ tl $\to$ cf $\to$ cl};
+  \node[font=\scriptsize, align=left, anchor=west] at (-0.4,-1.25) {monotone progress; no repeated states; outcome decidable at $k_{\mathrm{dec}}=6$};
+  \node[font=\scriptsize, blue!60!black, anchor=west] at (-0.4,0.45) {posterior crosses $1-\delta$ inside the tool loop};
+\end{scope}
+% Panel B: drifted call (high cycle depth)
+\begin{scope}[yshift=-3.3cm]
+  \node[font=\small\bfseries, anchor=west] at (-0.4,2.3) {(b) drifted: $D=3$};
+  \draw[gray!60] (-0.4,0) -- (9.4,0);
+  \foreach \i in {0,...,12} { \fill[red!60!black] (\i*0.72,0) circle (1.7pt); }
+  % cycles drawn as arcs back
+  \draw[-Stealth, red!60!black] (2.2,0.12) .. controls (3.0,0.9) and (4.2,0.9) .. (5.0,0.12)
+    node[midway, above, font=\scriptsize] {retry};
+  \draw[-Stealth, red!60!black] (4.3,-0.12) .. controls (5.1,-1.0) and (6.3,-1.0) .. (7.1,-0.12)
+    node[midway, below, font=\scriptsize] {re-clarify};
+  \draw[-Stealth, red!60!black] (5.8,0.12) .. controls (6.6,1.2) and (7.8,1.2) .. (8.6,0.12)
+    node[midway, above, font=\scriptsize] {regress};
+  \node[font=\scriptsize, align=left, anchor=west] at (-0.4,-1.75) {same turn count as 1.4$\times$ a contained call, but three returns to visited states: off-path};
+  \node[font=\scriptsize, red!60!black, anchor=west] at (-0.4,-2.45) {cycle-depth statistic fires drift warning at $D\geq 2$, before the posterior alone would};
+\end{scope}
+\end{tikzpicture}

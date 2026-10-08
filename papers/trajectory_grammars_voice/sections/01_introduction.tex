@@ -1,0 +1,134 @@
+% §1 Introduction
+\label{sec:introduction}
+Conversational voice agents are now operational infrastructure in banking.
+Production deployments handle account inquiries, card operations, transfers, and
+authentication over the telephone, at cadences measured in millions of calls per year \citep{nubank2026}.
+The institutions that operate them are not judged on how gracefully a single turn is handled.
+They are judged on conversation-level key performance indicators:
+the containment rate (calls resolved without human involvement),
+the abandonment rate (callers who hang up mid-interaction),
+the handoff rate (transfers to human agents),
+and the compliance-escape rate (unauthorized commitments, disclosure omissions, undetected fraud).
+Every one of these indicators is a property of the \emph{whole conversation},
+yet the research machinery we hold for voice agents is almost entirely \emph{turn-level}.
+
+This mismatch between what is measured and what is modeled is the starting point of this paper.
+The voice-agent literature formalizes single decisions:
+when the user has finished speaking \citep{tauvoice2026,x2turn2026},
+how fast a response must begin \citep{garcia2026latencyfloor},
+how quickly an agent must stop talking when interrupted \citep{garcia2026cessationfloor}.
+Agent benchmarks score tool-using dialogues by full-episode success---whether the final
+environment state is correct---treating the trajectory itself as data rather than as the object
+of analysis \citep{sierra2024taubench}.
+Workflow-extraction methods recover the structure of completed service conversations,
+but structure without outcomes \citep{salesforce2025workflows}.
+Escalation policy is decided from queue-level state, outside the conversation \citep{queuecontrol2026}.
+No formal model connects the partial transcript of an in-flight voice conversation
+to the terminal outcome that the business will record when the call ends.
+
+Meanwhile, the failures that matter in production emerge progressively, not abruptly.
+Recent work on task-oriented dialogue shows that breakdowns accumulate through
+slot instability, unresolved contradictions, and task drift long before the final
+outcome makes them visible \citep{nourbakhsh2026tracer}.
+In banking this progression has names the industry tracks: the caller who repeats
+an account number three times, the tool that fails twice on the same operation,
+the caller who goes silent while the agent keeps narrating options.
+Each is a trajectory pattern, and each becomes actionable only if it is detected
+\emph{while the conversation can still be changed}.
+The nearest neighbor to this problem, TRACER, forecasts eventual dialogue failure from
+partial context with a learned classifier and a thresholded recovery trigger \citep{nourbakhsh2026tracer}.
+It establishes that partial dialogues carry outcome signal from as little as 25\% of the
+conversation.
+But its trigger is a dev-set-tuned threshold with no decision-time guarantee,
+its outcome is a single binary failure flag,
+its evidence base is English text-chat benchmarks,
+and its pipeline contains none of the physics that makes voice conversations hard:
+endpointing errors, barge-ins, tool round-trips, authentication events.
+
+The gap has two halves, corresponding to gaps CD1 and CD2 of our research program.
+First, no trajectory grammar exists for voice-agent conversations:
+a formal state space over conversation states (authentication, intent, tool loop,
+clarification, confirmation) with typed transitions,
+terminal outcome classes aligned with business KPIs
+(contained, abandoned, handoff, compliance-escape),
+and a drift statistic that formally distinguishes a conversation that is merely
+\emph{longer} from one that is \emph{off-path}.
+Second, no decision rule exists with a guarantee:
+a stopping rule that, given the posterior over outcome classes induced by the partial
+transcript, commits to an outcome prediction (and an intervention) at a calibrated
+confidence within a bounded expected number of turns.
+Sequential analysis provides the right machinery---sequential probability ratio
+tests stop LLM reasoning paths early with calibrated error control \citep{consol2025}---but
+it has never been transposed from reasoning paths inside one model call
+to multi-turn conversations between an agent and a customer.
+
+This paper closes both gaps with machinery our program has already published,
+extended from the turn scale to the conversation scale.
+We previously proved that cascade voice pipelines have an irreducible latency floor
+$\Lambda^*$ and that tool-calling agents compound it through $k$-step reasoning loops \citep{garcia2026latencyfloor}.
+We proved that response \emph{cessation}---how fast an agent can stop talking when a
+barge-in occurs---has its own floor, structured as detect/decide/cease/resume \citep{garcia2026cessationfloor}.
+We showed that text-only turn-end detection in Spanish is near chance on hard cuts,
+which forces any conversation-level state estimator to condition on intent and tool
+state rather than on the transcript alone \citep{garcia2026asking}.
+These three results are load-bearing here.
+The $k$-step ReAct bound becomes the cycle-length constraint of the grammar:
+a run that exceeds $k^*$ tool-loop cycles is off-path with high probability.
+The latency floor and cessation floor convert ``early enough to act'' from a slogan
+into an accounting identity: an intervention trigger fires through the same pipeline
+whose components have measured latencies, and the intervention itself must clear
+the cessation floor to take the floor from the agent mid-utterance.
+The Spanish partial-transcript pipeline supplies the sensing substrate and warns
+against over-trusting text.
+
+We make the following contributions.
+
+\begin{enumerate}
+\item \textbf{Trajectory grammar} (\S\ref{sec:grammar}).
+We define a formal state space $G = (Q, \Sigma, \delta)$ over voice-agent
+conversations, with seven interior states (greeting, auth, intent, tool loop,
+clarification, confirmation, close) and four terminal outcome classes
+(contained, abandoned, handoff, compliance-escape).
+Transitions are typed (user-answer, user-bargein, agent-clarify, tool-call,
+tool-fail, endpoint-error, disclosure, escalation), so that voice physics and
+tool events are first-class grammar emissions.
+Regressions are grammar cycles, and we define cycle depth $D(\sigma)$ as the
+drift statistic separating long from off-path conversations,
+bounded by the published $k$-step ReAct constraint \citep{garcia2026latencyfloor}.
+
+\item \textbf{Trajectory Stopping Theorem} (\S\ref{sec:stopping}).
+We cast early outcome prediction as partial-observation sequential decision-making.
+Given the posterior $p(\theta \mid x_{1:k})$ over outcome classes
+$\theta \in \mathcal{T}$ induced by the partial transcript and tool-event log,
+a confidence-sequence stopping rule achieves expected decision time
+$\mathbb{E}[k_{dec}] \leq k^*(\delta, \text{costs})$ at confidence $1-\delta$.
+We derive false-early-exit economics from a banking cost model in which false
+containment costs more than false handoff and compliance escape has unbounded cost,
+and we show that TRACER's fixed threshold is the fixed-sample instance of this rule \citep{nourbakhsh2026tracer}.
+
+\item \textbf{Banking KPI-tuned evaluation protocol} (\S\ref{sec:evaluation}).
+We wire outcome classes to production telephony telemetry---containment,
+abandonment, handoff, compliance-escape---and define cost-weighted
+detection-latency metrics that extend the early-detection score of \citet{nourbakhsh2026tracer}.
+The protocol evaluates on real Spanish call logs with leave-one-campaign-out validation,
+and accounts the decision latency of the trajectory monitor against the published
+floors $\Lambda^*$ and the cessation floor \citep{garcia2026latencyfloor,garcia2026cessationfloor}.
+
+\item \textbf{Intervention coupling} (\S\ref{sec:intervention}).
+We define how grammar states trigger actionable interventions---proactive
+clarification, escalation to a human agent, fraud-flag routing---inside a
+production orchestration graph, with every intervention required to clear the
+cessation floor \citep{garcia2026cessationfloor}.
+This connects conversation-internal early warning to the escalation policies that
+existing work decides from queue state alone \citep{queuecontrol2026}.
+\end{enumerate}
+
+The remainder of this paper is organised as follows.
+Section~\ref{sec:background} situates the work across agent-trajectory benchmarks,
+dialogue process mining, outcome prediction, and contact-center analytics.
+Section~\ref{sec:grammar} develops the trajectory grammar and the drift statistic.
+Section~\ref{sec:stopping} states and proves the Trajectory Stopping Theorem.
+Section~\ref{sec:evaluation} defines the KPI-tuned evaluation protocol.
+Section~\ref{sec:intervention} specifies intervention coupling.
+Sections~\ref{sec:open_problems} and~\ref{sec:discussion} present open problems and limitations.
+Section~\ref{sec:conclusion} concludes.

@@ -1,0 +1,71 @@
+% §2 Background — taxonomy of adjacent work in four strands
+\subsection{Scope and Taxonomy}
+
+Our previous work analyzed the voice-agent conversation one turn at a time: the latency floor bounds how fast a response can begin \citep{garcia2026latencyfloor}, the cessation floor bounds how fast a response can stop after barge-in \citep{garcia2026cessationfloor}, and the semantic-VAD study supplies a measured Spanish partial-transcript sensing layer \citep{garcia2026asking}.
+This paper moves the analysis one level up, from the turn to the complete conversation, treating each call as a trajectory through a grammar of dialogue states whose terminal classes are banking outcomes.
+We call the witnessed prefix of a conversation a \emph{partial trajectory} and its eventual terminal class the \emph{outcome}.
+The literature that bears on this object sits in four strands that barely touch: agent-trajectory benchmarks, dialogue process structure, early outcome prediction, and escalation practice from call-center operations.
+We review each strand in turn and close with the delta our grammar adds.
+
+\subsection{Agent-Trajectory Benchmarks: the Full-Episode Paradigm}
+
+The closest benchmark family scores an agent only when its episode is over.
+\citet{sierra2024taubench} introduce $\tau$-bench, which evaluates tool-using agents in retail and airline domains against simulated users and domain policies, reporting pass$^k$ over complete trajectories.
+The pass$^k$ metric summarizes reliability across $k$ repeated episodes, again measured only at the end.
+In $\tau$-bench the trajectory appears as a log to be scored, never as the object of analysis.
+WebArena \citep{webarena2023} measures autonomous web agents by comparing final environment state against a goal, inheriting the same full-episode paradigm in a static setting.
+$\tau$-Multilingual extends this evaluation style to voice agents in Spanish, Brazilian Portuguese, Hindi, Korean, and Mandarin \citep{tauvoice2026}, confirming that Spanish voice-agent quality measurement is arriving.
+Yet its units remain task success and component quality under simulated users, not outcomes predicted from a live, partially observed conversation.
+An audit of the paradigm itself sharpens the concern: \citet{falsesuccess2026} characterize false success across 9{,}876 $\tau^2$-bench trajectories, showing that agents assert completion while the environment disagrees.
+If terminal labels mislead even in static text environments, conversation-scale evaluation needs outcome evidence that accumulates during the call rather than after it.
+The delta of our paper relative to this strand is direct: the strand supplies outcome labels, but no trajectory model, no partial-observation decision rule, and no voice physics.
+
+\subsection{Dialogue Process Structure: Workflows, Quality, and Breakdown}
+
+A second strand studies the structure of conversations as processes.
+\citet{salesforce2025workflows} extract dialog workflows from service-agent conversations automatically and evaluate the recovered workflows for consistency and coverage.
+The workflow is an artifact distilled after the fact; the conversations that produced it are finished, and no outcome rides on the extraction.
+The evaluation tradition is older: \citet{walker1997paradise} established with PARADISE that task success alone underspecifies dialogue quality, which must be traded against dialogue cost.
+Our banking KPI protocol inherits this cost axis, but replaces post-hoc quality ratings with per-class costs over trajectory outcomes measured in production telemetry.
+Breakdown detection \citep{higashinaka2016breakdown} attributes failure to individual system utterances given their preceding context, a turn-level diagnosis rather than a forecast of where the call is heading.
+Closest in spirit, \citet{chang2019derailment} forecast derailment in open-domain social conversation from growing context windows, establishing partial-context prediction as principled.
+Their signals, however, are social cues in online forums; there is no task, no tool state, and no action taken on the forecast.
+The delta of our paper relative to this strand is that it offers either structure without outcomes or forecasting without decisions, and none of it models voice-agent states such as authentication, tool loops, or barge-ins.
+
+\subsection{Early Outcome Prediction: the Nearest Neighbors}
+
+The nearest neighbor is TRACER \citep{nourbakhsh2026tracer}, which formulates task-oriented dialogue failure prediction as partial-dialogue forecasting.
+Every visible prefix of a dialogue becomes one supervised instance whose label is the terminal outcome, so a dialogue of length $T$ contributes $T$ instances sharing a single label.
+The model is dual-stream: a trajectory stream encodes five hand-built features of belief-state evolution (oscillation score, coverage rate, conflict count, fill velocity, and domain shifts) with a small temporal Transformer, while a text stream encodes serialized belief states with RoBERTa.
+The two streams are fused by a multilayer perceptron into a failure probability $\hat{p}_{i,t}$ for dialogue $i$ at turn $t$.
+On MultiWOZ~2.4 with oracle belief states, TRACER reaches an AUC of 0.741 and an F1 of 0.463, degrading to 0.617 AUC with generated belief states.
+Useful failure signals appear from 25\% of the dialogue visible, and under a false-positive-rate constraint of 0.15 its trigger fires at a mean detection turn of 1.36.
+For intervention, a threshold frozen at $\tau = 0.7788$ on the development set converts the score into a recovery trigger, and template-based recovery outperforms a fine-tuned T5 generator on targeting.
+Zero-shot transfer is uneven, holding on ABCD (AUC 0.771) but collapsing on SGD (AUC 0.494).
+TRACER is candid about what it is: a learned classifier with a tuned threshold, evaluated post hoc on text-chat benchmarks.
+It provides no stopping rule, no calibrated confidence, no decision-time guarantee, a single binary outcome, no voice-physics channels such as endpointing errors or barge-ins, and no wiring from outcomes to business KPIs.
+Its qualitative failure taxonomy (information incompleteness, contradiction, state instability, and task drift) anticipates, in prose, the drift statistics our grammar makes formal.
+EarlyEval \citep{earlyeval2026} shares the prefix-observation insight but applies it offline, predicting episode outcomes early in order to prune expensive agent evaluation rather than to intervene in a running conversation.
+At the utterance scale beneath our grammar, X2-Turn \citep{x2turn2026} predicts frame-synchronous turn states jointly with streaming ASR, and ConSol \citep{consol2025} applies sequential probability ratio testing to stop reasoning paths within a single model call.
+Neither operates at conversation scale: turn states and reasoning paths are observation signals, not outcome decisions.
+The delta of our paper relative to this strand is to keep what it proves (partial transcripts carry outcome signal) and supply what it lacks: a sequential stopping rule with expected decision time bounded at confidence $1-\delta$, multi-class banking outcomes, voice and tool-event observation channels, and intervention latency accounted against published floors.
+
+\subsection{Escalation and Queueing Practice: Decisions Outside the Conversation}
+
+Operations research treats escalation as a queueing decision made outside the conversation.
+\citet{queuecontrol2026} study a two-stage human--AI service system and derive when arriving tasks should be routed to automation or to humans, as a function of queue state.
+The decision variable is which tasks to automate, computed before any conversation begins and never revised from what is said.
+Silent abandonment \citep{silentabandonment2024} estimates customer patience from uncertain contact-center data, modeling abandonment as a property of the queue rather than of the dialogue.
+Industrial practice consolidates this outside view: \citet{nubank2026} describe an evaluation-driven framework for support agents at 100-million-user scale, with containment managed as an operational metric rather than a predictable per-call object.
+These works supply the cost model we adopt: agent minutes against teller minutes, repeat contacts, and the operational meaning of containment.
+What they lack is a conversation-internal signal; nothing in the queueing view can notice, mid-call, that authentication has failed twice and the call is drifting.
+Cost-weighted classification rather than accuracy is therefore the right evaluation lens, and our evaluation protocol adopts it.
+The delta of our paper relative to this strand is that escalation and abandonment become terminal classes of a trajectory grammar, predicted from the partial transcript and acted on inside the conversation, where any intervention must first clear the cessation floor \citep{garcia2026cessationfloor}.
+
+\subsection{Positioning}
+
+Across the four strands, no work defines a formal state space for voice-agent conversations with terminal banking outcomes, predicts those outcomes from partial observations with a calibrated decision time, or couples the prediction to intervention machinery with measured latency.
+Benchmarks score finished episodes, structure mining ignores outcomes, forecasters offer learned scores without guarantees, and operations decisions ignore the conversation.
+This intersection, not any single strand, is the contribution space of the paper.
+The trajectory grammar, the stopping theorem, and the banking evaluation protocol presented in the remainder of the paper close it.
+Voice physics enters as a first-class observation channel, and every intervention inherits the latency discipline of the floors program \citep{garcia2026latencyfloor}.

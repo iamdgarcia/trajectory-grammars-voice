@@ -1,0 +1,143 @@
+% Section 6: Intervention Coupling
+Prediction without an action path is telemetry.
+This section specifies how the stopping rule of Section~\ref{sec:stopping} attaches to a
+production orchestration graph, what each intervention costs, and why every intervention is
+itself a latency-bounded event governed by the published floors.
+
+\subsection{Interventions as Graph Actions}
+We assume the production setting of our companion papers: a cascade voice agent whose
+turn-taking, tool calls, and delivery are orchestrated by a directed graph
+\citep{garcia2026latencyfloor,garcia2026cessationfloor}.
+Concretely, the trajectory monitor runs alongside the orchestrator
+(in our deployment, a LangGraph event loop): at each turn it updates the outcome posterior
+$p(\theta \mid x_{1:k})$ over terminal classes $\theta \in \mathcal{T}$
+and exposes the grammar state $q_k \in Q$ to the policy layer.
+When the stopping rule of Section~\ref{sec:stopping} fires for a class whose action set is
+non-empty, the monitor emits an \emph{intervention token} naming one of three actions,
+each of which is a first-class graph transition rather than a side channel.
+The \emph{escalate} action transitions the graph to the \texttt{handoff} terminal class:
+the agent bridges the caller to a human teller with a context package.
+The \emph{clarify} action injects a targeted clarification turn and re-enters the
+\texttt{clarify} grammar state, resetting the drift statistic $D(\sigma)$ for the current cycle.
+The \emph{fraud-flag} action marks the conversation and routes subsequent tool calls through
+step-up authentication; it does not by itself terminate the conversation.
+Each action consumes the same event bus the orchestrator already uses for tool completions
+and barge-in signals, so no new delivery path is introduced.
+Two guards make the action layer safe to attach to a live graph.
+First, actions are hysteresis-gated: once an intervention fires for a class, the monitor suppresses conflicting actions for a window, so a conversation cannot flap between escalate and clarify as the posterior hovers near the boundary.
+Second, at most one intervention token is outstanding at a time; a new token preempts only after the previous action has reached a committed graph state, preserving the atomicity the decoupled-clock runtime already guarantees for tool batches \citep{garcia2026cessationfloor}.
+
+\subsection{Intervention Is an Interruption: the Cessation Constraint}
+An intervention is not a message appended to the agent's plan; it is a takeover of the floor
+while the agent may be mid-utterance.
+The cessation floor of \citet{garcia2026cessationfloor} decomposes response \emph{cessation}
+into detect, decide, cease, and resume phases, and bounds the time from the takeover trigger
+to the agent's audio actually stopping.
+Composition is therefore immediate: the trajectory decision supplies the trigger, and the
+intervention's audible effect cannot precede the cessation floor of the pipeline it interrupts.
+Formally, an intervention decided at turn $k$ becomes perceptible no earlier than
+$t_k + \Delta_{\mathrm{cess}}$, where $\Delta_{\mathrm{cess}}$ is the pipeline's cessation
+bound, on top of the per-turn decision latency already accounted against the onset floor
+$\Lambda^*$ \citep{garcia2026latencyfloor}.
+This couples the two published floors to the trajectory layer: the stopping theorem of
+Section~\ref{sec:stopping} bounds \emph{when} we know, and the cessation floor bounds
+\emph{how fast the agent yields}.
+The resume phase matters as much as the cease phase for the trajectory walk.
+After a clarify intervention the agent resumes the same grammar state; after escalate or
+fraud-flag the agent demotes to scribe or exits, and the walk's remaining transitions belong
+to the human leg.
+Treating the takeover itself as a typed transition keeps the trajectory a single object across
+the agent--human boundary, which is what allows post-handoff outcome labels to be attributed
+to the pre-handoff warning.
+A practical consequence for the evaluation protocol of Section~\ref{sec:evaluation} is that
+the intervention window of a trajectory warning is measured in wall-clock milliseconds, not
+turns: a prediction that fires one turn early can still lose its value if the intervened
+agent's TTS queue holds several seconds of un-played audio.
+The clarify action has the mildest constraint, because the agent can often finish its current
+sentence and absorb the clarification as the next turn.
+The escalate and fraud-flag actions bind hardest: a handoff that starts while the agent is
+still promising a transfer, or a step-up authentication demanded over an un-yielded audio
+stream, produces exactly the mixed-authority audio the cessation analysis warns against.
+
+\subsection{Fraud Signatures as Trajectory Anomalies}
+The grammar turns fraud detection from a per-turn classifier into a shape test over the walk.
+The canonical banking pattern is repeated authentication failure:
+a trajectory that cycles on the \texttt{auth} state --- $D(\sigma)$ growing across
+tool-fail and user-answer transitions without progress into \texttt{intent} --- is the
+social-engineering signature in which a coerced caller cannot produce the credential
+the legitimate account holder knows.
+The k-step bound of \citet{garcia2026latencyfloor} makes this test cheap:
+any run exceeding $k^\ast$ tool-loop cycles is off-path with high probability, so the fraud
+monitor is a threshold on cycle depth plus a class-conditional posterior check, not a
+full-sequence re-scoring.
+A second signature is the silent detour: a walk that reaches \texttt{confirm} while never
+touching \texttt{tool\_loop}, promising outcomes the tool history cannot support, which is the
+fraud variant of the false-success pattern \citep{falsesuccess2026}.
+Because the signature is a property of the walk and not of any single utterance, it survives
+paraphrase: the attacker controls what is said, not which states the conversation passes
+through.
+False positives here are costly in customer trust, so the fraud-flag action calibrates
+conservatively --- the cost model of Section~\ref{sec:evaluation} prices a false fraud
+intervention above a false clarify, and the stopping rule inherits that asymmetry.
+
+\subsection{Escalation Economics}
+The escalation decision inherits a cost model with three currencies: agent-minutes,
+teller-minutes, and customer patience.
+Queue-level analyses decide escalation \emph{outside} the conversation, from staffing and
+queue state \citep{queuecontrol2026}; the trajectory grammar supplies the missing
+conversation-internal signal --- \emph{this} conversation, at turn $k$, is heading for
+abandonment or compliance escape --- so the two layers compose: queue control prices the
+teller, the grammar prices the drift.
+Customer patience, the third currency, has so far been estimated from queueing behaviour ---
+silent hang-ups and wait-time tolerance \citep{silentabandonment2024} --- rather than from the
+conversation itself.
+The grammar closes that gap: the \texttt{abandoned} terminal class and its precursors
+(repeated clarification without progress, rising cycle depth before an abrupt close) make
+patience a readable trajectory property, so the cost of continuing in the bot can be priced
+turn by turn.
+The banking cost matrix $c(\theta_{\mathrm{dec}}, \theta_{\mathrm{true}})$ prices a false
+containment above a false handoff: keeping a struggling customer in the bot accrues
+frustration, repeat-contact risk, and abandonment, whereas an unnecessary handoff spends
+teller-minutes but preserves the relationship.
+Compliance escape is priced as unbounded --- an unauthorized commitment or a disclosure
+omission cannot be amortized --- which forces the stopping rule to treat
+compliance-escape evidence as absorbing: the first confident posterior on escape triggers
+intervention regardless of queue state.
+This ordering --- containment failure worse than handoff waste, compliance worst of all ---
+is the operational reading of the outcome taxonomy wired to telephony KPIs in
+Section~\ref{sec:evaluation}.
+
+\subsection{Compliance Escapes as Trajectory Events}
+Per-turn guardrails classify individual utterances before they are spoken or after
+\citep{garcia2026cessationfloor}; some failures are not utterance-local at all.
+An unauthorized commitment emerges from the \emph{sequence} --- an assurance given in
+\texttt{confirm} after a tool-fail the agent never surfaced --- and a disclosure omission is
+a missing transition: the \texttt{close} state reached without the required
+\texttt{disclosure} transition having fired.
+The grammar represents both natively: an unauthorized commitment is a typed transition into
+\texttt{confirm} that is not licensed by the tool history, and a disclosure omission is a
+close-reachable path in $G$ that skips the disclosure edge.
+A trajectory-level monitor therefore complements per-turn guardrails rather than duplicating
+them: it catches the conversation-level failure modes that are invisible one turn at a time,
+in the same way that trajectory-level outcome labels correct final-state labels that mislead
+\citep{falsesuccess2026}.
+In deployment this makes the grammar the conversation-scale layer of a defence-in-depth stack:
+per-turn guardrails vet content, the trajectory monitor vet \emph{conduct}.
+This division of labour matches the production practice reported at scale, where outcome-level
+evaluation of support agents exists but remains informal in exactly these conversation-level
+terms \citep{nubank2026}.
+
+\subsection{Relation to a Dedicated Escalation Floor}
+The escalation action here is deliberately minimal: the trajectory layer decides \emph{when},
+and hands over to whatever mechanism bounds \emph{how fast a human arrives}.
+That mechanism --- an escalation floor decomposing handoff into detect, decide, bridge,
+queue-connect, and read-in, with read-in reducible only by agent-pushed context --- is future
+work beyond this paper's scope.
+The interface, however, is fixed by this paper: the escalation decision timestamp $t_k$, the
+confidence $1-\delta$ at which it fired, and the agent-authored context package that the
+trajectory state already maintains are exactly the inputs a formal escalation floor will
+consume.
+We leave the composition --- bounding time-to-first-human-audio as a third floor, with
+deferral calibrated veto-style against the accrual of deferral cost over turns --- to that
+successor, noting only that the detect and decide phases of that floor are already supplied
+by the stopping rule of Section~\ref{sec:stopping}.
