@@ -90,6 +90,7 @@ and by the union bound the error probability against the budgeted error events o
 $\varepsilon := \sum_{a} (\alpha_a + \beta_a)$, so decisions are delivered in at most
 $K(\varepsilon, c)$ expected turns at confidence at least $1 - \varepsilon$ against those events,
 under a calibrated emission model.
+A remark on the frontier: as $\beta_{esc} \to 0$ under the cost ordering of Proposition~\ref{prop:asymmetric}, $|B_{esc}|$ inflates the $\theta_0$-side sum in \eqref{eq:times} --- the price of "contained must be earned" is a slower earned verdict, an inherent SPRT trade-off the protocol measures rather than hides.
 \end{theorem}
 
 \begin{proof}[Proof sketch]
@@ -137,7 +138,8 @@ curve, not a theorem.
 
 Three remarks on what the theorem does and does not say.
 First, the assumption we cannot discharge is per-turn conditional independence of emissions; it holds to the extent that the grammar's typed transitions, not hidden user state, drive the observation stream, and Section~\ref{sec:discussion} returns to this.
-Second, the $c$ terms are the standard excess-over-boundary (overshoot) constants; in the idealised continuous treatment they vanish, and as design guidance they are one turn at most (the protocol of Section~ef{sec:evaluation} measures them), which is why \eqref{eq:times} is displayed with them explicit rather than hidden.
+Second, the $c$ terms are the standard excess-over-boundary (overshoot) constants; in the idealised continuous treatment they vanish, and as design guidance they are one turn at most (the protocol of Section~
+ef{sec:evaluation} measures them), which is why \eqref{eq:times} is displayed with them explicit rather than hidden.
 Third, where the emission likelihood is unknown and the posterior is learned, likelihood ratios are unavailable in exact form.
 The honest sequential alternative is an anytime-valid confidence sequence over the learned posterior, which retains error control under continuous monitoring and optional stopping \citep{howard2021time} at the price of wider early boundaries; we adopt this variant in the evaluation protocol of Section~\ref{sec:evaluation} and report both operating curves.
 Wald-type SPRT remains the reference point because its boundaries are explicit and its expected stopping time is optimal among two-hypothesis tests with the same error rates \citep{waldwolfowitz1948optimality}; that optimality is a property of the classical two-sided test, not of the wider-boundary three-exit rule deployed here.
