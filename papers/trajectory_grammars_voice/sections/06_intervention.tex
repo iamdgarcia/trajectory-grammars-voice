@@ -74,12 +74,12 @@ recovery metrics for the post-intervention leg.
 \subsection{Fraud Signatures as Trajectory Anomalies}
 The grammar turns fraud detection from a per-turn classifier into a shape test over the walk.
 The canonical banking pattern is repeated authentication failure:
-a trajectory that cycles on the \texttt{auth} state --- repeated \texttt{auth} re-visits with
-\texttt{tool-fail} regressions between them and no progress into \texttt{intent} --- is the
+a trajectory that cycles on the \texttt{auth} state --- repeated \texttt{auth-fail} re-visits
+with no progress into \texttt{intent} --- is the
 credential-failure signature in which the caller cannot produce the credential the legitimate
 account holder knows.
 Formally, the monitor counts \emph{re-visits of $q_{auth}$} (a decidable prefix statistic) and
-the \texttt{tool-fail} transitions between them; these, not \texttt{user-answer} (which is
+the \texttt{auth-fail} transitions; these, not \texttt{user-answer} (which is
 progress and never increments $D$), are the events the signature reads.
 The k-step bound of \citet{garcia2026latencyfloor} makes this test cheap:
 any run segment exceeding $k_{\mathrm{cyc}}$ tool-call iterations violates the response
@@ -97,7 +97,7 @@ with passed authentication (SIM-swap, coached credentials) produces a well-forme
 layer complements --- and never replaces --- per-transaction and device-side fraud controls
 \citep{falsesuccess2026}.
 A second signature is the silent detour: a walk that reaches \texttt{confirm} while never
-touching \texttt{tool\_loop}, promising outcomes the tool history cannot support, which is the
+touching $q_{tool}$, promising outcomes the tool history cannot support, which is the
 fraud variant of the false-success pattern \citep{falsesuccess2026}.
 Because the signature is a property of the walk and not of any single utterance, it survives
 paraphrase: the attacker controls what is said, not which states the conversation passes

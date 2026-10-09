@@ -86,11 +86,12 @@ rather than from the agent's own closing statement.
 \toprule
 Type & Direction & Source $\to$ Target & Emitter & Class \\
 \midrule
-\texttt{user-answer} & progress & $q_{auth/\ldots} \to$ next spine & orchestrator LM & dialogue \\
-\texttt{user-answer} & progress & $q_{confirm} \to q_{close}$ (unguarded path) & orchestrator LM & dialogue \\\
+\texttt{user-answer} & progress & $q_{greet/auth/\ldots} \to$ next spine & orchestrator LM & dialogue \\
+\texttt{user-answer} & progress & $q_{confirm} \to q_{close}$ (unguarded path) & orchestrator LM & dialogue \\
 \texttt{agent-clarify} & either & $q_{intent/confirm} \leftrightarrow q_{clarify}$ & orchestrator LM & dialogue \\
 \texttt{tool-call} & progress & $q_{tool} \to q_{tool}$ (iteration) & orchestrator & system \\
 \texttt{tool-fail} & regression & $q_{tool} \to q_{tool}$ (retry) & backend tool & system \\
+texttt{auth-fail} & regression & $q_{auth} \to q_{auth}$ (re-visit) & auth service & system \\
 \texttt{endpoint-error} & regression & $q_{intent/confirm} \to q_{intent}$ & ASR endpointer & voice \\
 \texttt{user-bargein} & event & any $q_p \to q_p$ (audio channel) & barge-in detector & voice \\
 \texttt{disclosure} & progress & $q_{confirm} \to q_{close}$ (guarded) & compliance layer & compliance \\
@@ -144,7 +145,7 @@ inspection of $\delta$.
 \begin{definition}[Cycle and cycle depth]
 \label{def:cycledepth}
 A \emph{cycle} of a run $\sigma$ is a transition of regression type (Table~\ref{tab:transitions}):
-\texttt{tool-fail}, \texttt{endpoint-error}, or an \texttt{agent-clarify} that re-opens a settled
+\texttt{tool-fail}, \texttt{auth-fail}, \texttt{endpoint-error}, or an \texttt{agent-clarify} that re-opens a settled
 state.
 The \emph{cycle depth} $D(\sigma)$ is the number of regression-typed transitions in $\sigma$.
 Iteration-typed \texttt{tool-call} self-loops are progress by construction and never increment

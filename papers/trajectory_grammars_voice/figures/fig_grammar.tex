@@ -32,6 +32,7 @@
 % tool-call / user-bargein are channel self-loops on tl / any state respectively
 \draw[-Stealth, gray!70!black] (tl) edge[loop above, distance=0.32cm, looseness=5.5] node[above, font=\scriptsize]{tool-call (iter.)} (tl);
 \draw[-Stealth, gray!70!black] (au) edge[loop left, distance=0.28cm, looseness=5.5] node[left, font=\scriptsize, align=right]{user-bargein\\(channel event)} (au);
+draw[-Stealth, red!60!black] (au) edge[loop below, distance=0.3cm, looseness=5.5] node[below, font=\scriptsize]{auth-fail (re-visit)} (au);
 % two paths into q_close: guarded + unguarded (Table 1 rows disclosure / user-answer)
 \draw (cf) edge node[above]{disclosure (guarded)} (cl);
 \draw (cf) edge[bend right=42, looseness=1.1] node[looplabel, below, pos=0.45]{user-answer (unguarded path)} (cl.south west);

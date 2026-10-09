@@ -54,7 +54,7 @@ check("fig_stopping: no retired symbols", not re.search(r'1-\\delta|k\^\*|vareps
 # --- fig_grammar ---
 labels = re.findall(r'node\[[^\]]*\]\{([^}]+)\}', g)
 known = ('user-answer','user-bargein','agent-clarify','tool-call','tool-fail','endpoint-error',
-         'disclosure','service-complete','hangup','escalation','audit','drift')
+         'disclosure','service-complete','hangup','escalation','audit','drift','auth-fail')
 unknown = [l for l in labels if not any(k in l for k in known)]
 check("fig_grammar: every edge label is a Table-1 type (or audit overlay)", not unknown)
 check("fig_grammar: 7 progress states drawn",
