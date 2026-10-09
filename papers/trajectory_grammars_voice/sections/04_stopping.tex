@@ -137,8 +137,7 @@ curve, not a theorem.
 
 Three remarks on what the theorem does and does not say.
 First, the assumption we cannot discharge is per-turn conditional independence of emissions; it holds to the extent that the grammar's typed transitions, not hidden user state, drive the observation stream, and Section~\ref{sec:discussion} returns to this.
-Second, the $c$ terms are the standard excess-over-boundary (overshoot) constants; in the idealised continuous treatment they vanish, and as design guidance they are one turn at most (the protocol of Section~
-ef{sec:evaluation} measures them), which is why \eqref{eq:times} is displayed with them explicit rather than hidden.
+Second, the $c$ terms are the standard excess-over-boundary (overshoot) constants; in the idealised continuous treatment they vanish, and as design guidance they are one turn at most (the protocol of Section~ef{sec:evaluation} measures them), which is why \eqref{eq:times} is displayed with them explicit rather than hidden.
 Third, where the emission likelihood is unknown and the posterior is learned, likelihood ratios are unavailable in exact form.
 The honest sequential alternative is an anytime-valid confidence sequence over the learned posterior, which retains error control under continuous monitoring and optional stopping \citep{howard2021time} at the price of wider early boundaries; we adopt this variant in the evaluation protocol of Section~\ref{sec:evaluation} and report both operating curves.
 Wald-type SPRT remains the reference point because its boundaries are explicit and its expected stopping time is optimal among two-hypothesis tests with the same error rates \citep{waldwolfowitz1948optimality}; that optimality is a property of the classical two-sided test, not of the wider-boundary three-exit rule deployed here.
