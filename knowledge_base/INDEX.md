@@ -8,8 +8,8 @@
 | [alignment](topics/alignment/) | 0 | — | — |
 | [multimodal](topics/multimodal/) | 0 | — | — |
 | [orchestration](topics/orchestration/) | 29 | [gaps.md](topics/orchestration/gaps.md) | 2026-09-01 |
-| [semantic_vad](topics/semantic_vad/) | 36 | [gaps.md](topics/semantic_vad/gaps.md) | 2026-10-08 |
-| [conversation_dynamics](topics/conversation_dynamics/) | 14 | [gaps.md](topics/conversation_dynamics/gaps.md) | 2026-10-08 |
+| [semantic_vad](topics/semantic_vad/) | 36 | [gaps.md](topics/semantic_vad/gaps.md) | 2026-10-11 |
+| [conversation_dynamics](topics/conversation_dynamics/) | 15 | [gaps.md](topics/conversation_dynamics/gaps.md) | 2026-10-11 |
 
 ## Conversation Dynamics Papers (15 total)
 _New topic 2026-10-08 — trajectory-level analysis of agent conversations. See [topics/conversation_dynamics/](topics/conversation_dynamics/) - [gaps.md](topics/conversation_dynamics/gaps.md) (CD1-CD4). Feeds `papers/trajectory_grammars_voice/`._
@@ -38,6 +38,9 @@ _New topic 2026-10-08 — trajectory-level analysis of agent conversations. See 
 
 ### Stopping rules
 - [consol2025](topics/conversation_dynamics/papers/consol2025.md) - ConSol SPRT for reasoning paths (2503.17587)
+
+### Decision-only judging / routing (2026-10-11)
+- [cmu2026jevjudge](topics/conversation_dynamics/papers/cmu2026jevjudge.md) - JEV-as-a-Judge: accept-when-confident/escalate-when-unsure (2609.26550) [331 votes, validates tiny decision-model wave]
 
 ## Orchestration Papers (29 total)
 
