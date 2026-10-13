@@ -2,10 +2,18 @@
 % Every drawn edge is a row of Table 1 (sections/03_grammar.tex). Audit overlay: compliance-escape.
 % q_close is reachable by TWO paths (guarded disclosure, unguarded user-answer) — the audit
 % overlay re-labelling to compliance-escape is therefore satisfiable.
+%
+% Layout contract (v3, overlap-free):
+%   spine gr->au->in->tl->cfy->cf->cl on one row, 1.7cm pitch
+%   aban terminal top-LEFT above au (hangup edges: au up, cfy via right-angle orthogonal route)
+%   cont/hand/comp terminals in one bottom row, directly below tl/cfy/cl respectively
+%   vertical drops: cfy->hand (escalation), cl->cont (service-complete), cl->comp zone for audit
+%   loops: tool-call above tl, bargein below in (label directly under the loop), auth-fail below au
+%   unguarded arc dips below cf->cl; agent-clarify arc under in<->cfy; endpoint-error short arc left of in
 \begin{tikzpicture}[
-  node distance=1.05cm and 1.05cm,
+  node distance=1.7cm,
   state/.style={circle, draw, minimum size=1.0cm, font=\small, fill=blue!5},
-  terminal/.style={rectangle, rounded corners, draw, minimum width=1.6cm, minimum height=0.6cm, font=\small\itshape},
+  terminal/.style={rectangle, rounded corners, draw, minimum width=1.7cm, minimum height=0.6cm, font=\small\itshape},
   every edge/.append style={-Stealth, font=\scriptsize},
   looplabel/.style={font=\scriptsize, align=center},
   scale=0.85,
@@ -18,10 +26,10 @@
 \node[state, right=of cfy] (cf) {cf};
 \node[state, right=of cf] (cl) {cl};
 
-\node[terminal, above=1.6cm of in, xshift=-1.2cm] (aban) {abandoned};
-\node[terminal, below=2.0cm of tl] (cont) {contained};
-\node[terminal, below=2.0cm of cfy] (hand) {handoff};
-\node[terminal, below=2.0cm of cl, dashed] (comp) {compliance-escape};
+\node[terminal, above=1.7cm of au] (aban) {abandoned};
+\node[terminal, below=2.3cm of tl] (cont) {contained};
+\node[terminal, below=2.3cm of cfy] (hand) {handoff};
+\node[terminal, below=2.3cm of cl] (comp) {compliance-escape};
 
 % progress spine
 \draw (gr) edge[bend left=14] node[above]{user-answer} (au);
@@ -29,29 +37,29 @@
 \draw (in) edge[bend left=14] node[above]{user-answer (request)} (tl);
 \draw (tl) edge[bend left=14] node[above]{user-answer} (cfy);
 \draw (cfy) edge[bend left=14] node[above]{user-answer} (cf);
-% tool-call / user-bargein are channel self-loops on tl / any state respectively
+\draw (cf) edge node[above, pos=0.3]{disclosure (guarded)} (cl);
+
+% channel self-loops: tool-call above tl; bargein below in with label directly beneath;
+% auth-fail below au (regression re-visit)
 \draw[-Stealth, gray!70!black] (tl) edge[loop above, distance=0.32cm, looseness=5.5] node[above=1pt, font=\scriptsize]{tool-call (iter.)} (tl);
-\draw[-Stealth, red!60!black] (au) edge[loop below, distance=0.42cm, looseness=5.5] node[below, font=\scriptsize]{auth-fail (re-visit)} (au);
-% two paths into q_close: guarded + unguarded (Table 1 rows disclosure / user-answer)
-\draw (cf) edge node[above, pos=0.75]{disclosure (guarded)} (cl);
-\draw (cf) edge[bend right=42, looseness=1.1] node[looplabel, below, pos=0.45]{user-answer (unguarded path)} (cl.south west);
-\draw (cl) edge node[right, pos=0.75]{service-complete} (cont.north east);
+\draw[-Stealth] (in) edge[loop below, distance=0.34cm, looseness=5.5] node[looplabel, below=1pt]{user-bargein\\(channel event)} (in);
+\draw[-Stealth, red!60!black] (au) edge[loop below, distance=0.6cm, looseness=6.5] node[looplabel, below=2pt]{auth-fail\\(re-visit)} (au);
 
 % regressions (cycle types)
 \draw (tl) edge[bend left=30] node[looplabel, below]{tool-fail (retry)} (tl.west);
-\draw (in) edge[bend right=45] node[looplabel, below left, pos=0.3]{endpoint-error} (in.south west);
-\draw (cfy.west) edge[bend left=40] node[looplabel, below, pos=0.5]{agent-clarify (re-open)} (in.south);
+\draw (in) edge[bend right=50] node[looplabel, left, pos=0.5, xshift=-2pt]{endpoint-error} (in.south west);
+\draw (cfy.south) edge[bend left=30] node[looplabel, below, pos=0.5]{agent-clarify (re-open)} (in.south east);
 
-% terminal-entering types
-\draw (au) edge node[above left, pos=0.55]{hangup} (aban.south west);
-\draw (cfy) edge node[looplabel, right, pos=0.2]{hangup} (aban.south east);
-\draw (cfy) edge node[right, pos=0.6]{escalation} (hand);
-\draw (cf) edge[bend left=38, looseness=1.4] node[looplabel, above, pos=0.6]{escalation} (hand.north west);
+% terminal-entering types: hangup from au (vertical-ish) and cfy (orthogonal, over the top? no: below)
+\draw (au.north) edge node[left, pos=0.5]{hangup} (aban.south);
+\draw (cfy.north) edge[out=100, in=20] node[above, pos=0.55]{hangup} (aban.east);
+\draw (cfy) edge node[right, pos=0.45]{escalation} (hand);
+\draw (cf.south) edge[out=-90, in=180] node[looplabel, below right, pos=0.5]{escalation} (hand.east);
+\draw (cl) edge node[looplabel, right, pos=0.45]{service-complete} (cont.east);
 
-% channel event (state unchanged, Table 1 row user-bargein) — drawn once on q_intent
-% (type applies to any q_p; a second loop on q_greet would collide with the q_greet node)
-\draw (in) edge[loop below, distance=0.42cm, looseness=5.5] node[looplabel, below, xshift=-58pt, yshift=-14pt, align=right]{user-bargein\\(channel event)} (in);
+% two paths into q_close are drawn: guarded disclosure (above) + unguarded arc below
+\draw (cf) edge[bend right=35, looseness=1.2] node[looplabel, below, pos=0.5]{user-answer (unguarded path)} (cl.south west);
 
 % audit overlay (not a type of Sigma): re-labelling of unguarded-path completions only
-\draw[-Stealth, dashed] (comp) edge node[font=\scriptsize, below right, pos=0.5, align=left]{audit: close was unguarded} (cont.south east);
+\draw[-Stealth, dashed] (comp.west) edge node[looplabel, above, pos=0.5]{audit: close was unguarded} (cont.east);
 \end{tikzpicture}
