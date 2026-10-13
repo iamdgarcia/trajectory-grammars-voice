@@ -133,7 +133,7 @@ rule-based $\tau$ and its measurement.
 > automata/graphs/benchmarks from traces but assign no conversation states, no outcome classes, no
 > shared space where real and synthetic populations can be compared.
 > **Nobody claimed the mapping.** Four alphaxiv scan rounds (agent-trace viz, user-sim fidelity,
-> dialogue-flow viz, process mining) found no published trace→state-space mapping with outcome
+> dialogue-flow viz, process mining) found no published mapping from STANDARDIZED observability exports to a state space with outcome classes (concurrent AgentEval 2607.06873 mines workflow graphs from live interaction, but targets single-agent boundary testing, not population-level coverage) with outcome
 > classes and no collection-level atlas comparing sim and real clouds by region. The grammar that
 > gives the mapping its target vocabulary exists (\citep{garcia2026grammar}); the extraction layer
 > is the missing bridge — and the region-coverage metric is the evaluation primitive the
