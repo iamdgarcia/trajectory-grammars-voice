@@ -111,7 +111,6 @@ A WHOLE SUBFIELD formed in the last 90 days:
   framing has a cognitive-science anchor; cite in the atlas method section.
 
 ## Synthesis: what the night changed
-
 1. **The orchestrator/paper positioning is STRONGER than believed**: speculative-execution is a hot
    subfield (7 papers/90 days) but all are SERVING-LAYER optimizations; the runtime-contract
    position (when is launching tools legal/safe) is ours to claim. Read 2610.07641 in full next.
