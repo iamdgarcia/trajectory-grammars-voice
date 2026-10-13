@@ -23,6 +23,8 @@ benchmarks without trajectories).
 cycle-depth drift; the latency-floor paper's k-step ReAct bound becomes the cycle-length
 constraint. → **SELECTED 2026-10-08. This is the lead of `papers/trajectory_grammars_voice/`.**
 
+→ **ADDRESSED 2026-10-13** by `papers/trajectory_grammars_voice/` (Trajectory Grammar G=(Q,Σ,δ), cycle depth D, 4 terminal classes; accepted after 4 review rounds).
+
 ---
 
 ## Gap CD2: No decision-time guarantee for early outcome prediction — gap_score: 5
@@ -38,6 +40,8 @@ but has not been transposed to multi-turn conversations with grammar-state poste
 **Candidate contribution:** Trajectory Stopping Theorem: SPRT / confidence-sequence stopping over
 P(class | x_{1:k}) achieves expected decision time ≤ k* turns at confidence ≥ 1−δ; TRACER's
 threshold shown as a fixed-sample instance.
+
+→ **ADDRESSED 2026-10-13** by `papers/trajectory_grammars_voice/` §4 Trajectory Stopping Theorem: E[k_dec] ≤ K(ε,c) with Ville-style exact pricing; TRACER threshold = fixed-sample instance.
 
 ---
 
@@ -55,6 +59,8 @@ intervention decision latency (must clear the published latency/cessation floors
 `x2turn2026` + tool-call events + endpointing/barge-in flags); intervention latency accounted
 against Λ* and the cessation floor.
 
+→ **ADDRESSED 2026-10-13** by `papers/trajectory_grammars_voice/` Table 1: barge-in, endpoint-error, tool events are first-class typed emissions (channels in the observation model).
+
 ---
 
 ## Gap CD4: Banking KPI wiring (containment/abandonment/handoff/compliance) is informal — gap_score: 4
@@ -68,6 +74,8 @@ outcome taxonomy ties these KPIs to conversation-internal trajectory classes wit
 
 **Candidate contribution:** KPI-to-terminal-class mapping with cost-weighted detection-latency
 metrics; leave-one-campaign-out protocol on real Spanish call logs.
+
+→ **ADDRESSED 2026-10-13** by `papers/trajectory_grammars_voice/` §5-§6: 𝓛_cwe metric, cost-model Table (tab:costmodel), LOCO+temporal-blocking protocol, intervention coupling to cessation floor.
 
 ---
 

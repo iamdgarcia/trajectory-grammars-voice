@@ -9,10 +9,10 @@
 | [multimodal](topics/multimodal/) | 0 | — | — |
 | [orchestration](topics/orchestration/) | 29 | [gaps.md](topics/orchestration/gaps.md) | 2026-09-01 |
 | [semantic_vad](topics/semantic_vad/) | 36 | [gaps.md](topics/semantic_vad/gaps.md) | 2026-10-11 |
-| [conversation_dynamics](topics/conversation_dynamics/) | 15 | [gaps.md](topics/conversation_dynamics/gaps.md) | 2026-10-11 |
+| [conversation_dynamics](topics/conversation_dynamics/) | 20 | [gaps.md](topics/conversation_dynamics/gaps.md) | 2026-10-11 |
 
 ## Conversation Dynamics Papers (15 total)
-_New topic 2026-10-08 — trajectory-level analysis of agent conversations. See [topics/conversation_dynamics/](topics/conversation_dynamics/) - [gaps.md](topics/conversation_dynamics/gaps.md) (CD1-CD4). Feeds `papers/trajectory_grammars_voice/`._
+_New topic 2026-10-08 — trajectory-level analysis of agent conversations. See [topics/conversation_dynamics/](topics/conversation_dynamics/) - [gaps.md](topics/conversation_dynamics/gaps.md) (CD1-CD4). Feeds `papers/trajectory_grammars_voice/` — **PAPER COMPLETE 2026-10-13**: accepted after 4 review rounds; CD1-CD4 addressed; arXiv zip + HF benchmark shipped._
 _Second paper in the line: **trace→trajectory + region-coverage atlas** — see `papers/trace2trajectory/` (OUTLINE Stage 2 complete). SOTA scan: [SOTA_scan_trace2trajectory.md](topics/conversation_dynamics/SOTA_scan_trace2trajectory.md); implementation: github.com/iamdgarcia/trace2grammar._
 
 ### Early outcome prediction / trajectory analysis

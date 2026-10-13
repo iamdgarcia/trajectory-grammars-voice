@@ -1,0 +1,37 @@
+{
+ "schema": "tgv-bench/1.0",
+ "seed": 20261013,
+ "n_calls": 12000,
+ "campaigns": {
+  "cam_0": {
+   "n": 2400,
+   "cycles": 2
+  },
+  "cam_1": {
+   "n": 2400,
+   "cycles": 2
+  },
+  "cam_2": {
+   "n": 2400,
+   "cycles": 2
+  },
+  "cam_3": {
+   "n": 2400,
+   "cycles": 2
+  },
+  "cam_4": {
+   "n": 2400,
+   "cycles": 2
+  }
+ },
+ "files": {
+  "calls.jsonl": "9546a12947c7a82340125005d9c8fa6e3d01d88c3e65029a16f281595d7a3d21",
+  "splits.json": "a2f8e4e169589babe8b7ab05cddd91783709fc3bf9b1e6866a12a29bdb28dc8c"
+ },
+ "terminal_label_distribution": {
+  "contained": 8655,
+  "abandoned": 1425,
+  "handoff": 1316,
+  "compliance-escape": 604
+ }
+}
