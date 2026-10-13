@@ -55,13 +55,15 @@ space walk per conversation. **CDS (2609.31719) is the metric-side neighbor for 
 
 > Production agents emit traces in standard formats (OTel GenAI, OpenInference, LangSmith), yet no
 > published method maps those traces to a machine-level conversation state space with typed
-> transitions, terminal outcome classes, and voice-physics channels — nor visualizes conversation
-> collections as a distributional atlas where synthetic and real populations can be compared by
-> region. We contribute the formal extraction mapping, a `voice.*` semantic-conventions extension
-> proposal (barge-in/endpointing/tool-RTT channels that currently die at the transport boundary),
-> and the trajectory atlas; sim2real transfer is measured as region coverage + Wasserstein
-> divergence of grammar-walk statistics (CDS-style), with rank correlation of policy scores as the
-> transfer headline.
+> transitions and terminal outcome classes — nor visualizes conversation collections as a
+> distributional atlas where synthetic and real populations can be compared by region. We
+> contribute the formal extraction mapping and the trajectory atlas. The headline evaluation is
+> **region coverage**: given real-conversation embeddings, which regions of conversational
+> behavior does a simulator (or a new agent version) cover, and which are uncovered — the
+> measurable answer to "what are we NOT testing". Sim2real transfer is quantified as coverage +
+> Wasserstein divergence of grammar-walk statistics (CDS-style), with rank correlation of policy
+> scores as the transfer headline. Voice-physics channels are an OPTIONAL extension (appendix),
+> not the central claim.
 
 ## Citation pack (new, verified arXiv ids)
 
