@@ -199,12 +199,13 @@ inside one call — while this runtime offers the right level: across turns).
 
 ## E5. Testable predictions for the benchmark
 
-The named benchmark file (`bench_orchestration.py`) **does not exist yet** — the measurement
-artifacts today are `scripts/smoke_cessation.py` (5-run medians, executed 2026-10-13, all
-invariants hold on this machine) and the harness spec (`papers/_next_angles/harness_spec.md`,
-H1–H4 cells, not yet built). The predictions below are stated as **acceptance gates**: they bind
-whichever harness implements the spec's cells, and each is already anchored by the smoke cells
-where noted.
+The named benchmark file (`bench_orchestration.py`) **now exists** (2026-10-13, scripts/bench_orchestration.py):
+32/32 invariants PASS on the real orchestrator. P1–P3 verified (cease scaling, generation-stop,
+RTT-dominated resume); P4–P7 verified via the harness (parallel-beats-cascade with linear A−B growth
+in (tools−1)×RTT; no-worse at tools=1; turn-ack bounded <260ms). Full tables in scripts/BENCH_NOTES.md.
+Legacy context (superseded): earlier artifacts were `scripts/smoke_cessation.py` (5-run medians,
+2026-10-13, all invariants hold) and the harness spec (`papers/_next_angles/harness_spec.md`,
+H1–H4 cells) — the built bench implements the spec's cells and asserts the gates directly.
 
 | # | Prediction | Cell / source | Status |
 |---|---|---|---|
