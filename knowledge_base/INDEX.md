@@ -13,6 +13,7 @@
 
 ## Conversation Dynamics Papers (15 total)
 _New topic 2026-10-08 — trajectory-level analysis of agent conversations. See [topics/conversation_dynamics/](topics/conversation_dynamics/) - [gaps.md](topics/conversation_dynamics/gaps.md) (CD1-CD4). Feeds `papers/trajectory_grammars_voice/`._
+_Second paper in the line: **trace→trajectory + region-coverage atlas** — see `papers/trace2trajectory/` (OUTLINE Stage 2 complete). SOTA scan: [SOTA_scan_trace2trajectory.md](topics/conversation_dynamics/SOTA_scan_trace2trajectory.md); implementation: github.com/iamdgarcia/trace2grammar._
 
 ### Early outcome prediction / trajectory analysis
 - [nourbakhsh2026tracer](topics/conversation_dynamics/papers/nourbakhsh2026tracer.md) - TRACER partial-dialogue failure forecasting (2607.03974) [VERIFIED full text]
