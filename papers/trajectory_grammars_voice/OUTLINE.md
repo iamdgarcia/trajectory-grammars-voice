@@ -160,4 +160,4 @@ grammar, banking, and Spanish-voice facets.
 6. Stage 5: revision loop (≤5 rounds).
 7. Stage 6: arXiv zip; GitHub repo with paper + KB (needs push token from author);
    Hugging Face dataset for the Spanish benchmark artifacts; experiments (if any) via the
-   gcloud lab environment (gcloud config: dgarcpea@unicaja.es, europe-west1).
+   gcloud lab environment (gcloud lab environment [internal, redacted]).
