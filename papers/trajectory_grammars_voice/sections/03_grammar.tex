@@ -47,7 +47,7 @@ an escape at audit time.
   }
   \caption{The trajectory grammar $G$.
            Progress states (rounded) form the service spine; typed transitions (labelled
-           arrows) carry the ten event classes of Table~\ref{tab:transitions};
+           arrows) carry the twelve event classes of Table~\ref{tab:transitions};
            regression types open cycles back into earlier states;
            terminal classes (squares) absorb every well-formed run.}
   \label{fig:grammar}
@@ -91,7 +91,7 @@ Type & Direction & Source $\to$ Target & Emitter & Class \\
 \texttt{agent-clarify} & either & $q_{intent/confirm} \leftrightarrow q_{clarify}$ & orchestrator LM & dialogue \\
 \texttt{tool-call} & progress & $q_{tool} \to q_{tool}$ (iteration) & orchestrator & system \\
 \texttt{tool-fail} & regression & $q_{tool} \to q_{tool}$ (retry) & backend tool & system \\
-texttt{auth-fail} & regression & $q_{auth} \to q_{auth}$ (re-visit) & auth service & system \\
+\texttt{auth-fail} & regression & $q_{auth} \to q_{auth}$ (re-visit) & auth service & system \\
 \texttt{endpoint-error} & regression & $q_{intent/confirm} \to q_{intent}$ & ASR endpointer & voice \\
 \texttt{user-bargein} & event & any $q_p \to q_p$ (audio channel) & barge-in detector & voice \\
 \texttt{disclosure} & progress & $q_{confirm} \to q_{close}$ (guarded) & compliance layer & compliance \\

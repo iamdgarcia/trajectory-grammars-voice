@@ -14,19 +14,18 @@
   \node[font=\scriptsize, blue!60!black, anchor=west] at (-0.4,0.45) {LLR crosses $A_a$ inside the tool loop};
 \end{scope}
 % ---------- Panel B: drifted call, D = 3 (same length) ----------
-\begin{scope}[yshift=-3.4cm]
+\begin{scope}[yshift=-4.6cm]
   \node[font=\small\bfseries, anchor=west] at (-0.4,2.3) {(b) drifted: $D=3$};
   % same 12 turns
   \draw[gray!60] (-0.4,0) -- (9.1,0);
   \foreach \i in {0,...,11} { \fill[red!60!black] (\i*0.72,0) circle (1.7pt); }
+  \node[font=\scriptsize, red!60!black, align=left, anchor=west] at (-0.4,-0.55) {same turn count as panel (a), but three regression transitions: off-path};  \node[font=\scriptsize, red!60!black, align=left, anchor=west] at (-0.4,-1.75) {drift alarm fires on the $(k_{\mathrm{cyc}}{+}1)$-th tool-call event, or on rising $D$ fed to the posterior};
   % three regression events (each increments D by 1)
-  \draw[-Stealth, red!60!black] (1.6,0.12) .. controls (2.2,1.0) and (3.2,1.0) .. (3.8,0.12)
-    node[midway, above, font=\scriptsize] {tool-fail (retry), $D{+}1$};
-  \draw[-Stealth, red!60!black] (3.9,-0.12) .. controls (4.5,-1.1) and (5.5,-1.1) .. (6.1,-0.12)
-    node[midway, below, font=\scriptsize] {agent-clarify re-open, $D{+}1$};
+  \node[font=\scriptsize, red!60!black, align=left, anchor=west] at (2.1,2.9) {tool-fail (retry), $D{+}1$};
+  \draw[-Stealth, red!60!black] (1.6,0.12) .. controls (2.2,1.0) and (3.2,1.0) .. (3.8,0.12);
+  \draw[-Stealth, red!60!black] (3.9,-0.12) .. controls (4.5,-1.15) and (5.5,-1.15) .. (6.1,-0.12)
+    node[midway, below=3pt, font=\scriptsize] {agent-clarify re-open, $D{+}1$};
   \draw[-Stealth, red!60!black] (6.2,0.12) .. controls (6.8,1.5) and (7.8,1.5) .. (8.4,0.12)
     node[midway, above, font=\scriptsize] {endpoint-error, $D{+}1$};
-  \node[font=\scriptsize, align=left, anchor=west] at (-0.4,-1.85) {same turn count as panel (a), but three regression transitions: off-path};
-  \node[font=\scriptsize, red!60!black, align=left, anchor=west] at (-0.4,-2.55) {drift alarm fires on the $(k_{\mathrm{cyc}}{+}1)$-th tool-call event, or on rising $D$ fed to the posterior};
 \end{scope}
 \end{tikzpicture}

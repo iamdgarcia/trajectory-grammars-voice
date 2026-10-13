@@ -10,11 +10,14 @@
 \foreach \k/\lbl in {1/{auth}, 3/{intent}, 5/{tool-loop}, 7/{clarify}, 9/{confirm}} {
   \draw (\k,0.06) -- (\k,-0.06) node[below, font=\scriptsize] {\lbl};
 }
+% k_dec tick label: nudge left so it clears the clarify tick
+\node[below left, font=\scriptsize, red!70!black, xshift=2pt, yshift=-8pt] at (7.4,-0.12) {$k_{\mathrm{dec}}$};
 % ---- handoff class boundaries ----
 \draw[dashed, thick, gray] (0,3.0) -- (10.6,3.0)
-  node[above, font=\scriptsize, pos=0.5] {$A_{hand} = \log (1/\alpha_{hand})$ --- declare \textit{handoff}};
+  node[above, font=\scriptsize, pos=0.32] {$A_{hand} = \log (1/\alpha_{hand})$};
+\node[font=\scriptsize, gray, anchor=west] at (4.1,3.45) {--- declare \textit{handoff}};
 \draw[dashed, thick, gray] (0,-1.3) -- (10.6,-1.3)
-  node[below, font=\scriptsize, pos=0.22] {$B_{hand} = \log \beta_{hand} < 0$};
+  node[below, font=\scriptsize, pos=0.16] {$B_{hand} = \log \beta_{hand} < 0$};
 % ---- esc class boundaries (its own pair, lower corridor) ----
 \draw[dashed, thick, gray!60] (0,-0.3) -- (10.6,-0.3)
   node[above, font=\scriptsize, pos=0.62, gray!60] {$B_{esc}$};
@@ -27,10 +30,10 @@
   (0,-0.2) -- (1,0.1) -- (2,0.5) -- (3,0.4) -- (4,0.9) -- (5,0.8) -- (6,1.5) -- (7,2.3) -- (7.4,3.0)
   node[font=\scriptsize, red!70!black, above left, pos=0.98] {$\ell_k^{hand}$};
 \fill[red!70!black] (7.4,3.0) circle (2.2pt);
-\draw[-Stealth, red!70!black] (7.4,3.0) -- (7.4,0) node[below, font=\scriptsize, red!70!black] {$k_{\mathrm{dec}}$};
+\draw[-Stealth, red!70!black] (7.4,3.0) -- (7.4,0);
 % esc class: NEGATIVE drift inside its corridor (B_esc, A_esc), never crossing either
-\draw[thick, blue!60!black] (0,0.15) -- (1,0.0) -- (2,-0.12) -- (3,-0.2) -- (4,-0.16) -- (5,-0.22) -- (6,-0.25) -- (7,-0.21) -- (8,-0.26) -- (9,-0.24) -- (10.6,-0.27)
-  node[right, font=\scriptsize, blue!60!black, align=left] {$\ell_k^{esc}$ drifts inside\\ $(B_{esc}, A_{esc})$};
+% label sits in the open band y in (-1.3,-0.3) right of the curve end
+\node[font=\scriptsize, blue!60!black, anchor=west, align=left] at (8.3,-1.0) {$\ell_k^{esc}$ drifts inside\\ $(B_{esc}, A_{esc})$};
 % intervention window vs escalation-only threshold
 \draw[decorate, decoration={brace, mirror, amplitude=5pt}, thick, olive!70!black] (7.4,3.7) -- (10.6,3.7)
   node[midway, above, font=\scriptsize, olive!70!black] {intervention window};

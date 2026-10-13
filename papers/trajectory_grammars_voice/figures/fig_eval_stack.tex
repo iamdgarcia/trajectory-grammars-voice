@@ -16,14 +16,14 @@
 \node[layer, below=of gram] (stop) {stopping rule over $P(\theta\mid o_{1:k})$: decide at $k_{\mathrm{dec}}$, expected $\leq K(\varepsilon,c)$, confidence $1-\varepsilon$};
 % KPI classes
 \node[kpi, below left=0.8cm and -1.2cm of stop] (cont) {contained};
-\node[kpi, right=of cont] (aban) {abandoned};
-\node[kpi, right=of aban] (hand) {handoff};
-\node[kpi, right=of hand] (comp) {compliance-escape};
-% interventions
+\node[kpi, right=1.6cm of cont] (aban) {abandoned};
+\node[kpi, right=1.6cm of aban] (hand) {handoff};
+\node[kpi, right=1.6cm of hand] (comp) {compliance-escape};
+% interventions — staggered rows so wide boxes never collide
 \node[act, below=1.5cm of cont] (none) {continue (no action)};
-\node[act, below=1.5cm of aban] (probe) {proactive clarification};
 \node[act, below=1.5cm of hand] (esc) {warm transfer to teller};
-\node[act, below=1.5cm of comp] (fraud) {fraud flag + policy route};
+\node[act, below=2.6cm of aban] (probe) {proactive clarification};
+\node[act, below=2.6cm of comp] (fraud) {fraud flag + policy route};
 
 \draw (sens) -- (gram);
 \draw (gram) -- (stop);
@@ -32,9 +32,9 @@
 \draw (stop.south) -- ++(0,-0.35) -| (hand.north);
 \draw (stop.south) -- ++(0,-0.35) -| (comp.north);
 \draw (cont) -- (none);
-\draw (aban) -- (probe);
 \draw (hand) -- (esc);
-\draw (comp) -- (fraud);
+\draw (aban.south) -- (probe.north);
+\draw (comp.south) -- (fraud.north);
 % latency accounting side note
 \node[box, fill=gray!8, right=1.0cm of stop.east, align=left, font=\scriptsize]
   (lat) {decision latency $\leq \Lambda^\ast$ headroom\\ intervention clears cessation floor};

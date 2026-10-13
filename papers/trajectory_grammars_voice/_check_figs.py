@@ -68,7 +68,7 @@ check("fig_grammar: unguarded close path drawn (theta_esc satisfiable)", 'unguar
 check("fig_grammar: audit overlay says 'close was unguarded'", 'close was unguarded' in g)
 check("fig_grammar: all four terminal classes reachable from figure edges",
       'service-complete' in g and 'hangup' in g and 'escalation' in g and 'audit' in g)
-check("03: fig:grammar caption says ten event classes", 'ten event classes' in s)
+check("03: fig:grammar caption says twelve event classes", 'twelve event classes' in s)
 
 # --- P0/P1 fixes in the theorem ---
 check("04: theta_0-side bound aggregates over classes (r10 P0)",
