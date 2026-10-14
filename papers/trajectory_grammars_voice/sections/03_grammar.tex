@@ -49,7 +49,9 @@ an escape at audit time.
            Progress states (rounded) form the service spine; typed transitions (labelled
            arrows) carry the twelve event classes of Table~\ref{tab:transitions};
            regression types open cycles back into earlier states;
-           terminal classes (squares) absorb every well-formed run.}
+           terminal classes (squares) absorb every well-formed run.
+           Channel events (e.g., barge-in) ride the transitions as annotations and
+           never mutate the state.}
   \label{fig:grammar}
 \end{figure}
 

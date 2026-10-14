@@ -113,4 +113,5 @@ The release is concrete: schema version and row/call counts, the scenario-class 
 The generator replays schema-conformant templates with timing and tool-RTT distributions fitted to the private corpus; preservation is measured per field and per class with two-sample distributional tests, and the synthetic-to-private gap is reported rather than smoothed.
 Because synthetic data derived from personal data is not automatically anonymous, the release ships only after a re-identification check (membership-inference and singularity screening over the released rows), and the datasheet documents both the check and its results.
 The cost-model constants of Table~\ref{tab:costmodel} and the $\pi_\theta$ convention ship with the release so the headline metric is reproducible.
+The nearest learned baseline is likewise re-runnable from source: TRACER's implementation is public at \url{https://github.com/erfan-nourbakhsh/TRACER} \citep{nourbakhsh2026tracer}.
 This mirrors the evaluation-driven industrial practice documented by \citet{nubank2026}, which publishes frameworks at scale without corpus release.
