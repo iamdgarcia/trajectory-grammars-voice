@@ -54,7 +54,7 @@
 Early Outcome Prediction and Intervention on Partial Conversations}
 
 \author[1,2]{Daniel Garc\'ia Pe\~na}
-\affil[1]{AI Engineering, Unicaja Bank, Spain.}
+\affil[1]{AI Engineering, Spain.}
 \affil[2]{\texttt{info@iamdgarcia.com} --- ORCID 0000-0002-1456-4785}
 
 \date{\today}
@@ -64,7 +64,7 @@ Early Outcome Prediction and Intervention on Partial Conversations}
 \maketitle
 
 \begin{abstract}
-Production conversational-banking voice agents are judged by conversation-level outcomes ---
+Production customer-service voice agents are judged by conversation-level outcomes ---
 containment, abandonment, human handoff, compliance --- yet their engineering and evaluation
 remain turn-level.
 We propose a formal \emph{trajectory grammar} for voice-agent conversations: a state space over
@@ -75,14 +75,15 @@ cycles and cycle depth is a first-class drift statistic that distinguishes \emph
 On top of the grammar we define a partial-observation decision layer: a sequential stopping rule
 (SPRT / confidence sequences) over the outcome-class posterior that achieves expected decision
 time at most $K(\varepsilon, c)$ turns at confidence $1-\varepsilon$ under standard sequential-analysis assumptions on the emission model, with false-early-exit economics derived
-from a banking cost model; we show that a recent learned early-failure detector is the
+from an operational cost model; we show that a recent learned early-failure detector is the
 fixed-sample instance of this rule.
-We wire the outcome classes to production telephony KPIs, define a leave-one-campaign-out
-evaluation protocol on real Spanish call logs with decision-latency accounting against the
+We wire the outcome classes to contact-centre KPIs, instantiate the protocol on public
+task-oriented dialogue and agent benchmarks (MultiWOZ~2.4, ABCD, $\tau$-bench) with
+decision-latency accounting against the
 published latency and cessation floors of cascade voice agents, and couple escalation,
 clarification, and fraud-flag states to a production orchestration graph as actionable
 interventions.
-The trajectory layer thereby becomes the missing conversation-scale control layer for banking
+The trajectory layer thereby becomes the missing conversation-scale control layer for customer-service
 voice agents.
 \end{abstract}
 
@@ -102,7 +103,7 @@ voice agents.
 \label{sec:stopping}
 \input{sections/04_stopping}
 
-\section{A Banking KPI-Tuned Evaluation Protocol}
+\section{A Contact-Centre KPI-Tuned Evaluation Protocol}
 \label{sec:evaluation}
 \input{sections/05_evaluation}
 

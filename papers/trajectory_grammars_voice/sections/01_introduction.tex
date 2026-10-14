@@ -1,7 +1,8 @@
 % §1 Introduction
-Conversational voice agents are now operational infrastructure in banking.
-Production deployments handle account inquiries, card operations, transfers, and
-authentication over the telephone, at cadences measured in millions of calls per year \citep{nubank2026}.
+Conversational voice agents are now operational infrastructure in customer service.
+Production deployments handle account inquiries, order management, identity verification, and
+troubleshooting over the telephone and in text chat, at cadences measured in millions of
+tasks per month \citep{nubank2026}.
 The institutions that operate them are not judged on how gracefully a single turn is handled.
 They are judged on conversation-level key performance indicators:
 the containment rate (calls resolved without human involvement),
@@ -32,7 +33,7 @@ Meanwhile, the failures that matter in production emerge progressively, not abru
 Recent work on task-oriented dialogue shows that breakdowns accumulate through
 slot instability, unresolved contradictions, and task drift long before the final
 outcome makes them visible \citep{nourbakhsh2026tracer}.
-In banking this progression has names the industry tracks: the caller who repeats
+In contact centres this progression has names the industry tracks: the caller who repeats
 an account number three times, the tool that fails twice on the same operation,
 the caller who goes silent while the agent keeps narrating options.
 Each is a trajectory pattern, and each becomes actionable only if it is detected
@@ -45,11 +46,11 @@ But its trigger is a dev-set-tuned threshold with no decision-time guarantee,
 its outcome is a single binary failure flag,
 its evidence base is English text-chat benchmarks,
 and its pipeline contains none of the physics that makes voice conversations hard:
-endpointing errors, barge-ins, tool round-trips, authentication events.
+endpointing errors, barge-ins, tool round-trips, identity-verification events.
 
 The gap has two halves, corresponding to gaps CD1 and CD2 of our research program.
 First, no trajectory grammar exists for voice-agent conversations:
-a formal state space over conversation states (authentication, intent, tool loop,
+a formal state space over conversation states (greeting, identity verification, intent, tool loop,
 clarification, confirmation) with typed transitions,
 terminal outcome classes aligned with business KPIs
 (contained, abandoned, handoff, compliance-escape),
@@ -70,9 +71,9 @@ We previously proved that cascade voice pipelines have an irreducible latency fl
 $\Lambda^*$ and that tool-calling agents compound it through $k$-step reasoning loops \citep{garcia2026latencyfloor}.
 We proved that response \emph{cessation}---how fast an agent can stop talking when a
 barge-in occurs---has its own floor, structured as detect/decide/cease/resume \citep{garcia2026cessationfloor}.
-We showed that text-only turn-end detection in Spanish is near chance on hard cuts,
-which forces any conversation-level state estimator to condition on intent and tool
-state rather than on the transcript alone \citep{garcia2026asking}.
+We showed that text-only turn-end detection is near chance on hard cuts
+\citep{garcia2026asking}, which forces any conversation-level state estimator to condition
+on intent and tool state rather than on the transcript alone.
 These three results are load-bearing here.
 The $k$-step ReAct bound \citep{yao2023react} becomes the cycle-length constraint of the grammar:
 a run segment that exceeds $k_{\mathrm{cyc}}$ tool-call iterations is off-path for every
@@ -81,15 +82,14 @@ The latency floor and cessation floor convert ``early enough to act'' from a slo
 into an accounting identity: an intervention trigger fires through the same pipeline
 whose components have measured latencies, and the intervention itself must clear
 the cessation floor to take the floor from the agent mid-utterance.
-The Spanish partial-transcript pipeline supplies the sensing substrate and warns
-against over-trusting text.
+The partial-transcript pipeline supplies the sensing substrate and warns against over-trusting text.
 
 We make the following contributions.
 
 \begin{enumerate}
 \item \textbf{Trajectory grammar} (\S\ref{sec:grammar}).
 We define a formal state space $G = (Q, \Sigma, \delta)$ over voice-agent
-conversations, with seven interior states (greeting, auth, intent, tool loop,
+conversations, with seven interior states (greeting, identity verification, intent, tool loop,
 clarification, confirmation, close) and four terminal outcome classes
 (contained, abandoned, handoff, compliance-escape).
 Transitions are typed (user-answer, user-bargein, agent-clarify, tool-call,
@@ -106,15 +106,16 @@ Given the posterior $p(\theta \mid o_{1:k})$ over outcome classes
 $\theta \in T$ induced by the multi-channel observation stream,
 a confidence-sequence stopping rule achieves expected decision time
 $\mathbb{E}[k_{\mathrm{dec}}] \leq K(\varepsilon, c)$ at confidence $1-\varepsilon$.
-We derive false-early-exit economics from a banking cost model in which false
+We derive false-early-exit economics from an operational cost model in which false
 containment costs more than false handoff and compliance escape has unbounded cost,
 and we show that TRACER's fixed threshold is the fixed-sample instance of this rule \citep{nourbakhsh2026tracer}.
 
-\item \textbf{Banking KPI-tuned evaluation protocol} (\S\ref{sec:evaluation}).
+\item \textbf{Contact-centre KPI-tuned evaluation protocol} (\S\ref{sec:evaluation}).
 We wire outcome classes to production telephony telemetry---containment,
 abandonment, handoff, compliance-escape---and define cost-weighted
 detection-latency metrics that extend the early-detection score of \citet{nourbakhsh2026tracer}.
-The protocol evaluates on real Spanish call logs with leave-one-campaign-out validation,
+The protocol evaluates on public task-oriented dialogue benchmarks
+(Section~\ref{sec:evaluation}) with held-out-domain validation,
 and accounts the decision latency of the trajectory monitor against the published
 floors $\Lambda^*$ and the cessation floor \citep{garcia2026latencyfloor,garcia2026cessationfloor}.
 

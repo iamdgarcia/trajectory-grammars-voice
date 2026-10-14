@@ -89,27 +89,26 @@ check("03: def:run uniqueness reworded (actual continuation)", 'actually extends
 check("03: agent-clarify decidable rule stated", 'decidable from the run prefix' in s)
 check("03: D resets only on user-confirmed resolution", 'user-confirmed' in s)
 
-# --- fraud/intervention fixes ---
-check("06: fraud signature no longer reads user-answer as cycle source",
-      'never increments $D$' in d and 're-visits of $q_{auth}$' in d)
-check("06: clarify per-call budget present", 'per-call budget' in d)
-check("06: benign base-rate + ATO scope conditions",
-      'dominated by benign causes' in d and 'SIM-swap' in d)
+# --- fraud/intervention fixes (updated 2026-10-14: generic rewrite = abuse/ident vocabulary) ---
+check("06: abuse signature no longer reads user-answer as cycle source",
+      'never increments $D$' in d and 're-visits of $q_{ident}$' in d)
+check("06: clarify intervention budget present", 'budget' in d and 'clarify loops' in d)
+check("06: benign base-rate + takeover scope conditions",
+      'dominated by benign causes' in d and 'account takeover' in d.lower())
 
-# --- evaluation fixes ---
-check("05: GDPR-safe-by-construction replaced with legal-basis statement",
-      'GDPR-safe by construction' not in e and 'Art.~6(1)(f)' in e)
-check("05: handoff/fraud decoupling sentence present",
-      'excluded from the fraud-signature channel' in e)
+# --- evaluation fixes (updated 2026-10-14: public-datasets rewrite) ---
+check("05: no private-corpus claims (public benchmarks only)",
+      'MultiWOZ' in e and 'ABCD' in e and 'tau' in e and 'production Spanish' not in e)
+check("05: honest four-class scope stated", 'No public dataset carries all four' in e)
 check("05: cost-model table with provenance", 'tab:costmodel' in e)
-check("05: audit selection rule specified", 'audit selection rule' in e)
-check("05: two split axes + temporal blocking", 'temporal blocking' in e)
-check("05: metric renamed cost-weighted error with H normalisation",
-      'mathcal{L}_{\\mathrm{cwe}}' in e and '(H - k)/H' in e)
-check("05: synthetic re-identification check committed", 're-identification check' in e)
-check("05: CC-BY-4.0 + datasheet + SHA-256 manifests", 'CC-BY-4.0' in e and 'SHA-256' in e)
+check("05: prefix-instance protocol credited to TRACER",
+      'every visible prefix' in e and 'nourbakhsh2026tracer' in e)
+check("05: metric named cost-weighted error with H normalisation",
+      'mathcal{L}_{\mathrm{cwe}}' in e and '(H - k)/H' in e)
+check("05: release = label-derivation scripts + checksums", 'SHA-256' in e and 'label-derivation' in e)
 check("05: TRACER retraining base = public implementation + configs ship",
       "authors' public implementation" in e)
+
 
 # --- scoping fixes ---
 check("abstract: guarantee qualified with assumptions clause", 'standard sequential-analysis' in mt)

@@ -9,25 +9,24 @@ We assume the production setting of our companion papers: a cascade voice agent 
 turn-taking, tool calls, and delivery are orchestrated by a directed graph
 \citep{garcia2026latencyfloor,garcia2026cessationfloor}.
 Concretely, the trajectory monitor runs alongside the orchestrator
-(in our deployment, a LangGraph event loop \citep{langgraph2024}): at each turn it updates the outcome posterior
+(e.g., a LangGraph event loop \citep{langgraph2024}): at each turn it updates the outcome posterior
 $p(\theta \mid o_{1:k})$ over terminal classes $\theta \in T$
 and exposes the grammar state $q_k \in Q$ to the policy layer.
 When the stopping rule of Section~\ref{sec:stopping} fires for a class whose action set is
 non-empty, the monitor emits an \emph{intervention token} naming one of three actions,
 each of which is a first-class graph transition rather than a side channel.
 The \emph{escalate} action transitions the graph to the \texttt{handoff} terminal class:
-the agent bridges the caller to a human teller with a context package.
+the agent bridges the customer to a human agent with a context package.
 The \emph{clarify} action injects a targeted clarification turn and re-enters the
 \texttt{clarify} grammar state.
 Two limits bind it.
 The drift counter is reset only on \emph{user-confirmed} resolution (the caller answers the
 clarification and the walk exits \texttt{clarify} via a progress transition), never on the
 intervention itself --- otherwise each token would erase the very evidence the posterior used.
-And interventions are budgeted: a per-call budget (three tokens in the deployment defaults)
-caps monitor-initiated clarify loops, after which the only available actions are escalate or
+And interventions are budgeted: caps monitor-initiated clarify loops (three tokens in the reference configuration), after which the only available actions are escalate or
 close, so the monitor cannot talk in circles on its own account.
 The \emph{fraud-flag} action marks the conversation and routes subsequent tool calls through
-step-up authentication; it does not by itself terminate the conversation.
+elevated verification; it does not by itself terminate the conversation.
 Each action consumes the same event bus the orchestrator already uses for tool completions
 and barge-in signals, so no new delivery path is introduced.
 Two guards make the action layer safe to attach to a live graph.
@@ -65,58 +64,58 @@ agent's TTS queue holds several seconds of un-played audio.
 The clarify action has the mildest constraint, because the agent can often finish its current
 sentence and absorb the clarification as the next turn.
 The escalate and fraud-flag actions bind hardest: a handoff that starts while the agent is
-still promising a transfer, or a step-up authentication demanded over an un-yielded audio
+still promising a transfer, or an escalation demanded over an un-yielded audio
 stream, produces exactly the mixed-authority audio the cessation analysis warns against; how
 recoveries degrade under such interruptions is measured by IHBench for workflow voice agents
 \citep{salimi2026ihbench}, and the protocol of Section~\ref{sec:evaluation} adopts its
 recovery metrics for the post-intervention leg.
 
-\subsection{Fraud Signatures as Trajectory Anomalies}
-The grammar turns fraud detection from a per-turn classifier into a shape test over the walk.
-The canonical banking pattern is repeated authentication failure:
-a trajectory that cycles on the \texttt{auth} state --- repeated \texttt{auth-fail} re-visits
+\subsection{Abuse Signatures as Trajectory Anomalies}
+The grammar turns abuse detection from a per-turn classifier into a shape test over the walk.
+The canonical pattern is repeated verification failure:
+a trajectory that cycles on the \texttt{ident} state --- repeated \texttt{ident-fail} re-visits
 with no progress into \texttt{intent} --- is the
-credential-failure signature in which the caller cannot produce the credential the legitimate
+identity-failure signature in which the caller cannot produce the detail the legitimate
 account holder knows.
-Formally, the monitor counts \emph{re-visits of $q_{auth}$} (a decidable prefix statistic) and
-the \texttt{auth-fail} transitions; these, not \texttt{user-answer} (which is
+Formally, the monitor counts \emph{re-visits of $q_{ident}$} (a decidable prefix statistic) and
+the \texttt{ident-fail} transitions; these, not \texttt{user-answer} (which is
 progress and never increments $D$), are the events the signature reads.
 The k-step bound of \citet{garcia2026latencyfloor} makes this test cheap:
 any run segment exceeding $k_{\mathrm{cyc}}$ tool-call iterations violates the response
-deadline, so the fraud
+deadline, so the abuse
 monitor is a threshold on the re-visit count plus a class-conditional posterior check, not a
 full-sequence re-scoring.
 Two scope conditions are stated explicitly because the base rates demand it.
-First, \texttt{auth}-cycling is dominated by benign causes --- forgotten credentials, undelivered
-one-time codes, assisted callers --- so the signature is a routing signal for step-up
-authentication, never by itself a fraud verdict, and the protocol of
+First, \texttt{ident}-cycling is dominated by benign causes --- forgotten details, undelivered
+one-time codes, assisted customers --- so the signature is a routing signal for elevated
+verification, never by itself an abuse verdict, and the protocol of
 Section~\ref{sec:evaluation} measures the benign cycling base rate before any firing policy is
 tuned.
-Second, walk-shape detection is blind to fraud that walks the normal spine: account takeover
-with passed authentication (SIM-swap, coached credentials) produces a well-formed spine, so this
+Second, walk-shape detection is blind to abuse that walks the normal spine: account takeover
+with passed verification produces a well-formed spine, so this
 layer complements --- and never replaces --- per-transaction and device-side fraud controls
 \citep{falsesuccess2026}.
 A second signature is the silent detour: a walk that reaches \texttt{confirm} while never
 touching $q_{tool}$, promising outcomes the tool history cannot support, which is the
-fraud variant of the false-success pattern \citep{falsesuccess2026}.
+abuse variant of the false-success pattern \citep{falsesuccess2026}.
 Because the signature is a property of the walk and not of any single utterance, it survives
 paraphrase: the attacker controls what is said, not which states the conversation passes
 through.
 False positives here are costly in customer trust, but the cost model still prices the miss
-higher: a missed fraud intervention can enable an unauthorized transfer, whose cost dominates
-any trust repair, so the fraud-flag inherits the compliance-escape asymmetry of
+higher: a missed abuse intervention can enable an unauthorised action, whose cost dominates
+any trust repair, so the abuse-flag inherits the compliance-escape asymmetry of
 Proposition~\ref{prop:asymmetric} rather than calibrating conservatively --- what stays
-conservative is the autonomous \emph{action} (step-up authentication, not account closure),
+conservative is the autonomous \emph{action} (elevated verification, not account closure),
 not the detection.
 
 \subsection{Escalation Economics}
-The escalation decision inherits a cost model with three currencies: agent-minutes,
-teller-minutes, and customer patience.
+The escalation decision inherits a cost model with three currencies: bot-minutes,
+human-agent-minutes, and customer patience.
 Queue-level analyses decide escalation \emph{outside} the conversation, from staffing and
 queue state \citep{queuecontrol2026}; the trajectory grammar supplies the missing
 conversation-internal signal --- \emph{this} conversation, at turn $k$, is heading for
 abandonment or compliance escape --- so the two layers compose: queue control prices the
-teller, the grammar prices the drift.
+human agent, the grammar prices the drift.
 Customer patience, the third currency, has so far been estimated from queueing behaviour ---
 silent hang-ups and wait-time tolerance \citep{silentabandonment2024} --- rather than from the
 conversation itself.
@@ -124,16 +123,16 @@ The grammar closes that gap: the \texttt{abandoned} terminal class and its precu
 (repeated clarification without progress, rising cycle depth before an abrupt close) make
 patience a readable trajectory property, so the cost of continuing in the bot can be priced
 turn by turn.
-The banking cost matrix $c(\theta_{\mathrm{dec}}, \theta_{\mathrm{true}})$ prices a false
+The operational cost matrix $c(\theta_{\mathrm{dec}}, \theta_{\mathrm{true}})$ prices a false
 containment above a false handoff: keeping a struggling customer in the bot accrues
 frustration, repeat-contact risk, and abandonment, whereas an unnecessary handoff spends
-teller-minutes but preserves the relationship.
+human-agent-minutes but preserves the relationship.
 Compliance escape is priced as unbounded --- an unauthorized commitment or a disclosure
 omission cannot be amortized --- which forces the stopping rule to treat
 compliance-escape evidence as absorbing: the first confident posterior on escape triggers
 intervention regardless of queue state.
 This ordering --- containment failure worse than handoff waste, compliance worst of all ---
-is the operational reading of the outcome taxonomy wired to telephony KPIs in
+is the operational reading of the outcome taxonomy wired to contact-centre KPIs in
 Section~\ref{sec:evaluation}.
 The fraud-flag action inherits the same accounting: elevated false-escape tolerance is the
 price of unbounded miss cost, so the flag fires on the first confident posterior rather than

@@ -1,6 +1,6 @@
 % §3 The Trajectory Grammar
 We now define the paper's central formal object: a grammar over voice-agent conversations whose
-runs are trajectories and whose terminal classes are banking outcomes.
+runs are trajectories and whose terminal classes are business outcomes.
 The definition is deliberately machine-level: every state and transition corresponds to an event
 that a production cascade already emits, so grammaticality can be checked from telemetry alone.
 Existing agent benchmarks score conversations only at full-episode granularity
@@ -55,17 +55,17 @@ an escape at audit time.
   \label{fig:grammar}
 \end{figure}
 
-The seven progress states cover the lifecycle of a banking call: identification, authentication,
+The seven progress states cover the lifecycle of a service call: identification, authentication,
 intent capture, tool execution, clarification, confirmation, and closing.
 The terminal classes are not generic success labels but the four production KPIs of conversational
-banking: containment rate, abandonment rate, handoff rate, and compliance-escape rate.
+customer service: containment rate, abandonment rate, handoff rate, and compliance-escape rate.
 Each class has an operational definition in telephony terms.
 $\theta_{cont}$ (contained) holds when the run terminates through \texttt{service-complete}
 from $q_{close}$ after a confirmed service goal.
 $\theta_{aban}$ (abandoned) holds when the caller disconnects before any terminal confirmation,
 observed as the \texttt{hangup} type.
 $\theta_{hand}$ (handoff) holds when an \texttt{escalation} transition fires, transferring the
-caller to a human teller.
+caller to a human agent.
 $\theta_{esc}$ (compliance-escape) holds when an audit overlay re-labels a \texttt{service-complete}
 termination reached via the unguarded close path --- that is, the guarded \texttt{disclosure}
 transition never succeeded --- which is precisely the false-success pattern reported for tool
@@ -280,7 +280,7 @@ turn of real time and no channel requires the conversation to have ended.
 \end{definition}
 
 The channels are not interchangeable, and the transcript channel is the weakest one.
-Text-only turn-end decisions sit near chance on Spanish hard cuts (accuracy $0.40$--$0.54$), as
+Text-only turn-end decisions sit near chance on hard cuts (accuracy $0.40$--$0.54$), as
 measured in our semantic-VAD study \citep{garcia2026asking}; a grammar that conditioned only on
 $x_{1:k}$ would therefore inherit that blindness at conversation scale.
 The turn-state and tool-event channels carry exactly the information the text channel lacks:

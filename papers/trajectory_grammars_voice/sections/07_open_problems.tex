@@ -6,10 +6,10 @@ We group them into six directions.
 The state space $Q$ and the typed transition set $\Sigma$ are language-independent by construction, but the observation model is not.
 Endpointing behaviour, ASR error profiles, and turn-state emission probabilities all shift across languages and channels.
 Multilingual voice-agent benchmarks are arriving \citep{tauvoice2026}, yet they score task quality on full episodes and define no trajectory classes.
-Text-only turn-end decisions are near chance in Spanish \citep{garcia2026asking}, and utterance-scale turn-state models are only now appearing \citep{x2turn2026}, so the emissions that feed the posterior $p(\theta \mid o_{1:k})$ may degrade unevenly across locales.
-Whether the terminal classes --- contained, abandoned, handoff, compliance-escape --- retain their cost structure and their detectability outside Spanish is open.
+Text-only turn-end decisions are near chance on hard cuts \citep{garcia2026asking}, and utterance-scale turn-state models are only now appearing \citep{x2turn2026}, so the emissions that feed the posterior $p(\theta \mid o_{1:k})$ may degrade unevenly across locales.
+Whether the terminal classes --- contained, abandoned, handoff, compliance-escape --- retain their cost structure and their detectability across languages and channels is open.
 Code-switching callers add a further complication: a mid-conversation language switch changes both the acoustic and the lexical channels that the stopping rule consumes.
-A per-class, per-language turn-policy benchmark would supply the labelled emissions the grammar needs, and building it is the prerequisite for claiming the stopping constants beyond Spanish.
+A per-class, per-language turn-policy benchmark would supply the labelled emissions the grammar needs, and building it is the prerequisite for claiming the stopping constants across locales.
 
 \paragraph{The escalation floor.}
 The program now holds two floors: the onset floor $\Lambda^*$ \citep{garcia2026latencyfloor} and the cessation floor \citep{garcia2026cessationfloor}.
@@ -20,12 +20,12 @@ The cost model makes the asymmetry explicit: a false handoff wastes agent-minute
 A deferral policy must also respect its own deadline: a handoff announcement that cannot clear the cessation floor cannot barge in on the agent mid-drift.
 Composing the three floors --- onset, cessation, escalation --- into a single schedulability condition for conversational control actions is, in our view, the next theorem of this program.
 
-\paragraph{Calibrated simulation of banking callers.}
-Synthetic users drive every agent benchmark \citep{sierra2024taubench}, including the multilingual ones \citep{tauvoice2026}, and their calibration to real callers is unmeasured.
-A trajectory policy that contains $0.9$ of simulated calls may fail against Spanish banking callers whose dominant failure mode is silent abandonment \citep{silentabandonment2024}.
+\paragraph{Calibrated simulation of service customers.}
+Synthetic users drive every agent benchmark \citep{sierra2024taubench}, including the multilingual ones \citep{tauvoice2026}, and their calibration to real customers is unmeasured.
+A trajectory policy that contains $0.9$ of simulated conversations may fail against real customers whose dominant failure mode is silent abandonment \citep{silentabandonment2024}.
 The missing artifact is a sim-to-real protocol: fit simulator parameters (impatience, silence tolerance, clarification behaviour) on a calibration split of real logs, hold out scenario classes, and report the rank correlation of policy scores and the divergence of trajectory-class distributions between simulated and real conversations.
 Offline early-exit machinery \citep{earlyeval2026} reduces evaluation cost but presumes the simulator is faithful; nothing in that line measures faithfulness.
-Partial-context forecasting was first validated on open-domain social derailment \citep{chang2019derailment}, where failure is visible and cheap to label; banking trajectories enjoy no such luxury.
+Partial-context forecasting was first validated on open-domain social derailment \citep{chang2019derailment}, where failure is visible and cheap to label; service trajectories enjoy no such luxury.
 Until such a protocol exists, containment numbers measured against simulated callers should be treated as provisional.
 
 \paragraph{Compliance escapes and regulatory deadlines.}
@@ -47,5 +47,5 @@ Trajectory-level outcome verification --- auditing the asserted completion again
 Partial-dialogue forecasting does not transfer for free: TRACER moves from MultiWOZ to ABCD with AUC $0.771$ but collapses to $0.494$ on SGD \citep{nourbakhsh2026tracer}.
 The open question is which layer of the framework carries the transfer burden: the state space $Q$, the transition typing $\Sigma$, or the stopping constants $K(\varepsilon, c)$ and the error budget $\varepsilon$.
 Recovered dialog workflows are a candidate prior over $Q$ and $\Sigma$ in a new domain \citep{salesforce2025workflows}, but they are extracted from completed conversations and carry no outcome labels.
-Banking may fragment further: card blocks, transfers, and fraud reports are distinct campaigns whose grammars may share states but not costs.
+The four classes may fragment further: billing disputes, account recovery, and policy-violation reports are distinct campaign types whose grammars may share states but not costs.
 Leave-one-campaign-out evaluation measures the damage empirically; a theory of when grammars transfer is missing.

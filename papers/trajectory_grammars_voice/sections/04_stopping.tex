@@ -1,7 +1,7 @@
 % §4 Stopping Rules for Outcome Prediction
 The grammar of Section~\ref{sec:grammar} turns a conversation into a walk over $Q$ that emits typed observations at every turn.
 A decision layer must convert this growing evidence into an action --- intervene, escalate, flag, or wait --- at a time that is early enough to matter and honest about its own error rates.
-This section defines that layer: an outcome-class posterior maintained per turn, a sequential stopping rule over the posterior, and cost-asymmetric decision boundaries derived from the banking cost model.
+This section defines that layer: an outcome-class posterior maintained per turn, a sequential stopping rule over the posterior, and cost-asymmetric decision boundaries derived from the operational cost model.
 The centerpiece is the Trajectory Stopping Theorem, which bounds the expected decision time at a prescribed confidence and subsumes the fixed-threshold triggering of learned early-failure detectors as a special case.
 
 \subsection{From Grammar Emissions to an Outcome Posterior}
@@ -11,9 +11,9 @@ Together these channels induce the outcome-class posterior $p(\theta \mid o_{1:k
 The posterior is deliberately abstract: any calibrated estimator over grammar emissions suffices, and every guarantee below attaches to the stopping layer rather than to a particular model.
 That partial trajectories carry outcome signal at all is established for offline evaluation pruning \citep{earlyeval2026} and for text-chat failure forecasting \citep{nourbakhsh2026tracer}; our contribution is a live decision layer with guarantees, not another estimator.
 Two design constraints come from our published results rather than from new evidence.
-First, text-only turn signals are near chance on Spanish hard cuts \citep{garcia2026asking}, so the posterior must condition on the multi-channel observation $o_{1:k}$, not on the transcript alone.
+First, text-only turn signals are near chance on hard cuts \citep{garcia2026asking}, so the posterior must condition on the multi-channel observation $o_{1:k}$, not on the transcript alone.
 Second, the cycle depth $D(\sigma)$ of the grammar is its drift statistic, and it enters the posterior as a covariate: each regression transition shifts probability mass toward the action classes.
-Deep tool episodes are precisely where banking conversations drift, and the $k$-step analysis of cascade agents makes the cost of such episodes formal \citep{garcia2026latencyfloor}.
+Deep tool episodes are precisely where service conversations drift, and the $k$-step analysis of cascade agents makes the cost of such episodes formal \citep{garcia2026latencyfloor}.
 
 \subsection{Sequential Stopping over the Posterior}
 \label{subsec:rule}
@@ -113,7 +113,7 @@ turns in expectation, with Lorden-type overshoot bounds keeping the excess withi
 \citep{lorden1970excess}.
 Under $\theta_0$, declaring $\theta_0$ requires all $|A|$ ratios to descend below their $B_j$;
 the expected time for the slowest descent is bounded by the sum of the per-class expected
-descent times, $\sum_j (|B_j| + c)/|\mu_0^{\,j}|$, and the observed-termination mode is bounded
+descent times, each $(|B_j| + c)/|\mu_0^{\,j}|$, and the observed-termination mode is bounded
 by $\mathbb{E}[k_{\mathrm{term}}]$ via assumption (iii), giving the second display of
 \eqref{eq:times}.
 The unconditional bound \eqref{eq:unconditional} takes the max of the conditional envelopes,
@@ -161,7 +161,7 @@ Wald-type SPRT remains the reference point because its boundaries are explicit a
 \subsection{Floor Composition: Early Enough to Act}
 \label{subsec:floors}
 A turn index is not an intervention guarantee, so we convert $k_{\mathrm{dec}}$ to wall-clock using the published floor arithmetic.
-The per-turn decision latency $\lambda_{\mathrm{decide}}$ of the monitor must fit inside the inter-turn budget that the onset floor leaves unfilled \citep{garcia2026latencyfloor}, and the measured decision latencies of the Spanish interim-transcript pipeline (p99 178--268~ms, cloud) show this budget exists in production \citep{garcia2026asking}.
+The per-turn decision latency $\lambda_{\mathrm{decide}}$ of the monitor must fit inside the inter-turn budget that the onset floor leaves unfilled \citep{garcia2026latencyfloor}, and the measured decision latencies of the interim-transcript pipeline (p99 178--268~ms, cloud) show this budget exists in production \citep{garcia2026asking}.
 Executing the intervention is a second bound: taking the floor from an agent mid-utterance is a barge-in, and it must clear the cessation floor's detect--decide--cease--resume decomposition \citep{garcia2026cessationfloor}.
 The composition is therefore
 \begin{equation}
@@ -176,9 +176,9 @@ The cycle-length bound of Section~\ref{sec:grammar} completes the picture from t
 \subsection{False-Early-Exit Economics}
 \label{subsec:economics}
 Stopping early is only justified if the cost model says so.
-Let $c(\hat{\theta}, \theta)$ denote the banking cost of declaring class $\hat{\theta}$ when the truth is $\theta$, over declared versus true terminal classes; its operational content is specified with the KPI wiring of Section~\ref{sec:evaluation}.
+Let $c(\hat{\theta}, \theta)$ denote the operational cost of declaring class $\hat{\theta}$ when the truth is $\theta$, over declared versus true terminal classes; its operational content is specified with the KPI wiring of Section~\ref{sec:evaluation}.
 False containment --- declaring \textit{contained} while the truth is \textit{handoff} or \textit{compliance-escape} --- is the expensive error: it converts a recoverable failure into an unattended one, and a compliance escape has unbounded cost.
-False escalation --- declaring \textit{handoff} while the truth is \textit{contained} --- wastes teller minutes, the trade that queue-level control already prices from the outside of the conversation \citep{queuecontrol2026}.
+False escalation --- declaring \textit{handoff} while the truth is \textit{contained} --- wastes human-agent minutes, the trade that queue-level control already prices from the outside of the conversation \citep{queuecontrol2026}.
 Abandonment adds a patience-driven cost that queueing models estimate from uncertain data \citep{silentabandonment2024}; the grammar lets us price it from the conversation's own trajectory.
 
 \begin{proposition}[Cost-asymmetric boundaries]
@@ -196,7 +196,7 @@ The sequential rule inherits the ordering because its boundaries are the sequent
 \end{proof}
 
 The practical reading is that the four terminal classes do not share one threshold.
-A banking monitor should fire its compliance escape at the first credible signal, accept a higher false-escape rate as the price of unbounded miss cost, and treat contained as a verdict that must be earned against every action hypothesis simultaneously.
+A production monitor should fire its compliance escape at the first credible signal, accept a higher false-escape rate as the price of unbounded miss cost, and treat contained as a verdict that must be earned against every action hypothesis simultaneously.
 
 \subsection{TRACER as the Fixed-Sample Instance}
 \label{subsec:tracer}
@@ -205,7 +205,7 @@ The nearest published system to this decision layer is TRACER, which scores ever
 \begin{corollary}[Fixed-sample instance]
 \label{cor:tracer}
 TRACER's thresholded trigger is the fixed-sample instance of Definition~\ref{def:rule}: a single look at each prefix with a learned posterior, a one-sided boundary in place of the pair \eqref{eq:boundaries}, and no optional stopping.
-The Trajectory Stopping Theorem adds the three properties that a single-look trigger cannot express: an expected decision-time bound \eqref{eq:times}, error control that survives continuous monitoring (via the confidence-sequence variant of \citealp{howard2021time}), and cost-derived asymmetry across the four banking outcome classes instead of one binary failure label.
+The Trajectory Stopping Theorem adds the three properties that a single-look trigger cannot express: an expected decision-time bound \eqref{eq:times}, error control that survives continuous monitoring (via the confidence-sequence variant of \citealp{howard2021time}), and cost-derived asymmetry across the four outcome classes instead of one binary failure label.
 \end{corollary}
 
 This is a generalization claim, not a criticism: TRACER's detected signals appear from the first quarter of the dialogue and its operating point is honest about its false-positive budget \citep{nourbakhsh2026tracer}.
