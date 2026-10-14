@@ -95,4 +95,4 @@ Chief Editor produces:
 ## Author
 
 Daniel Garcia Pena — info@iamdgarcia.com — ORCID: 0000-0002-1456-4785
-Always publish to arXiv: cs.AI (primary), cs.CR (cross-list if safety-focused).
+Publish to alphaXiv (user has no arXiv access; precedent: 2608.latency-floor-cascade-voice-agents). Stage-6 zip same as arXiv package.
