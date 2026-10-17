@@ -232,3 +232,21 @@ failure forecasting — the predictor CD3 upgrades), `x2turn2026` (frame-synchro
 `walker1997paradise` (quality = success + cost), `consol2025` + `howard2021time` (SPRT /
 anytime-valid sequences, CD2 direction), `salesforce2025workflows` (workflow extraction — handoff
 correlate), `wald1947sprt` (sequential decision foundation).
+
+
+---
+
+## External confirmation (2026-10-17)
+
+- **livekit/agents v1.8.8 (released 2026-10-15) ships TypeSafe Jev decision-models natively**:
+  background probability/choice/score evaluations that never delay the reply (jev-1.13.0 plugin +
+  OpenRouter Decisions API). External confirmation of the P-series premise (decision work leaves
+  the critical path). Consequence: the conformance-kit target for the framework-measurement paper
+  is pinned to **livekit-agents 1.8.8 + jev plugin** (adapter wraps its pipeline behind the
+  5-method harness protocol).
+- **OTel GenAI semconv still Status: Development** (README checked 2026-10-17, repo
+  open-telemetry/semantic-conventions-genai) — dialect-fragmentation framing of
+  trace2trajectory remains valid; the 3-dialect normalizer is not solving a solved problem.
+- **transformers.js#1796 scope verdict**: the webnn-npu→npu mapping (Chrome 153) belongs in
+  issue #1748 at the session-factory boundary; getAvailableDevices() stays a read-only reporter.
+  Replied on the PR 2026-10-17.
