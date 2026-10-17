@@ -1,0 +1,89 @@
+% §5 The trajectory atlas
+The trajectory atlas renders the coverage computation as one behavior plane: real walks as
+blue dots, simulated walks as orange diamonds, uncovered cells shaded red with
+nearest-exemplar tooltips, outcome classes readable by position (and by per-class views as
+small multiples).
+It is simultaneously the paper's worked example and the artifact's operational interface.
+Figure~\ref{fig:atlas} shows the schema.
+
+\begin{figure}[t]
+\centering
+\resizebox{0.9\textwidth}{!}{\input{figures/fig_atlas}}
+\caption{The trajectory atlas schema.
+Two point clouds in one real-anchored behavior plane; red cells are occupied-but-uncovered
+regions; each carries its nearest real exemplar.
+A concentrated sim cloud with a small radius (over-cooperative collapse) and a scattered real
+cloud with uncovered lobes is the typical deficient configuration.}
+\label{fig:atlas}
+\end{figure}
+
+\subsection{Reading the atlas}
+Three configurations recur.
+\emph{Collapse}: the sim cloud concentrates on one real lobe (the over-cooperative user who
+never abandons, never escalates --- cf.\ the Formalism Ceiling \citep{realUserSim2026} and the
+human-likeness failures of \citep{mirrorbench2026}); coverage is high on the majority class
+and near zero elsewhere.
+\emph{Scatter}: the sim cloud spreads where real conversations never go --- off-distribution
+generation that inflates the plane without measuring anything; the shared threshold of
+Equation~\eqref{eq:threshold} keeps these points from manufacturing coverage, and
+out-of-grid points are dropped rather than clamped.
+\emph{Coverage with holes}: the sim cloud overlaps real mass but misses specific occupied
+cells --- the most actionable configuration, because the holes come with named exemplars.
+Cross-model comparison is legitimate by design: real logs and simulated runs may come from
+different vendors and model generations, and the representation comparison rests on
+cross-model convergence of layer representations \citep{layersSimilarDepths2025} and the
+trajectory-geometry vocabulary \citep{trajectoryGeometry2026}.
+
+\subsection{Worked example on shipped fixtures}
+The open-source artifact ships fixtures in three dialects and regenerates every number below
+from a single command.
+The worked example uses 3 conversations across 3 dialects --- two real (one OTel GenAI export,
+one OpenInference export) and one simulated (a LangSmith export) --- under the grammar feature
+encoding, a $24 \times 24$ grid, $\varepsilon = 0.05$, bandwidth $\beta = 0.12$.
+The real set occupies 256 grid cells; the 1-conversation simulated set covers 103 of them.
+
+\begin{quote}
+\small
+\texttt{coverage: 40.2\% overall | per class: contained 45.3\%, handoff 35.2\%}
+\end{quote}
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{@{}clllc@{}}
+\toprule
+\textbf{Rank} & \textbf{Grid cell} & \textbf{Local density} & \textbf{Nearest real exemplar (first user utterance)} & \textbf{Class} \\
+\midrule
+1 & (2,\,11)  & 0.86 & ``No puedo entrar en mi banca online'' & handoff \\
+2 & (21,\,12) & 0.86 & ``Hola, quiero consultar el saldo de mi cuenta'' & contained \\
+3 & (2,\,14)  & 0.54 & ``No puedo entrar en mi banca online'' & handoff \\
+\bottomrule
+\end{tabular}
+\caption{Top-3 uncovered regions from the worked example (as reported by the shipped CLI).
+Each names its nearest real exemplar --- the tests the simulated set is not running.
+Exemplars are shown in the fixture's original language (Spanish); the pipeline is
+language-agnostic by construction, with clarification/confirmation pattern tables as the only
+language-coupled component.}
+\label{tab:topk}
+\end{table}
+
+The interpretation is the paper's pitch in one line: a one-conversation simulated set covers
+under half of the conversational-behavior regions that the real set occupies --- and the
+uncovered regions are not an abstraction, they are named conversations with outcome classes
+and cycle depths (Table~\ref{tab:topk}).
+The numbers are fixture-scale by design; what they demonstrate is that the metric runs
+end-to-end on standard exports and that its output format is directly actionable.
+All numbers regenerate from the artifact's check suites (46 checks across extraction and
+coverage, all passing at the time of writing) and the coverage CLI; the worked example is
+reproducible from the repository README.
+
+\subsection{Relation to the simulator program}
+The atlas is where calibrated simulation is \emph{validated}.
+The calibrated-simulation agenda --- response-level gap closure
+\citep{distributionalGap2026}, calibrated user embeddings \citep{cue2026}, grounded user
+simulation \citep{realUserSim2026} --- produces better simulators; region coverage is the
+instrument that says whether the improvement reached the conversation structures that matter.
+The secondary instruments for that validation are Wasserstein divergence of grammar-walk
+statistics in the style of the Conversational Distribution Score \citep{cds2026} and the rank
+correlation of Section~\ref{sec:evaluation}; region coverage is the headline, because it is
+the only one of the three that returns actionable per-region output.

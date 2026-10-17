@@ -1,0 +1,22 @@
+% §9 Conclusion
+Simulators became the evaluator of conversational agents before anyone built the instrument
+that measures what simulators miss.
+This paper built that instrument from the other end of the pipeline: a formal extraction
+mapping $\tau$ that turns the observability exports every production agent already emits into
+trajectory-grammar walks with outcome classes, and a region-coverage metric that projects two
+walk collections into one real-anchored behavior plane and reports which occupied regions the
+simulated set reaches --- overall, per outcome class, and as named exemplars of what is not
+being tested.
+
+The contribution is deliberately measurement-shaped rather than model-shaped: deterministic
+over stochastic, configuration over training, an interface that a calibrated estimator can
+replace without changing any downstream definition.
+The worked example (40.2\% coverage of occupied real regions by a simulated set, with the
+uncovered regions naming their nearest real conversations) runs end-to-end on standard
+exports and ships as an open-source artifact with all checks passing.
+
+The trajectory atlas turns the question in the title from a worry into a report:
+\emph{what are we not testing} becomes a ranked list of regions, each with the conversation
+that names it.
+Closing the loop --- from uncovered region to generated scenario to coverage delta --- is the
+simulator agenda's next step, and the atlas is the objective function it optimizes.

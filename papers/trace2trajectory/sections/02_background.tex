@@ -1,0 +1,129 @@
+% §2 Background
+\subsection{The trajectory grammar}
+We build on the trajectory grammar of our companion paper \citep{garcia2026grammar}, which we
+summarize only to fix notation.
+A conversation trajectory is a walk $\sigma = q_0 \to q_1 \to \cdots \to \theta$ over a finite
+state space $Q$ with transition relation $\delta$ and alphabet $\Sigma$ of typed transitions.
+The progress states are the stages a service dialogue moves through
+($q_{\mathrm{greet}}, q_{\mathrm{auth}}, q_{\mathrm{intent}}, q_{\mathrm{tool}},
+q_{\mathrm{clarify}}, q_{\mathrm{confirm}}, q_{\mathrm{close}}$), and every run ends in one of
+four terminal outcome classes: contained ($\theta_{\mathrm{cont}}$), abandoned
+($\theta_{\mathrm{aban}}$), human handoff ($\theta_{\mathrm{hand}}$), and compliance-escape
+($\theta_{\mathrm{esc}}$).
+The \emph{cycle depth} $D(\sigma)$ counts regressions --- returns to a state previously
+settled --- and serves as the grammar's drift statistic.
+The grammar's guarantees (early outcome prediction and intervention on partial conversations)
+attach to its stopping layer under calibrated emissions; how the present paper relates to
+those guarantees is discussed in Section~\ref{sec:extraction}.
+Compliance-escape is an audit overlay inherited verbatim from the companion grammar; we do not
+re-derive it here \citep{garcia2026grammar}.
+The grammar sits inside a sibling program that bounds the same agents' realtime behavior on
+both sides --- the latency floor of the onset \citep{garcia2026latencyfloor} and the cessation
+floor of stopping \citep{garcia2026cessationfloor} --- where this paper adds the evaluation
+side: what the conversation content of a test collection actually spans.
+
+\subsection{Distributional evaluation of conversation}
+A parallel line of work scores how simulated conversation compares to real conversation.
+The Conversational Distribution Score measures distributional agreement of
+conversation-level statistics between two populations \citep{cds2026}.
+TurnBench evaluates turn-taking dynamics across spoken-dialogue domains
+\citep{turnbench2026}.
+MirrorBench asks whether user-proxy agents are indistinguishable from humans
+\citep{mirrorbench2026}.
+These metrics compare populations when both exist; none of them identifies \emph{which}
+behavioral regions a collection fails to reach, which is the question an evaluation owner
+must answer before trusting the comparison.
+
+\subsection{Sim2real gaps in agent evaluation}
+The sim2real line measures how far a simulator drifts from production users.
+\citet{sim2realAgentic2026} document the sim2real gap for user simulation in agentic tasks;
+\citet{distributionalGap2026} measure and mitigate a response-level distributional gap in
+text; \citet{realUserSim2026} describe the ``Formalism Ceiling'' of grounded user simulation;
+\citet{cue2026} calibrate user embeddings so simulators track real user states.
+\citet{simulatorCollapse2026} show that a single frozen simulator systematically fails to
+generalize in multi-agent reinforcement learning --- population-level evidence that simulator
+deficiency is structural, not incidental.
+All of these operate at the response or style level; the trajectory level --- which
+conversation structures a simulator exercises --- remains unmeasured.
+
+\subsection{Trace mining and observability formats}
+Trace mining recovers structure from execution logs: automata for failure and next-step
+prediction \citep{automataTraces2026}, behavior benchmarks from deployment traces
+\citep{tracedance2026}, workflow graphs for scientific agents \citep{graphoftrace2026},
+and corpus-level visual maps of chat logs \citep{wildvis2024}.
+Trace mining recovers structure from execution logs: automata for failure and next-step
+prediction \citep{automataTraces2026}, behavior benchmarks from deployment traces
+\citep{tracedance2026}, workflow graphs for scientific agents \citep{graphoftrace2026},
+and corpus-level visual maps of chat logs \citep{wildvis2024}.
+Early outcome prediction from partial transcripts \citep{nourbakhsh2026tracer} and
+trajectory-structure diagnostics for coding agents \citep{resolveRate2026} use traces as
+evaluation signal; early-prediction evaluation trade-offs are measured by
+\citet{earlyeval2026} and label-reliability over agent trajectories by
+\citet{falsesuccess2026}; full-episode outcome comparison is the paradigm of
+$\tau$-bench \citep{sierra2024taubench}; \citet{salesforce2025workflows} extract dialog
+workflows from conversations.
+Conformance contracts for agent frameworks --- machine-checked checkpoint/resume semantics
+\citep{resume2026} and control-primitive enforcement gaps \citep{stopmeansstop2026} ---
+establish that framework behavior can and should be checked against explicit contracts; the
+present paper brings the same discipline to the extraction interface.
+
+On the format side, three facts (verified against the published specifications and
+repositories in October 2026) fix the extraction problem's boundary:
+\begin{itemize}
+  \item \textbf{OTel GenAI} semantic conventions live in their own repository
+        \citep{otelgenai2026}, remain under Development status, define per-call spans
+        (\texttt{invoke\_agent}, \texttt{execute\_tool}), and expose the conversation
+        identifier \texttt{gen\_ai.conversation.id} only as a Conditionally Required linking
+        key --- there is no conversation object, and message content lives in Opt-In
+        client-inference attributes.
+  \item \textbf{OpenInference} ships the most complete stable attribute specification
+        (span kinds LLM/AGENT/TOOL/CHAIN under \texttt{openinference.span.kind}, structured
+        inputs, outputs, and tool-call lists) on the same span envelope.
+  \item \textbf{LangSmith} exports run trees whose \texttt{parent\_run\_id} grouping is the
+        de-facto evaluation-side session artifact.
+\end{itemize}
+All three reduce to per-operation records with session identifiers; none assigns
+conversation states, outcomes, or drift.
+Voice-physics channels (barge-in, endpointing, tool latency) die at the transport boundary in
+current stacks and are out of scope here, appearing only as an optional appendix extension of
+the companion grammar \citep{garcia2026grammar}.
+
+\subsection{Position against the nearest neighbors}
+Table~\ref{tab:neighbors} makes the deltas explicit.
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{@{}p{2.9cm}p{2.6cm}p{3.1cm}p{3.6cm}@{}}
+\toprule
+ & \textbf{Axis} & \textbf{They provide} & \textbf{They leave unclaimed} \\
+\midrule
+\citet{distributionalGap2026} &
+  response distributions &
+  text-level real-vs-sim divergence &
+  grammar walks, region coverage, outcome classes \\
+\citet{automataTraces2026} &
+  automata from traces &
+  failure/next-step prediction &
+  conversation semantics, outcome classes, atlas \\
+\citet{graphoftrace2026} &
+  workflow graphs &
+  design-time execution graphs &
+  outcome classes, population-level coverage \\
+\citet{tracedance2026} &
+  trace benchmarks &
+  benchmark construction from traces &
+  state space, sim-vs-real atlas \\
+\citet{wildvis2024} &
+  corpus visualization &
+  million-scale chat-log UMAP &
+  agent spans, grammar, per-class semantics \\
+\citet{resolveRate2026} &
+  process diagnostics &
+  trajectory-structure statistics &
+  observability ingestion, region coverage \\
+\bottomrule
+\end{tabular}
+\caption{The nearest neighbors and the axis each leaves unclaimed.
+The extraction mapping $\tau$ plus region coverage occupy the joint gap.}
+\label{tab:neighbors}
+\end{table}

@@ -1,0 +1,131 @@
+\documentclass[11pt,a4paper]{article}
+
+% Core packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=1in]{geometry}
+
+% Bibliography
+\usepackage[numbers,sort&compress]{natbib}
+
+% Figures and tables
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+
+% TikZ
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,backgrounds,calc}
+
+% Math
+\usepackage{amsmath,amssymb,amsthm}
+
+% Links
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+% Headers
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\thepage}
+\setlength{\headheight}{14pt}
+
+%% -----------------------------------------------------------------------
+%% PAPER METADATA
+%% -----------------------------------------------------------------------
+\title{What Are We Not Testing? Region Coverage of Conversation Trajectories\\ from Agent Observability Traces}
+
+% Author block (manual; no authblk dependency)
+\author{Daniel Garc\'ia Pe\~na\\
+  \small Department of Energy and Process Control, University of Oviedo, Oviedo, Spain.\\
+  \small AI Engineering, Unicaja Bank, Spain.
+  \texttt{info@iamdgarcia.com}}
+
+\date{\today}
+
+%% Theorem environments (mirror the companion papers)
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{example}{Example}
+\newtheorem{remark}{Remark}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Production conversational agents emit traces in standardized observability formats, and
+LLM-based user simulators have become the standard tool for evaluating agents outside
+production.
+Yet these two artifacts have never been joined.
+No published method maps observability traces to a discrete conversation state space with
+terminal outcome classes, and no work quantifies which regions of conversational behavior a
+simulator, or a candidate agent version, fails to cover.
+We close this gap in two steps.
+First, a formal extraction mapping $\tau$ converts standard agent-observability exports
+(OpenTelemetry GenAI semantic conventions, OpenInference, LangSmith) into grammar walks over
+the trajectory grammar $G=(Q,\Sigma,\delta)$, with terminal outcome classes and a cycle-depth
+drift statistic.
+Second, a region-coverage evaluation projects real and simulated walk collections into a
+deterministic 2-D behavior plane anchored on production data, estimates where real
+conversations live with a density grid under a shared relative occupancy threshold, and
+reports coverage overall and per outcome class, together with the top-$K$ uncovered regions
+and their nearest real exemplars: the tests you are not running, made concrete.
+The result is the trajectory atlas, a visualization and metric layer for sim-versus-real
+transfer at the trajectory level.
+A worked example on shipped fixtures (3 conversations, 3 dialects) executes the full pipeline:
+a 1-conversation simulated set covers 40.2\% of the occupied real regions (contained 45.3\%,
+handoff 35.2\%), and the top uncovered regions name their nearest real exemplars.
+The extraction and coverage implementation ships as an open-source artifact with all checks
+passing.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:introduction}
+\input{sections/01_introduction}
+
+\section{Background}
+\label{sec:background}
+\input{sections/02_background}
+
+\section{The Extraction Mapping $\tau$}
+\label{sec:extraction}
+\input{sections/03_extraction}
+
+\section{Region Coverage}
+\label{sec:coverage}
+\input{sections/04_coverage}
+
+\section{The Trajectory Atlas}
+\label{sec:atlas}
+\input{sections/05_atlas}
+
+\section{Evaluation Protocol}
+\label{sec:evaluation}
+\input{sections/06_evaluation}
+
+\section{Open Problems}
+\label{sec:open_problems}
+\input{sections/07_open_problems}
+
+\section{Discussion}
+\label{sec:discussion}
+\input{sections/08_discussion}
+
+\section{Conclusion}
+\label{sec:conclusion}
+\input{sections/09_conclusion}
+
+\bibliographystyle{plainnat}
+\bibliography{main}
+
+\end{document}

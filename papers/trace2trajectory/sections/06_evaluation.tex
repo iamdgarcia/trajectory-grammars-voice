@@ -1,0 +1,79 @@
+% §6 Evaluation protocol
+This section is a protocol, not a results section.
+The worked example of Section~\ref{sec:atlas} is the only executed evidence in this paper
+(fixture-scale, fully reproducible from the artifact); the protocol below specifies what a
+paper-grade evaluation of region coverage must report, in order, with the exact instruments.
+The deterministic pipeline makes every sweep exact rather than sampled --- the same inputs
+always produce the same outputs, so there is no seed variance to average over.
+
+\subsection{The transfer headline}
+The question the atlas ultimately serves: \emph{do agent-policy scores computed on
+simulator-driven evaluation agree with scores computed on real calls?}
+The instrument is rank correlation (Kendall $\tau$ or Spearman $\rho$) between agent-version
+rankings computed on simulated evaluation sets and on real-call evaluation sets, over a
+version ladder of the same agent.
+This is the sim2real transfer number that simulator-building work currently leaves implicit
+\citep{distributionalGap2026,cue2026,sim2realAgentic2026}, and region coverage is the
+diagnostic that explains its failures: a version ranking computed on a simulator that covers
+45\% of real behavior regions is a ranking computed on less than half the test space, and the
+uncovered regions name where the ranking is least trustworthy.
+
+\subsection{Coverage sensitivity sweep}
+Coverage depends on three hyperparameters: grid resolution $\rho$, bandwidth fraction
+$\beta$, and threshold $\epsilon$.
+The protocol sweeps
+$\rho \in \{16, 24, 32, 48\}$,
+$\beta \in \{0.08, 0.12, 0.20\}$,
+$\epsilon \in \{0.02, 0.05, 0.10\}$
+--- 36 configurations --- and reports the \emph{stability envelope}: the spread of overall
+and per-class coverage across the grid, plus the rank stability of the top-$K$ uncovered
+regions (Jaccard overlap of the top-$K$ cell sets across configurations).
+Because the pipeline is deterministic, this sweep is exhaustive over its grid, not Monte
+Carlo; a coverage number that moves more than a few points across the envelope is reported as
+unstable rather than point-quoted.
+The worked example's configuration ($\rho{=}24$, $\beta{=}0.12$, $\epsilon{=}0.05$) sits at
+the envelope's center as shipped.
+
+\subsection{Class-conditional coverage}
+Overall coverage is dominated by the majority outcome class in any imbalanced collection ---
+and abandonment and compliance-escape are exactly the rare classes that matter most.
+The protocol reports $c_\theta(S)$ for every class with at least one occupied cell, in
+absolute terms and as a ratio to class occupancy share, and treats a large
+overall-vs-per-class gap as a finding in itself (the majority class hiding a structural
+deficit).
+The class-conditional definition requires only that each occupied cell carries its nearest
+real exemplar's outcome class, which the coverage computation already produces.
+
+\subsection{The baseline ladder}
+A coverage number is meaningful only against what a worse evaluator would produce.
+The protocol grades simulators on a three-rung ladder, each rung measured with the identical
+coverage computation:
+\begin{enumerate}
+  \item \textbf{Random sampling}: simulated conversations drawn i.i.d.\ from a generic
+        instruction --- the floor; any calibrated simulator must beat it.
+  \item \textbf{Persona-only simulation}: persona-conditioned generation with no log
+        conditioning --- the common practice today.
+  \item \textbf{Log-conditional simulation}: generation conditioned on real-log signals
+        (exemplar conditioning from the top-$K$ loop; CUE-style calibrated embeddings
+        \citep{cue2026} as the conditioning signal) --- the rung where the recommendation
+        loop of Section~\ref{sec:coverage} closes.
+\end{enumerate}
+The ladder's expected signature is monotone coverage improvement with rung height; the
+informative failure is a simulator that improves response-level distributional metrics
+\citep{cds2026,distributionalGap2026} while its region coverage stays flat --- response
+polish without structural reach.
+
+\subsection{What the deterministic baseline does not measure}
+The grammar and bigram encodings measure structure, not semantic content: two conversations
+with identical structure but different intents land on the same point, and a paraphrase-level
+deficiency is invisible.
+The named companion is the embedding variant --- replace only the feature step
+(Equation~\eqref{eq:gram}) with sentence-embedding features (e.g.\ MiniLM-class encoders) and
+keep the projection, density, threshold, and coverage definitions untouched.
+This paper keeps the deterministic baseline as the headline (reproducibility and
+no-model-dependency are features of a measurement standard) and specifies the embedding
+variant as the sensitivity study's companion: run both on the same collections, report the
+coverage delta, and treat a large delta as evidence that structural features under-measure
+the collection's semantic spread.
+The interface was designed for exactly this swap; nothing downstream of the feature step
+changes.

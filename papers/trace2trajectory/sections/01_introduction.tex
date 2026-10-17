@@ -1,0 +1,73 @@
+% §1 Introduction
+Evaluating a conversational agent outside production means talking to it with a simulator.
+LLM-based user simulators now drive agent evaluation across task-oriented dialogue, tool use,
+and agentic benchmarks \citep{sim2realAgentic2026,realUserSim2026,sierra2024taubench}.
+The evaluation question every team asks is no longer ``did the agent pass'' but
+``what kinds of conversations did we never even run'' ---
+and no published method answers it measurably.
+
+The raw material for an answer already exists on every deployment.
+Production agents emit traces in standardized observability formats: the OpenTelemetry GenAI
+semantic conventions \citep[still marked Development as of October 2026]{otelgenai2026}, the
+OpenInference attribute specification, and LangSmith run trees.
+Tooling mines these traces for failure prediction and benchmark construction
+\citep{automataTraces2026,tracedance2026}, visualizes them as design-time graphs
+\citep{graphoftrace2026}, and projects chat corpora into corpus-level maps
+\citep{wildvis2024}.
+But the conventions deliberately stop at the operation level: \texttt{gen\_ai.conversation.id}
+is a linking key, not a conversation object.
+The conversation-scale semantics --- which states the dialogue moved through, how it ended,
+how deeply it regressed --- are left undefined by everyone.
+
+Simulator validation, meanwhile, is measured at the wrong altitude for this question.
+The 2026 sim2real wave compares response distributions in text space:
+the distributional gap of \citet{distributionalGap2026} is response-level and text-only;
+\citet{cds2026} scores distributional agreement of conversation-level statistics;
+\citet{cue2026} calibrates user-simulator embeddings;
+\citet{mirrorbench2026} benchmarks human-likeness of user proxies.
+All of these ask ``do simulated responses look like real ones''.
+None asks the structural question a test suite needs: \emph{which regions of conversational
+behavior does the simulator exercise, and which real regions does it never touch?}
+A simulator can match response distributions while never once producing the
+clarify-then-abandon structure that a production cohort exhibits on bad-network days.
+
+This paper joins the two artifacts.
+We define a formal extraction mapping $\tau$ from standard observability exports to grammar
+walks over the trajectory grammar $G=(Q,\Sigma,\delta)$ of our companion work
+\citep{garcia2026grammar}, with terminal outcome classes and cycle depth as drift statistic.
+We then define \emph{region coverage}: project real and simulated walk collections into a
+2-D behavior plane whose basis is fit on the real set only, estimate where real conversations
+live with a deterministic density grid, and measure which occupied regions the simulated set
+reaches --- overall and per outcome class --- while the top-$K$ uncovered regions return their
+nearest real exemplars: \emph{the tests you are not running}, made concrete and actionable.
+The two clouds in one plane constitute the \emph{trajectory atlas}, the visualization and
+metric layer for sim-versus-real transfer at the trajectory level.
+
+Our contributions are:
+\begin{enumerate}
+  \item a formal extraction mapping $\tau$ from standard agent-observability formats
+        (OTel GenAI, OpenInference, LangSmith) to trajectory-grammar walks with terminal
+        outcome classes and cycle depth, shipped as a rule-based baseline whose classifier
+        configuration is fully exposed, with an emission-model assumption stated so any
+        calibrated state estimator can replace it without changing the interface
+        (Section~\ref{sec:extraction});
+  \item region-coverage evaluation: deterministic 2-D projection anchored on production,
+        density-occupied real regions under a shared relative threshold, coverage
+        overall and per outcome class, and top-$K$ uncovered regions with nearest real
+        exemplars (Section~\ref{sec:coverage});
+  \item the trajectory atlas as the visualization and metric layer for sim-versus-real
+        comparison at the trajectory level, with a worked example on shipped fixtures and an
+        evaluation protocol --- sensitivity sweep, class-conditional coverage, and a baseline
+        ladder --- for paper-grade results (Sections~\ref{sec:atlas}
+        and~\ref{sec:evaluation}).
+\end{enumerate}
+
+The paper is organized as follows.
+Section~\ref{sec:background} recaps the grammar formalism, the distributional evaluation
+lineage, and the verified facts about observability formats.
+Section~\ref{sec:extraction} defines $\tau$.
+Section~\ref{sec:coverage} defines region coverage.
+Section~\ref{sec:atlas} presents the atlas and the worked example.
+Section~\ref{sec:evaluation} gives the evaluation protocol.
+Sections~\ref{sec:open_problems}--\ref{sec:conclusion} discuss open problems, limitations,
+and conclusions.

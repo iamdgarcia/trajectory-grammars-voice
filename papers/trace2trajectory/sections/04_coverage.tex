@@ -1,0 +1,99 @@
+% §4 Region coverage
+Region coverage answers one question: given real conversation walks and a simulated (or
+candidate-agent) set, \emph{which occupied regions of conversational-behavior space does the
+simulated set reach, and which does it never touch?}
+The pipeline is deterministic and standard-library-only: features, projection, density,
+threshold, coverage.
+Figure~\ref{fig:coverage} shows the geometry.
+
+\begin{figure}[t]
+\centering
+\resizebox{0.98\textwidth}{!}{\input{figures/fig_coverage}}
+\caption{The coverage geometry.
+(a) Real (blue) and simulated (orange diamonds) walks in one 2-D behavior plane; the sim set
+reaches one real lobe and misses the other.
+(b) A density grid over the real cloud; cells are occupied when real density exceeds
+$\varepsilon \cdot \mathrm{core}$, where core is the field's 99th-percentile-to-peak ratio.
+(c) Occupied cells split into covered (sim point inside, or sim kernel mass above threshold)
+and uncovered; each uncovered cell carries its nearest real exemplar --- the test you are not
+running.}
+\label{fig:coverage}
+\end{figure}
+
+\subsection{Feature encodings}
+Each walk $\sigma$ with outcome $\theta$ and cycle depth $D$ becomes a vector under one of two
+encodings.
+The \textbf{grammar encoding} is
+\begin{equation}
+\phi_{\mathrm{gram}}(\sigma) = \big[\,|\sigma|,\ \mathrm{dur}(\sigma),\ D,\ \mathrm{visits}(q)\ \forall q \in Q,\ \#\texttt{tool\_call},\ \#\texttt{tool\_error},\ \mathbb{1}[\theta]\,\big],
+\label{eq:gram}
+\end{equation}
+a structural fingerprint: walk length, duration, cycle depth, per-state visit counts,
+tool-call and tool-error counts, and a terminal one-hot.
+The \textbf{bigram encoding} is the histogram of the first $k$ state-to-state transitions,
+flattened in a fixed alphabet order --- a local-order fingerprint that ignores global
+statistics.
+Both are z-normalized per column with a zero-variance guard (constant columns map to zero, no
+NaN), so a collection with one terminal class still projects cleanly.
+The encodings are deliberately shallow: they measure structure, not semantics.
+A paraphrase pair whose conversations have identical structure lands on the same point ---
+the honest cost of the deterministic baseline, revisited in
+Section~\ref{sec:evaluation}.
+
+\subsection{Projection anchored on the real set}
+All vectors are projected to 2-D by principal component analysis computed with power iteration
+and deflation, \textbf{fit on the real set only}.
+The design commitment is that production defines the behavior space: the principal axes are
+estimated from real walks, and simulated points are projected onto those same axes.
+Fitting jointly would let the simulated set move the axes --- a simulator collapsing onto one
+behavior mode would shrink the plane onto that mode and hide exactly the deficiency the metric
+exists to expose.
+The projection is also deterministic (no stochastic neighborhood embedding, contrast
+\citep{wildvis2024}): the same collections always produce the same plane, the same grid, and
+the same coverage number, which makes the protocol of Section~\ref{sec:evaluation} exact
+rather than sampled.
+
+\subsection{Density and the shared threshold}
+Real density is estimated by Gaussian-bump accumulation on a $\rho \times \rho$ grid covering
+the real extent (padded by 15\%), followed by box-blur smoothing with bandwidth
+$\sigma = \beta \rho$ cells.
+Occupancy uses a \emph{shared relative threshold}: with $p_{99}$ the 99th percentile and
+$\mathrm{peak}$ the maximum of the blurred real field, a cell is occupied when its real
+density exceeds
+\begin{equation}
+\varepsilon \cdot \mathrm{core}, \qquad \mathrm{core} = \max\!\big(p_{99},\ 0.5 \cdot \mathrm{peak}\big).
+\label{eq:threshold}
+\end{equation}
+The simulated field is accumulated on the same grid \emph{normalized by the real field's
+peak}, not by its own peak: self-normalization would rescale a deficient sim set to fill the
+plane and destroy the relative magnitudes that coverage compares.
+A single threshold then governs both clouds --- occupancy for real, coverage for sim --- which
+is what makes the two percentages commensurable.
+
+\subsection{Coverage, per-class coverage, and edge handling}
+\begin{definition}[Region coverage]
+\label{def:coverage}
+Let $O$ be the occupied cell set (Equation~\eqref{eq:threshold}).
+A cell is \emph{covered} when a simulated point falls inside it or the smoothed simulated
+kernel places at least $\varepsilon \cdot \mathrm{core}$ relative mass in it.
+The coverage of a set $S$ is $c(S) = |C|/|O|$ with $C \subseteq O$ the covered cells;
+the \emph{class-conditional} coverage $c_\theta(S)$ restricts $O$ to cells whose nearest real
+exemplar has outcome class $\theta$.
+\end{definition}
+Simulated points outside the grid are dropped, not clamped: a sim point ten extents away must
+not masquerade as a corner point.
+Per-class coverage is what stops a majority class from hiding a failure --- a simulator can
+cover 90\% of contained regions while covering 0\% of abandonment regions, and only the
+class-conditional number exposes it.
+
+\subsection{The recommendation loop: top-$K$ uncovered regions}
+Coverage percentages localize the deficit in aggregate; the actionable unit is the individual
+uncovered region.
+Uncovered cells are ranked by local real density, neighbors within a Chebyshev distance of 2
+are deduplicated, and the top-$K$ survivors each report their nearest real exemplar ---
+conversation, outcome class, cycle depth, duration, first user utterance.
+Each exemplar is a scenario seed: hand it to the simulator as a conditioning target (the
+log-conditional ladder of Section~\ref{sec:evaluation}), regenerate, and re-measure.
+The loop --- uncovered region $\to$ nearest real exemplar $\to$ simulator scenario $\to$
+coverage delta --- is the metric's reason to exist inside an evaluation pipeline rather than
+as a dashboard.

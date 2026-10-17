@@ -1,0 +1,102 @@
+% §3 The extraction mapping tau
+The extraction mapping $\tau$ converts a standard observability export into a grammar walk.
+This section defines its three stages --- normalization, state inference, walk construction ---
+as shipped in the open-source implementation,\footnote{\url{https://github.com/iamdgarcia/trace2grammar}}
+and states the assumption that governs what the paper's coverage results inherit.
+Figure~\ref{fig:pipeline} shows the pipeline.
+
+\begin{figure}[t]
+\centering
+\resizebox{\textwidth}{!}{\input{figures/fig_pipeline}}
+\caption{The extraction-and-coverage pipeline.
+Three observability dialects (OTel GenAI, OpenInference, LangSmith; $\tau$-bench episodes as a
+fourth evaluation-side dialect) are normalized into a canonical event stream, classified into a
+grammar walk with outcome class and cycle depth, encoded as feature vectors, projected onto a
+2-D plane fit on the real set, and scored for region coverage.}
+\label{fig:pipeline}
+\end{figure}
+
+\subsection{Canonical event stream}
+Every dialect is reduced to one format-agnostic event stream
+$e = (t_{\mathrm{ms}}, \mathrm{kind}, \mathrm{name}, \mathrm{attrs})$ with event kinds
+\begin{equation}
+\begin{aligned}
+\mathrm{kind} \in \{\,&\texttt{user\_msg},\ \texttt{assistant\_msg},\ \texttt{tool\_call},\\
+&\texttt{tool\_result},\ \texttt{tool\_error},\ \texttt{hangup},\\
+&\texttt{handoff},\ \texttt{session\_end}\,\},
+\end{aligned}
+\label{eq:kinds}
+\end{equation}
+One normalization function per dialect maps its export shape onto
+Equation~\eqref{eq:kinds}:
+\begin{itemize}
+  \item \texttt{\_normalize\_otel} --- OTel GenAI spans, conversation-scoped, with the
+        \texttt{gen\_ai.*} attributes of \texttt{invoke\_agent} and
+        \texttt{execute\_tool} calls;
+  \item \texttt{\_normalize\_openinference} --- typed OpenInference spans:
+        \texttt{input.value}, \texttt{output.value};
+  \item \texttt{\_normalize\_langsmith} --- runs grouped by \texttt{parent\_run\_id};
+  \item \texttt{\_normalize\_taubench} --- transcript turns plus the environment-verified
+        reward, which drives the terminal outcome (a documented public analogue for
+        production containment).
+\end{itemize}
+Timestamps are normalized to milliseconds (epoch nanoseconds or ISO timestamps depending on
+dialect), attributes are flattened, and adjacent duplicate events are deduplicated.
+Everything downstream of the canonical stream is format-agnostic; adding a dialect is one
+normalization function, which is what keeps $\tau$ maintainable as the specification landscape
+shifts --- the OTel GenAI conventions are still under Development status
+\citep{otelgenai2026}.
+
+\subsection{State inference as a config-exposed classifier}
+The second stage maps the canonical stream to a grammar walk
+$\sigma = q_0 \to q_1 \to \cdots \to \theta$ with states
+$Q = \{q_{\mathrm{greet}}, q_{\mathrm{auth}}, q_{\mathrm{intent}}, q_{\mathrm{tool}},$
+$q_{\mathrm{clarify}}, q_{\mathrm{confirm}}, q_{\mathrm{close}}\}$ and terminals
+$\Theta = \{\theta_{\mathrm{cont}}, \theta_{\mathrm{aban}}, \theta_{\mathrm{hand}},$
+$\theta_{\mathrm{esc}}\}$ \citep{garcia2026grammar}.
+The baseline classifier is deliberately rule-based: keyword and regex pattern tables
+(authentication tool names, handoff tool names, user clarification and confirmation phrases,
+assistant closing phrases, explicit terminal event names) plus sequencing rules (a user
+clarification re-opens the current settled state and increments cycle depth; tool errors with
+recovery stay in $q_{\mathrm{tool}}$; explicit hangup and handoff events drive the terminal).
+Every pattern lives in an \texttt{ExtractionConfig} dataclass, so a domain owner adapts the
+mapping to a new vertical (banking, retail, IT support) by editing configuration, not code.
+
+This is a heuristic, and the paper's claim does not depend on it being more.
+The contribution is the \emph{interface}: deterministic walks with typed transitions that any
+downstream measurement can consume.
+The learned emission mapper that will replace the pattern tables is future work
+(Section~\ref{sec:open_problems}); the configuration tables double as its training-data
+generator.
+
+\begin{definition}[Extraction mapping]
+\label{def:tau}
+$\tau : D \to \Sigma^* \times \Theta \times \mathbb{N}$ maps an observability export
+$d \in D$ to a walk $\sigma$ over the grammar's transition types, an outcome class
+$\theta \in \Theta$, and a cycle depth $D(\sigma)$, such that every walk step is grounded in a
+canonical event of Equation~\eqref{eq:kinds} and every terminal class is decided by an
+explicit rule over terminal events, tool-error counts, or (for evaluation dialects)
+environment-verified outcomes.
+\end{definition}
+
+\subsection{Outcome classes and cycle depth}
+The walk ends in exactly one terminal class.
+Contained ($\theta_{\mathrm{cont}}$) requires an explicit close with no unresolved tool
+errors; handoff ($\theta_{\mathrm{hand}}$) is forced by handoff-typed tools or events;
+abandoned ($\theta_{\mathrm{aban}}$) is the absence of a terminal event at stream end;
+compliance-escape ($\theta_{\mathrm{esc}}$) is the audit overlay inherited from the companion
+grammar \citep{garcia2026grammar}, computed as a post-hoc check rather than a walk state.
+Cycle depth $D(\sigma)$ counts regressions to settled states --- the drift statistic that
+distinguishes a healthy clarify loop from an endless one.
+
+\subsection{The emission-model assumption, stated honestly}
+The guarantees of the companion grammar attach to its \emph{stopping} layer under calibrated
+emissions \citep{garcia2026grammar}.
+$\tau$ supplies deterministic emissions (pattern tables), so this paper's coverage results
+inherit the walk \emph{semantics} only --- state identity, transition typing, outcome
+decidability --- and none of the prediction guarantees.
+This is the honest dependency direction: the coverage metric is defined on walks, its
+correctness claim is invariant to how walks are produced, and a calibrated state estimator
+can replace \texttt{infer\_states()} without changing any downstream definition.
+What the baseline does add is reproducibility: the same export always yields the same walk,
+which Section~\ref{sec:evaluation} exploits to make sensitivity sweeps exact.

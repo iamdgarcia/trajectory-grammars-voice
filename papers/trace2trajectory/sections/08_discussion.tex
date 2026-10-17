@@ -1,0 +1,54 @@
+% §8 Discussion
+\paragraph{Limitations.}
+Four limitations are intrinsic to what this paper ships.
+\emph{Rule-based extraction}: the baseline classifier misclassifies edge cases (mixed-order
+events, multilingual politeness formulas, out-of-band hangups); misclassification propagates
+to walks and therefore to coverage.
+The mitigations are structural --- configuration exposure keeps the classifier auditable and
+domain-adaptable without code changes, and the emission-model assumption
+(Section~\ref{sec:extraction}) scopes the paper's claims to walk semantics --- but the
+coverage numbers inherit every extraction error.
+\emph{Lossy projection}: a 2-D plane discards variance by construction; coverage is defined
+on the projection and is not claimed to be a property of the full behavior space.
+The real-anchored basis is a design commitment (production defines the space), not a
+reconstruction guarantee, and the sensitivity sweep of Section~\ref{sec:evaluation} is the
+protocol for quantifying how much the 2-D commitment costs.
+\emph{Hyperparameter sensitivity}: grid resolution, bandwidth, and threshold are
+hyperparameters; the paper's answer is the stability envelope, not a default.
+\emph{Fixture scale}: the worked example runs on 3 conversations across 3 dialects.
+It demonstrates the pipeline end-to-end and the output format's actionability; it is not
+field evidence.
+Production-scale validation (hundreds of conversations, per-domain pattern-table tuning,
+per-class stability) is the designated follow-up and requires log access with
+data-protection review --- the paper's protocol section is written so that follow-up can
+adopt this text as its methods section.
+
+\paragraph{What the metric is for.}
+Region coverage is a population-level instrument, and it inherits a population-level blind
+spot: it says which conversation structures a collection exercises, not whether any single
+simulated conversation is faithful.
+The response-level distributional line \citep{distributionalGap2026,cds2026,mirrorbench2026}
+and the trajectory-level coverage line are complements, not competitors --- the former
+scores the conversations a simulator produces, the latter names the ones it never does.
+An evaluation owner who runs both knows what their simulator sounds like \emph{and} what it
+never says.
+
+\paragraph{Scope.}
+The mapping is voice-agnostic by construction: any agent that emits the three dialects ---
+chat agents, multi-agent systems, tool-heavy pipelines --- extracts to the same canonical
+stream and the same grammar walks.
+The grammar's state names read as service-dialogue vocabulary, but the coverage machinery
+consumes only walks; a domain reuses it by re-deriving walks, not by re-deriving coverage.
+The conformance-contract discipline of recent framework-audit work
+\citep{resume2026,stopmeansstop2026} applies here as the extraction layer's own standard:
+the interface is the contract, the baseline is the reference implementation, and every
+number in this paper regenerates from the artifact.
+
+\paragraph{Artifact.}
+The extraction and coverage implementation ships open-source (MIT) at
+\url{https://github.com/iamdgarcia/trace2grammar}: four dialect normalizers, the
+config-exposed rule classifier, the coverage module (features, real-anchored PCA, density
+grid, shared threshold, top-$K$ exemplars), the atlas HTML report, and 46 checks across
+extraction and coverage suites, all passing at the time of writing.
+The worked-example numbers regenerate from the repository README's single command; a camera
+reader can verify every quantitative claim in this paper in under a minute.

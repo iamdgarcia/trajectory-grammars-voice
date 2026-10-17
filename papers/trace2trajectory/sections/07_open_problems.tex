@@ -1,0 +1,37 @@
+% §7 Open problems
+Five problems stay open, in increasing order of ambition.
+
+\paragraph{Learned emission mapping.}
+The rule-based classifier is the interface's seed, not its ceiling.
+A learned state estimator --- trained on pattern-table labels, then corrected --- would
+replace \texttt{infer\_states()} with no downstream change; the open question is what its
+uncertainty does to coverage (a walk with a soft state distribution induces a coverage
+distribution, not a number).
+
+\paragraph{Calibrated embeddings as features.}
+The embedding variant of Section~\ref{sec:evaluation} swaps the feature step; the stronger
+version conditions the projection itself on calibrated user embeddings \citep{cue2026}, so
+the behavior plane separates conversations by calibrated semantic distance rather than
+structural counts.
+
+\paragraph{Coverage beyond two dimensions.}
+The 2-D projection is a visualization-driven commitment; the coverage \emph{definition} does
+not need it.
+Kernel two-sample tests over the full feature space (MMD-style) would measure region coverage
+without any projection, at the cost of the atlas and its exemplar loop --- the open problem
+is a formulation that keeps per-region exemplars in high dimensions.
+
+\paragraph{Closed-loop simulator improvement.}
+The recommendation loop is currently human-in-the-middle: uncovered exemplars become scenario
+seeds by an analyst's decision.
+Closing the loop --- uncovered region $\to$ generated scenario $\to$ coverage delta, with no
+human step --- is the simulator-building agenda \citep{cue2026,distributionalGap2026} run on
+the atlas as its objective function.
+
+\paragraph{Voice-physics channels.}
+Barge-in, endpointing behavior, and tool round-trip latency die at the transport boundary of
+current observability stacks.
+The companion grammar specifies a \texttt{voice.*} semantic-convention extension
+\citep{garcia2026grammar}; the atlas extends to it unchanged (the channels become feature
+dimensions), making the missing piece a transport-side export fix rather than a method
+problem.

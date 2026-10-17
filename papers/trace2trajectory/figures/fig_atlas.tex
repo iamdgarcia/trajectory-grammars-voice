@@ -1,0 +1,38 @@
+% The trajectory atlas: one behavior plane, two clouds, outcome classes, uncovered regions.
+\begin{tikzpicture}[>=Stealth, font=\small, scale=1.0]
+  % axes
+  \draw[->,gray] (-0.4,0) -- (9.8,0) node[right,font=\scriptsize]{PC 1};
+  \draw[->,gray] (0,-0.4) -- (0,6.2) node[above,font=\scriptsize]{PC 2};
+  \draw[black!10] (0,0) grid[step=0.95] (9.5,5.7);
+  % uncovered regions (red cells, behind the points)
+  \foreach \x/\y in {1.9/4.75, 2.85/4.75, 6.65/0.95, 7.6/1.9}
+    \fill[red!30, opacity=0.85] (\x-0.475,\y-0.475) rectangle (\x+0.475,\y+0.475);
+  % real cloud: contained lobe (bottom left, blue circles)
+  \foreach \x/\y in {1.4/1.4, 1.9/1.6, 1.6/1.9, 2.2/1.3, 1.2/1.1, 2.4/1.8, 1.8/1.15, 2.1/2.1}
+    \draw[blue!70, fill=blue!30] (\x,\y) circle (2.2pt);
+  % real cloud: handoff lobe (upper middle, blue circles)
+  \foreach \x/\y in {4.7/3.8, 5.2/4.1, 4.4/4.2, 5.0/3.5, 4.9/4.4, 4.2/3.6}
+    \draw[blue!70, fill=blue!30] (\x,\y) circle (2.2pt);
+  % real cloud: abandoned lobe (right, blue circles)
+  \foreach \x/\y in {7.8/4.6, 8.2/4.3, 7.5/4.8, 8.4/4.75}
+    \draw[blue!70, fill=blue!30] (\x,\y) circle (2.2pt);
+  % sim cloud (orange diamonds): collapses onto the contained lobe + spills outside
+  \foreach \x/\y in {1.5/1.5, 1.8/1.7, 1.35/1.75, 2.0/1.4, 1.65/1.3, 1.9/1.9,
+                     0.6/0.6, 0.9/0.5, 1.0/2.6}
+    \draw[orange!90!black, fill=orange!60] (\x,\y) node[diamond, inner sep=1.8pt] {};
+  % legend
+  \node[font=\scriptsize, blue!70!black, anchor=west] at (0.1,-0.75)
+    {\tikz{\draw[blue!70, fill=blue!30] (0,0) circle (2pt);} real (production)};
+  \node[font=\scriptsize, orange!80!black, anchor=west] at (3.4,-0.75)
+    {\tikz{\draw[orange!90!black, fill=orange!60] (0,0) node[diamond, inner sep=1.5pt] {};} simulator};
+  \node[font=\scriptsize, red!60!black, anchor=west] at (6.6,-0.75)
+    {\tikz{\fill[red!30] (0,-0.1) rectangle (0.2,0.1);} uncovered};
+  % annotation: over-cooperative collapse
+  \draw[->,orange!80!black] (1.0,3.0) .. controls (1.0,2.4) .. (1.35,2.0)
+    node[above,font=\scriptsize,align=center,anchor=south,yshift=2mm]
+    {sim concentration\\(over-cooperative)};
+  % annotation: exemplar tooltip
+  \draw[->,red!60!black] (7.6,1.9) .. controls (8.6,1.4) .. (9.0,0.9)
+    node[below,font=\scriptsize,align=left,anchor=north,xshift=-8mm]
+    {nearest real exemplar\\+ per-class coverage};
+\end{tikzpicture}
