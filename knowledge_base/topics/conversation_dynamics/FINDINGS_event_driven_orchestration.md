@@ -250,3 +250,14 @@ correlate), `wald1947sprt` (sequential decision foundation).
 - **transformers.js#1796 scope verdict**: the webnn-npu→npu mapping (Chrome 153) belongs in
   issue #1748 at the session-factory boundary; getAvailableDevices() stays a read-only reporter.
   Replied on the PR 2026-10-17.
+
+- **FIRST FRAMEWORK MEASUREMENT (2026-10-17, livekit-agents==1.8.8 through the conformance kit):**
+  4/4 invariants PASS, stable x5 — single-tool turn spans >= 1 RTT (~110-125ms @ RTT=100ms),
+  parallel-4 ~110-140ms vs 400ms serialized, mid-pending ack 94-110ms (2 tools pending),
+  barge-in stop within one poll tick. Source evidence: function tools run as background
+  asyncio tasks (voice/tool_executor.py:408, create_task per tool). Roomless headless recipe:
+  OMIT room (is_given(None) is True). Measurement lesson: the ack turn must script >= 2 slow
+  tools or the pending window is unobservable. LiveKit (cascade-native) SATISFIES the
+  event-driven contract invariants — supports the thesis that the contract, not the loop
+  implementation, is the transferable artifact. Next contrast: LangGraph (predicted FAIL on
+  non-stalling turns).
