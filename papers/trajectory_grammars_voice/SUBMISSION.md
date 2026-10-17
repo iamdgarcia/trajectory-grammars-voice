@@ -7,6 +7,10 @@ Canal de publicación: **alphaXiv** (arXiv no disponible para el autor). Precede
 - `trajectory_grammars_voice_arxiv.zip` (17 ficheros: main.tex, main.bib, sections/, figures/ — los
   figures/ son TikZ, sin binarios).
 - PDF de verificación local: `main.pdf` (28pp, 0 errores / 0 warnings / 0 overfull).
+- **ACTUALIZACIÓN 2026-10-17 (user): el formulario de alphaXiv pide el PDF directamente, no un zip
+  (y las figuras TikZ no renderizan en su preview). Pendiente de resolver: exportar un PDF final
+  autocontenido para pegarlo en el formulario. Mientras tanto la subida está EN PAUSA por decisión
+  del usuario.**
 
 ## Campos sugeridos para el formulario
 - **Title**: Turn-Level Trajectory Grammars for Voice Agents: Early Outcome Prediction and
