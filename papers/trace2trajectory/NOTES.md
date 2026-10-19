@@ -6,7 +6,7 @@
 - Length target: sibling paper is 27pp; this one is a *methods + protocol* paper — aim 18–22pp with 3 TikZ figures.
 
 ## Content decisions to make at Stage 3
-1. **Real-log case study?** The worked example is fixture-scale (5 conversations, 40.2% coverage).
+1. **Real-log case study?** The worked example is fixture-scale (3 conversations: 2 real / 1 sim, 40.2% coverage).
    If iabto log access lands before writing finishes: add a real-call section (even 50–100 calls,
    GDPR-safe schema) — it upgrades the paper from "protocol + demo" to "protocol + field evidence".
    If not: keep fixtures, say so honestly in 08_discussion.
@@ -39,7 +39,7 @@
   per-class semantics + exemplar recommendation loop; \citep{wildvis2024} contrast in 01.
 
 ## Cross-artifact wiring
-- Code release: `github.com/iamdgarcia/trace2grammar` (MIT, clean-room verified, 40/40 checks) — cite in the artifact section; freeze the CLI interface before Stage 4.
+- Code release: `github.com/iamdgarcia/trace2grammar` (MIT, clean-room verified, 46 checks (26 extract + 14 coverage + 6 smoke; 2026-10-19 re-verified)) — cite in the artifact section; freeze the CLI interface before Stage 4.
 - The worked-example numbers (40.2%, per-class 45.3/35.2) must be re-generated at camera-ready if the fixtures change — add a `_regen.sh` note in 05.
 - Index: INDEX.md links this paper dir under the trace→trajectory angle.
 

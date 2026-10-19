@@ -77,7 +77,7 @@ rule-based $\tau$ and its measurement.
 ### `04_coverage.tex` (region coverage)
 - Feature encodings: `grammar` features (walk length, duration, cycle depth, per-state visits, tool-call/error counts, terminal one-hot) and `bigram` features (first-$k$ transition histogram); z-normalization with zero-variance guard.
 - Projection: PCA (power iteration + deflation) **fit on the real set only** — the behavior space is defined by production; sim points are projected into it (joint fitting would let the sim set move the axes). Determinism stated as a feature (no UMAP stochasticity; \citep{wildvis2024} contrast).
-- Density: Gaussian-bump grid over the real cloud, box-blur smoothing; grid resolution $\rho$, bandwidth $\sigma = \beta\rho$; the shared relative threshold $\varepsilon \cdot \text{core}$ (99th-percentile-to-peak ratio) that defines occupancy for BOTH clouds — self-normalization would destroy relative magnitude, and the fix is stated.
+- Density: Gaussian-bump grid over the real cloud, box-blur smoothing; grid resolution $\rho$, bandwidth $\sigma = \beta\rho$; the shared relative threshold $\varepsilon \cdot \text{core}$ with $\text{core} = \max(\mathrm{p99}, 0.5\cdot\mathrm{peak})$ of the smoothed real field, defining occupancy for BOTH clouds — self-normalization would destroy relative magnitude, and the fix is stated.
 - Coverage definitions: cell covered iff sim point inside OR sim kernel $\geq$ threshold; occupied = real cells above threshold; coverage \% overall + per outcome class; edge handling (skip-outside for sim: a sim point 10 extents away must not look like a corner point).
 - **The recommendation loop**: top-$K$ uncovered cells by local real density, neighbor-deduped, each carrying its nearest real exemplar ("the tests you are not running"); turnaround: exemplar → simulator scenario seed.
 - TikZ figure: `fig_coverage.tex` (real cloud → density grid → occupancy threshold → coverage count → uncovered cells with exemplar callouts).
@@ -85,7 +85,7 @@ rule-based $\tau$ and its measurement.
 ### `05_atlas.tex` (the visualization layer + worked example)
 - The atlas: one behavior plane, real = blue dots, sim = orange, uncovered = red cells with tooltips; designed for cross-model comparison — real logs and simulated runs may come from different vendors/models, legitimized by cross-model representation convergence \citep{layersSimilarDepths2025} and the trajectory-geometry vocabulary \citep{trajectoryGeometry2026}.
 - Sim-vs-real reading: where the sim cloud concentrates (over-cooperative collapse, cf. \citep{realUserSim2026}, \citep{mirrorbench2026}), where it scatters, which real regions it misses entirely.
-- **Worked example on shipped fixtures** (github.com/iamdgarcia/trace2grammar): 5 conversations across 3 dialects; sim set covers **40.2\%** of occupied real regions; per-class contained 45.3\% / handoff 35.2\%; top-3 uncovered with exemplar texts reproduced as a table.
+- **Worked example on shipped fixtures** (github.com/iamdgarcia/trace2grammar): 3 conversations across 3 dialects (2 real / 1 sim); sim set covers **40.2\%** of occupied real regions; per-class contained 45.3\% / handoff 35.2\%; top-3 uncovered with exemplar texts reproduced as a table.
 - Relationship to the simulator program (a6): the atlas is where calibrated simulation is *validated* — region coverage is the headline metric; Wasserstein divergence of grammar-walk statistics (CDS-style, \citep{cds2026}) and rank correlation are the secondary instruments.
 
 ### `06_evaluation.tex` (protocol for a paper-grade result)

@@ -23,7 +23,7 @@ $e = (t_{\mathrm{ms}}, \mathrm{kind}, \mathrm{name}, \mathrm{attrs})$ with event
 \begin{aligned}
 \mathrm{kind} \in \{\,&\texttt{user\_msg},\ \texttt{assistant\_msg},\ \texttt{tool\_call},\\
 &\texttt{tool\_result},\ \texttt{tool\_error},\ \texttt{hangup},\\
-&\texttt{handoff},\ \texttt{session\_end}\,\},
+&\texttt{handoff},\ \texttt{session\_end}\,\}.
 \end{aligned}
 \label{eq:kinds}
 \end{equation}
@@ -71,12 +71,12 @@ generator.
 
 \begin{definition}[Extraction mapping]
 \label{def:tau}
-$\tau : D \to \Sigma^* \times \Theta \times \mathbb{N}$ maps an observability export
-$d \in D$ to a walk $\sigma$ over the grammar's transition types, an outcome class
-$\theta \in \Theta$, and a cycle depth $D(\sigma)$, such that every walk step is grounded in a
-canonical event of Equation~\eqref{eq:kinds} and every terminal class is decided by an
-explicit rule over terminal events, tool-error counts, or (for evaluation dialects)
-environment-verified outcomes.
+$\tau : \mathcal{D} \to \Sigma^* \times \Theta \times \mathbb{N}$ maps an observability export
+$d \in \mathcal{D}$ to a walk $\sigma$ over states $q \in Q$ with typed transitions from
+$\Sigma$, an outcome class $\theta \in \Theta$, and a cycle depth $D(\sigma)$, such that every
+walk step is grounded in a canonical event of Equation~\eqref{eq:kinds} and every terminal
+class is decided by an explicit rule over terminal events, tool-error counts, or (for
+evaluation dialects) environment-verified outcomes.
 \end{definition}
 
 \subsection{Outcome classes and cycle depth}

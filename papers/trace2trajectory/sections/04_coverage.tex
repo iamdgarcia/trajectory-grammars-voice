@@ -13,7 +13,8 @@ Figure~\ref{fig:coverage} shows the geometry.
 (a) Real (blue) and simulated (orange diamonds) walks in one 2-D behavior plane; the sim set
 reaches one real lobe and misses the other.
 (b) A density grid over the real cloud; cells are occupied when real density exceeds
-$\varepsilon \cdot \mathrm{core}$, where core is the field's 99th-percentile-to-peak ratio.
+$\varepsilon \cdot \mathrm{core}$, where $\mathrm{core} = \max(\mathrm{p99},\ 0.5\cdot\mathrm{peak})$
+of the smoothed real field, mirroring the threshold definition above.
 (c) Occupied cells split into covered (sim point inside, or sim kernel mass above threshold)
 and uncovered; each uncovered cell carries its nearest real exemplar --- the test you are not
 running.}
@@ -30,11 +31,12 @@ The \textbf{grammar encoding} is
 \end{equation}
 a structural fingerprint: walk length, duration, cycle depth, per-state visit counts,
 tool-call and tool-error counts, and a terminal one-hot.
-The \textbf{bigram encoding} is the histogram of the first $k$ state-to-state transitions,
-flattened in a fixed alphabet order --- a local-order fingerprint that ignores global
-statistics.
-Both are z-normalized per column with a zero-variance guard (constant columns map to zero, no
-NaN), so a collection with one terminal class still projects cleanly.
+The \textbf{bigram encoding} is the histogram of the first $k$ state-to-state transitions
+($k=6$ in all experiments, fixed by construction and not swept), flattened in a fixed
+alphabet order --- a local-order fingerprint that ignores global statistics.
+Both are z-normalized per column with the statistics computed on the real set only
+(consistent with the real-anchored projection below), plus a zero-variance guard (constant
+columns map to zero, no NaN), so a collection with one terminal class still projects cleanly.
 The encodings are deliberately shallow: they measure structure, not semantics.
 A paraphrase pair whose conversations have identical structure lands on the same point ---
 the honest cost of the deterministic baseline, revisited in

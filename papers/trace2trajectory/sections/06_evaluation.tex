@@ -9,7 +9,7 @@ always produce the same outputs, so there is no seed variance to average over.
 \subsection{The transfer headline}
 The question the atlas ultimately serves: \emph{do agent-policy scores computed on
 simulator-driven evaluation agree with scores computed on real calls?}
-The instrument is rank correlation (Kendall $\tau$ or Spearman $\rho$) between agent-version
+The instrument is rank correlation (Kendall $\tau_K$ or Spearman $\rho_S$) between agent-version
 rankings computed on simulated evaluation sets and on real-call evaluation sets, over a
 version ladder of the same agent.
 This is the sim2real transfer number that simulator-building work currently leaves implicit
@@ -20,19 +20,32 @@ uncovered regions name where the ranking is least trustworthy.
 
 \subsection{Coverage sensitivity sweep}
 Coverage depends on three hyperparameters: grid resolution $\rho$, bandwidth fraction
-$\beta$, and threshold $\epsilon$.
+$\beta$, and threshold $\varepsilon$.
 The protocol sweeps
 $\rho \in \{16, 24, 32, 48\}$,
 $\beta \in \{0.08, 0.12, 0.20\}$,
-$\epsilon \in \{0.02, 0.05, 0.10\}$
+$\varepsilon \in \{0.02, 0.05, 0.10\}$
 --- 36 configurations --- and reports the \emph{stability envelope}: the spread of overall
 and per-class coverage across the grid, plus the rank stability of the top-$K$ uncovered
 regions (Jaccard overlap of the top-$K$ cell sets across configurations).
 Because the pipeline is deterministic, this sweep is exhaustive over its grid, not Monte
 Carlo; a coverage number that moves more than a few points across the envelope is reported as
 unstable rather than point-quoted.
-The worked example's configuration ($\rho{=}24$, $\beta{=}0.12$, $\epsilon{=}0.05$) sits at
-the envelope's center as shipped.
+The worked example's configuration ($\rho{=}24$, $\beta{=}0.12$, $\varepsilon{=}0.05$) sits
+within the envelope as shipped; the occupancy threshold's built-in constants (the p99 and the
+0.5 factor of the core definition) are fixed by construction and not swept.
+All three swept hyperparameters are downstream of the projection, so the sweep cannot detect
+an unstable behavior-space basis.
+The protocol therefore adds a fourth rung that tests the anchoring commitment directly:
+real-set resampling --- subsample the real collection, refit the basis, recompute coverage
+--- and reports the spread across resamples alongside the envelope.
+At real-set sizes comparable to the fixture (two conversations), the centered real matrix is
+rank-deficient and the second principal axis is implementation-defined: deterministic, but
+geometrically arbitrary, which is why the worked-example number is a smoke test of runnability
+rather than evidence, and why the resampling rung exists before any field claim is made.
+Coverage is always reported together with the out-of-grid fraction --- the share of simulated
+points dropped rather than clamped --- so a scatter diagnostic cannot hide behind a coverage
+number.
 
 \subsection{Class-conditional coverage}
 Overall coverage is dominated by the majority outcome class in any imbalanced collection ---

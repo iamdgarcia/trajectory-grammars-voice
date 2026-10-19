@@ -51,13 +51,20 @@ Trace mining recovers structure from execution logs: automata for failure and ne
 prediction \citep{automataTraces2026}, behavior benchmarks from deployment traces
 \citep{tracedance2026}, workflow graphs for scientific agents \citep{graphoftrace2026},
 and corpus-level visual maps of chat logs \citep{wildvis2024}.
+The lineage of extracting automata from execution logs is process mining \citep{vanDerAalst2012process}:
+process discovery targets business-process event logs and trace fitness, not conversation
+semantics with terminal outcome classes, and not sim-vs-real population coverage of a
+behavior space.
 Early outcome prediction from partial transcripts \citep{nourbakhsh2026tracer} and
 trajectory-structure diagnostics for coding agents \citep{resolveRate2026} use traces as
 evaluation signal; early-prediction evaluation trade-offs are measured by
 \citet{earlyeval2026} and label-reliability over agent trajectories by
 \citet{falsesuccess2026}; full-episode outcome comparison is the paradigm of
 $\tau$-bench \citep{sierra2024taubench}; \citet{salesforce2025workflows} extract dialog
-workflows from conversations.
+workflows from conversations; and concurrent {AgentEval} \citep{agenteval2026} mines
+workflow graphs from live interaction for single-agent boundary testing --- closest in
+mechanism, but text-level and boundary-scoped, not population-level region coverage over
+standard observability dialects.
 Conformance contracts for agent frameworks --- machine-checked checkpoint/resume semantics
 \citep{resume2026} and control-primitive enforcement gaps \citep{stopmeansstop2026} ---
 establish that framework behavior can and should be checked against explicit contracts; the
@@ -72,11 +79,13 @@ repositories in October 2026) fix the extraction problem's boundary:
         identifier \texttt{gen\_ai.conversation.id} only as a Conditionally Required linking
         key --- there is no conversation object, and message content lives in Opt-In
         client-inference attributes.
-  \item \textbf{OpenInference} ships the most complete stable attribute specification
-        (span kinds LLM/AGENT/TOOL/CHAIN under \texttt{openinference.span.kind}, structured
-        inputs, outputs, and tool-call lists) on the same span envelope.
-  \item \textbf{LangSmith} exports run trees whose \texttt{parent\_run\_id} grouping is the
-        de-facto evaluation-side session artifact.
+  \item \textbf{OpenInference} \citep{openinference2026} ships the most complete stable
+        attribute specification (span kinds LLM/AGENT/TOOL/CHAIN under
+        \texttt{openinference.span.kind}, structured inputs, outputs, and tool-call lists)
+        on the same span envelope.
+  \item \textbf{LangSmith} \citep{langsmith2026} exports run trees whose grouping
+        (\texttt{trace\_id}/\texttt{parent\_run\_id}; conversation identity rides on user
+        metadata such as \texttt{thread\_id}) is the de-facto evaluation-side artifact.
 \end{itemize}
 All three reduce to per-operation records with session identifiers; none assigns
 conversation states, outcomes, or drift.
@@ -117,6 +126,10 @@ Table~\ref{tab:neighbors} makes the deltas explicit.
   process diagnostics &
   trajectory-structure statistics &
   observability ingestion, region coverage \\
+\citet{agenteval2026} &
+  concurrent; workflow mining &
+  graphs from live interaction &
+  outcome classes, collection-level coverage \\
 \bottomrule
 \end{tabular}
 \caption{The nearest neighbors and the axis each leaves unclaimed.
