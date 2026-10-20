@@ -75,7 +75,7 @@ VERDICT: Minor Revision
     {
       "id": "criterion-1",
       "status": "satisfied",
-      "evidence": "Concrete findings with file paths and severity returned: Thm 1 undefined primed symbols/prose proof (papers/cascade_orchestration_floor/sections/04_analysis.tex, thm:floor_dependency); CCC callback to placeholder-Id companion in abstract (papers/cascade_orchestration_floor/main.tex); TODO-VERIFY bib gate + @misc/booktitle defect in papers/cascade_orchestration_floor/main.bib; 5x redundant 'sufficiency-not-uniqueness' hedge; fig_four_architectures duplicates Table 2 and fig_tool_hiding arrow contradiction (figures/*.tex); smoke-anchor prose-vs-script cross-check verified consistent (code/iabto-ms-bc-orchestrator/scripts/smoke_cessation.py). All block/severe items scored and prioritized."
+      "evidence": "Concrete findings with file paths and severity returned: Thm 1 undefined primed symbols/prose proof (papers/cascade_orchestration_floor/sections/04_analysis.tex, thm:floor_dependency); CCC callback to placeholder-Id companion in abstract (papers/cascade_orchestration_floor/main.tex); TODO-VERIFY bib gate + @misc/booktitle defect in papers/cascade_orchestration_floor/main.bib; 5x redundant 'sufficiency-not-uniqueness' hedge; fig_four_architectures duplicates Table 2 and fig_tool_hiding arrow contradiction (figures/*.tex); smoke-anchor prose-vs-script cross-check verified consistent (code/the production voice monolith-orchestrator/scripts/smoke_cessation.py). All block/severe items scored and prioritized."
     }
   ],
   "changedFiles": [],

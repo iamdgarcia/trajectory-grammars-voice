@@ -84,7 +84,7 @@ Verdict: framework noise for single-hop turns; decisive for tool / long-duration
 
 ## PoC evidence — semantics verified + smoke anchor MEASURED (per review)
 
-Artifact `C:\Users\U77225D\Desktop\code\iabto-ms-bc-orchestrator`. Existing tests verify the
+Artifact `C:\Users\U77225D\Desktop\code\the production voice monolith-orchestrator`. Existing tests verify the
 *semantics* (interruption cancels model stream, never background tools; reentry per completed
 batch; atomic pending-batch commit; interrupted delivery → internal context).
 

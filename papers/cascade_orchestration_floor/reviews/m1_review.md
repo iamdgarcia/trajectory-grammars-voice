@@ -50,7 +50,7 @@ VERIFIED-EVIDENCE NOTES (for the record): companion `thm:react` is a serial-chai
       "summary": "No TeX toolchain in this session; author notes draft is un-compiled. Supervisor must run to clear resolution/label passes."
     },
     {
-      "command": "python scripts/smoke_cessation.py (in iabto-ms-bc-orchestrator)",
+      "command": "python scripts/smoke_cessation.py (in the production voice monolith-orchestrator)",
       "result": "not-run",
       "summary": "Review-only session forbids shell. Static analysis confirms asserts and medians are plausible; exact '~0' rows must be reproduced to verify resume is not understated."
     }

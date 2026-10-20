@@ -31,7 +31,7 @@
 - jev-vad: P(turn-end) as speculation gate (SV4's open question in the KB) — optional cross-hook, not the lead; honest constraint: ES turn-end is near chance from text (0.40-0.54), so semantic speculation gating is fragile in Spanish.
 
 ## Banking grounding
-- Core-banking RTTs ~0.5-2 s against τ_human ≈ 200 ms: a single type-A transfer RTT alone breaks CCC → budget predicts filler-hold or split-turn; iabto-ms-bc production telemetry can validate.
+- Core-banking RTTs ~0.5-2 s against τ_human ≈ 200 ms: a single type-A transfer RTT alone breaks CCC → budget predicts filler-hold or split-turn; the production voice monolith production telemetry can validate.
 - Idempotency keys (standard in banking APIs) are precisely what makes speculative balance reads safe to retry and duplicate speculative transfers detectable — the API primitive the risk lemma formalizes.
 - Irreversible transfers: speculation must be vetoed regardless of latency; audit-trail logging of speculative calls is a real compliance requirement.
 - Tool backends span the full matrix in one system: balance reads (speculatable, idempotent), card blocks (compensable), transfers (irreversible).

@@ -81,7 +81,7 @@ pattern or its failure modes (immature-text dispatch rate, reconcile cost).
 
 **Evidence:** jev-vad-poc cloud latency table (1q p50 101-187 ms, p99 178-268
 < 500 ms Chirp floor); pipeline investigation
-(`jev-vad-poc/docs/investigacion-iabto-ms-bc-latencia.md`); 
+(`jev-vad-poc/docs/investigacion-the production voice monolith-latencia.md`); 
 `schlangen2011incremental` (revocation semantics exists in theory).
 
 **Update 2026-10-08 — the neighbourhood moved, the intersection did not.**

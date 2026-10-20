@@ -20,6 +20,6 @@ conceptual: true
 ---
 
 The baseline every semantic VAD composes with. In the serving pipeline
-investigated (iabto-ms-bc) Silero runs always as the clock/gate and never
+investigated (the production voice monolith) Silero runs always as the clock/gate and never
 decides the turn — the clean division of labor: acoustic gate → acoustic
 turn model (smart-turn) → semantic veto (jev-vad).

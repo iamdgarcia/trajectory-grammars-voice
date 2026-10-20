@@ -36,7 +36,7 @@ A **calibration framework + benchmark**, not another simulator:
 - **Private Spanish call logs**: calibration data; privacy-safe release path via synthetic reconstruction (transcripts re-synthesized, no raw audio).
 - **Fraud-scenario stress testing**: simulator plays vishing/social-engineering personas to test guardrail escalation and disclosure scripts — direct tie to ai_guardrails G1/G4 and to real core-banking tool backends under LangGraph orchestration.
 - **Compliance/audit**: deterministic simulated regression suites are auditable artifacts regulators can accept, unlike live probes of production.
-- **Production telemetry**: iabto-ms-bc logs (V2V latency, barge-in events) are the ground-truth distributions.
+- **Production telemetry**: the production voice monolith logs (V2V latency, barge-in events) are the ground-truth distributions.
 
 ## Scores
 - **Novelty: 4** — sim-to-real transfer of conversation metrics is unmeasured everywhere; simulators exist but are unvalidated.
@@ -46,4 +46,4 @@ A **calibration framework + benchmark**, not another simulator:
 - **Risk: 3** — simulator fidelity may prove too low for transfer (null result is publishable but less impactful); commercial vendors may hold private equivalents [verify].
 
 ## Verdict
-**Pursue later (high priority)** — the calibration claim is untestable until real-log access is secured; angle 5 (eval stack) or SV4 (dispatch-on-interim) lead now. The moment iabto-ms-bc log/telemetry access lands, this jumps the queue: it is the natural *third* program paper and reuses 100% of the existing metric apparatus.
+**Pursue later (high priority)** — the calibration claim is untestable until real-log access is secured; angle 5 (eval stack) or SV4 (dispatch-on-interim) lead now. The moment the production voice monolith log/telemetry access lands, this jumps the queue: it is the natural *third* program paper and reuses 100% of the existing metric apparatus.

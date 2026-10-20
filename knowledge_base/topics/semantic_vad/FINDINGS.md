@@ -3,7 +3,7 @@
 _Distilled 2026-10-06 from the jev-vad-poc project: benchmark design, sweep
 ablations, operating points, dual-environment latency (laptop + Cloud Run
 8 vCPU), and the pipeline investigation of the production voice stack
-(iabto-ms-bc). Numbers are project-measured unless flagged otherwise; frozen
+(the production voice monolith). Numbers are project-measured unless flagged otherwise; frozen
 artifacts live in `jev-vad-poc/benchmark/`. Update 2026-10-08: paper
 published (external venue); FD-VAD (`mathur2026fdvad`) added as the audio-side
 SOTA reference — see note under F4._

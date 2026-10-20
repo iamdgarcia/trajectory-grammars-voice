@@ -20,4 +20,4 @@ conceptual: true
 
 Cited in jev-vad-poc's acoustic-VAD lineage (alongside `webrtcvad`,
 `silero2024vad`). In the investigated pipeline, bot-echo filtering during
-barge-in uses speaker embeddings (IABTO-510) — the diarization connection.
+barge-in uses speaker embeddings (the internal voice-bank project-510) — the diarization connection.

@@ -77,7 +77,7 @@ VERDICT: Major Revision
       "summary": "Verified companion self-cite legitimacy: thm:react k-step gap and learned barge-in prediction present"
     },
     {
-      "command": "read scripts/smoke_cessation.py (via C:/Users/U77225D/Desktop/code/iabto-ms-bc-orchestrator)",
+      "command": "read scripts/smoke_cessation.py (via C:/Users/U77225D/Desktop/code/the production voice monolith-orchestrator)",
       "result": "passed",
       "summary": "Verified measured numbers 109/609ms, gen-stop<FRAME_MS, resume 0/~1000ms and the three self-check invariants"
     },
@@ -110,6 +110,6 @@ VERDICT: Major Revision
     "blocker: tool pre-dispatch/prefetch body (tilt2025, specrag2024, agentsnotenough2024, taubench2024) missing from §2.5/§5/§6.5 despite being in KB and planned in OUTLINE; §6.5 makes an uncited operational claim",
     "blocker: latencyfloor2025 companion arXiv id is placeholder arXiv:XXXX.XXXXX - must resolve before submission"
   ],
-  "manualNotes": "Review-only; no files written (grep/find tools were unavailable - rg/fd binaries missing - worked around with ls/read). Verdict: Major Revision, SCORE 6. The findings above are repeated in the RELWORK/CITATION-verdict block form as required by the review task. Two commands require upstream action: the pdflatex compile sequence and running scripts/smoke_cessation.py (the latter in C:/Users/U77225D/Desktop/code/iabto-ms-bc-orchestrator)."
+  "manualNotes": "Review-only; no files written (grep/find tools were unavailable - rg/fd binaries missing - worked around with ls/read). Verdict: Major Revision, SCORE 6. The findings above are repeated in the RELWORK/CITATION-verdict block form as required by the review task. Two commands require upstream action: the pdflatex compile sequence and running scripts/smoke_cessation.py (the latter in C:/Users/U77225D/Desktop/code/the production voice monolith-orchestrator)."
 }
 ```

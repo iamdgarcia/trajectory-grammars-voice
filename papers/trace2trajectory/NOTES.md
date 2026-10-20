@@ -7,7 +7,7 @@
 
 ## Content decisions to make at Stage 3
 1. **Real-log case study?** The worked example is fixture-scale (3 conversations: 2 real / 1 sim, 40.2% coverage).
-   If iabto log access lands before writing finishes: add a real-call section (even 50–100 calls,
+   If the internal voice-bank project log access lands before writing finishes: add a real-call section (even 50–100 calls,
    GDPR-safe schema) — it upgrades the paper from "protocol + demo" to "protocol + field evidence".
    If not: keep fixtures, say so honestly in 08_discussion.
 2. **Simulator integration demo?** Running the atlas against the a6 simulator (personas →

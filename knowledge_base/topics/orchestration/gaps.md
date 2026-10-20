@@ -59,7 +59,7 @@ API-valid serializability lemma (PoC-verified).
 
 **Problem:** Whether filler should be emitted by the reasoning model (LLM filler) or by the delivery
 layer (canned/procedural) is undecided in practice. Product evidence shows LLM filler bleeds into
-real answers (documented rejection in iabto-ms-bc); no formal reason is given.
+real answers (documented rejection in the production voice monolith); no formal reason is given.
 
 **Evidence:** `ward2000backchannel` (timing rule, delivery-side), `levinson2015timing` / `stivers2009universals`
 (perceptual basis), PoC delivery-status clock.
@@ -73,7 +73,7 @@ delivery clock may mask without corrupting the generation stream.
 
 **Problem:** Product telemetry measures server-side V2V (`T0 → tts.first_audio`); the *perceived*
 latency (audible on speaker) and barge-in reaction are `nadie` (measured by nobody) in
-`docs/bench/medicion-latencia-v2v.md` of iabto-ms-bc.
+`docs/bench/medicion-latencia-v2v.md` of the production voice monolith.
 
 **Evidence:** `skantze2021turn` (no standard eval), product telemetry vocabulary.
 

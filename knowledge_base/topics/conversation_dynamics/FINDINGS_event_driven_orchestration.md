@@ -1,6 +1,6 @@
-# Event-Driven Orchestration — Architecture Findings (iabto-ms-bc-orchestrator distillation)
+# Event-Driven Orchestration — Architecture Findings (the production voice monolith-orchestrator distillation)
 
-_Distilled 2026-10-13 from the iabto-ms-bc-orchestrator POC: the event-driven runtime that replaces
+_Distilled 2026-10-13 from the the production voice monolith-orchestrator POC: the event-driven runtime that replaces
 LangGraph orchestration with a 500-line event loop (Pipecat demoted to transport). Sources: repo
 README, `src/orchestrator/application/orchestrator.py`, `src/orchestrator/domain/*.py`,
 `scripts/smoke_cessation.py` (executed: all invariants hold), and the harness spec
