@@ -236,6 +236,33 @@ correlate), `wald1947sprt` (sequential decision foundation).
 
 ---
 
+## External confirmation (2026-10-20)
+
+- **Heartbeat Thinking (Ant International, arXiv:2610.26233, 2026-10-19) = academic instantiation
+  of the event-driven preparation model, with a FIXED window**: a Thinker invoked every Δ=500ms
+  during listening; shared state of completed reasoning + tool results; Responder at VAD handoff
+  reuses completed work and CANCELS pending speculative jobs. FDBench v3: speculative tool
+  coverage 34.7%→50.7% vs SHANKS-style windowed baseline; final-response latency 6.90→4.39s
+  (−36.4%, −45.7% vs Pipecat cascade). Documented failure mode: 4.0% of answers use stale
+  speculative results (state-changing actions cannot be un-done). Their declared future work —
+  "adaptive scheduling based on changes in the partial transcript or the completion of tool
+  calls" — IS our event-driven emission model (user-turns and tool-completions as generic
+  events, P1-P7). Nov-paper framing: Heartbeat = strong fixed-window baseline; ours = the
+  event-driven variant of the same architecture. Also directly relevant: speculative jobs are
+  cancelled at handoff (same lifecycle independence as our generation/ delivery split).
+- **DuplexCascade (arXiv:2603.09180, via eval survey 2609.30798): full-duplex turn-taking from a
+  CONTROL POLICY inside a cascade** — chunk-wise micro-turns + conversational control tokens, 50k
+  text dialogues + LoRA, SOTA on Full-Duplex-Bench. External proof of the E2 thesis: duplex
+  STRUCTURE (the concurrency contract) is separable from duplex MODEL (token-level S2S).
+- **Enterprise reality check (arXiv:2603.05413, via 2609.30798): no fully self-hostable E2E
+  system meets production constraints**; the practical cascade achieves 755ms TTFA with full
+  function calling. Qwen3-Omni local full pipeline ≈146s. Supports the cascade lane as the
+  deployed-reality lane, with the orchestrator as its concurrency upgrade.
+- **Jev empirical study (arXiv:2610.13092): per-decision savings do NOT reliably transfer to
+  task level** — correct accounting unit is "resources per delivered success" (outcome classes).
+  Matches the trace2grammar outcome-class thesis from outside; "premature completion" is an
+  outcome class our walker already detects.
+
 ## External confirmation (2026-10-17)
 
 - **livekit/agents v1.8.8 (released 2026-10-15) ships TypeSafe Jev decision-models natively**:
