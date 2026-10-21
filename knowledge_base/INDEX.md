@@ -17,6 +17,7 @@ _Second paper in the line: **trace→trajectory + region-coverage atlas** — se
 _Topic state (2026-10-21): [TOPIC_STATE.md](topics/conversation_dynamics/TOPIC_STATE.md) — the lane converged on anticipation / speculation / adaptive emit; no open gap rushes a third paper._
 
 ### Recent scans, factsheets and briefs (topical, not paper entries)
+- [RESEARCH_BRIEF_2026-10-21_speculative_listening.md](topics/conversation_dynamics/RESEARCH_BRIEF_2026-10-21_speculative_listening.md) — cluster brief: clock-to-events thesis, 4-point speculation taxonomy (EOT / adaptive ASR commit / speculative generation / speculative listening), verified numbers per paper, 5 open gaps; verdict: stays a CD section unless the unified-metric or semantic-gate gap lands
 - [LIT_SCAN_2026-10-21.md](topics/conversation_dynamics/LIT_SCAN_2026-10-21.md) — delta over 10-20: 4 new papers (2606.13450 endpoint anticipation, 2603.26515 JAL-Turn, 2605.13360 speculative interaction agents, 2609.08672 X2Streaming-ASR); verdict: no new cluster, Nov paper stays shelved
 - [LIT_SCAN_2026-10-20.md](topics/conversation_dynamics/LIT_SCAN_2026-10-20.md) — 18 papers delta; evaluator-simulator cluster (2609.27372, 2610.12802, 2609.28806) converging on the atlas claim
 - [LIT_SCAN_2026-10-19.md](topics/conversation_dynamics/LIT_SCAN_2026-10-19.md) — duplex lane base map
