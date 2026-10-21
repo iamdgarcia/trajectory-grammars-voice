@@ -9,11 +9,25 @@
 | [multimodal](topics/multimodal/) | 0 | — | — |
 | [orchestration](topics/orchestration/) | 29 | [gaps.md](topics/orchestration/gaps.md) | 2026-09-01 |
 | [semantic_vad](topics/semantic_vad/) | 36 | [gaps.md](topics/semantic_vad/gaps.md) | 2026-10-11 |
-| [conversation_dynamics](topics/conversation_dynamics/) | 20 | [gaps.md](topics/conversation_dynamics/gaps.md) | 2026-10-11 |
+| [conversation_dynamics](topics/conversation_dynamics/) | 20 | [gaps.md](topics/conversation_dynamics/gaps.md) | 2026-10-21 |
 
-## Conversation Dynamics Papers (15 total)
+## Conversation Dynamics Papers (20 total)
 _New topic 2026-10-08 — trajectory-level analysis of agent conversations. See [topics/conversation_dynamics/](topics/conversation_dynamics/) - [gaps.md](topics/conversation_dynamics/gaps.md) (CD1-CD4). Feeds `papers/trajectory_grammars_voice/` — **PAPER COMPLETE 2026-10-13**: accepted after 4 review rounds; CD1-CD4 addressed; arXiv zip + HF benchmark shipped._
 _Second paper in the line: **trace→trajectory + region-coverage atlas** — see `papers/trace2trajectory/` (OUTLINE Stage 2 complete). SOTA scan: [SOTA_scan_trace2trajectory.md](topics/conversation_dynamics/SOTA_scan_trace2trajectory.md); implementation: github.com/iamdgarcia/trace2grammar._
+_Topic state (2026-10-21): [TOPIC_STATE.md](topics/conversation_dynamics/TOPIC_STATE.md) — the lane converged on anticipation / speculation / adaptive emit; no open gap rushes a third paper._
+
+### Recent scans, factsheets and briefs (topical, not paper entries)
+- [LIT_SCAN_2026-10-21.md](topics/conversation_dynamics/LIT_SCAN_2026-10-21.md) — delta over 10-20: 4 new papers (2606.13450 endpoint anticipation, 2603.26515 JAL-Turn, 2605.13360 speculative interaction agents, 2609.08672 X2Streaming-ASR); verdict: no new cluster, Nov paper stays shelved
+- [LIT_SCAN_2026-10-20.md](topics/conversation_dynamics/LIT_SCAN_2026-10-20.md) — 18 papers delta; evaluator-simulator cluster (2609.27372, 2610.12802, 2609.28806) converging on the atlas claim
+- [LIT_SCAN_2026-10-19.md](topics/conversation_dynamics/LIT_SCAN_2026-10-19.md) — duplex lane base map
+- [FACTSHEET_decision_models_voice_loop_2026-10-22.md](topics/conversation_dynamics/FACTSHEET_decision_models_voice_loop_2026-10-22.md) — DuplexJev (92 ms single-token vs 1.57 s JSON = 17x, 161 events/s batched, 30% closed-decision tokens) + negative placebo result (Jev controller +19% cost, 73.0% pass, miscalibrated 0.50 vs 87%)
+- [FACTSHEET_voice_benchmark_wave_2026-10-22.md](topics/conversation_dynamics/FACTSHEET_voice_benchmark_wave_2026-10-22.md) — 6 voice-agent benchmarks mapped; adoption verdicts (FDBench adopt-if-revived, PACT-SLM/APEX-Voice run-candidates); 5 of 6 entries unread, marked verify-before-quoting
+- [RESEARCH_BRIEF_2026-10-20_4_vias_conversational.md](topics/conversation_dynamics/RESEARCH_BRIEF_2026-10-20_4_vias_conversational.md) — 4-way research brief (Heartbeat fixed-window, Jev outcome accounting, TRG state-verified outcomes, voice authority security)
+- [SECURITY_brief_voice_agent_authority.md](topics/conversation_dynamics/SECURITY_brief_voice_agent_authority.md) — spoken-authority threat model for banking voice agents
+- [FRAMEWORKS_brief_2026-10-14.md](topics/conversation_dynamics/FRAMEWORKS_brief_2026-10-14.md) — frameworks brief
+- [PUBLIC_DATASETS_brief_2026-10-14.md](topics/conversation_dynamics/PUBLIC_DATASETS_brief_2026-10-14.md) — public datasets brief
+- [COUNCIL_VERDICT_2026-10-13.md](topics/conversation_dynamics/COUNCIL_VERDICT_2026-10-13.md) — council verdict incl. 2610.07641 speculative tool latency
+- [FINDINGS_event_driven_orchestration.md](topics/conversation_dynamics/FINDINGS_event_driven_orchestration.md) — event-driven orchestration findings (feeds the orchestrator repo)
 
 ### Early outcome prediction / trajectory analysis
 - [nourbakhsh2026tracer](topics/conversation_dynamics/papers/nourbakhsh2026tracer.md) - TRACER partial-dialogue failure forecasting (2607.03974) [VERIFIED full text]
