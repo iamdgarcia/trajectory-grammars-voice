@@ -1,29 +1,33 @@
 % The extraction pipeline: three observability dialects in, coverage atlas out.
+% Layout: positioning-relative (border distances), so boxes cannot overlap no matter
+% how wide their labels set them. Bottom row is a boustrophedon snake (right to left),
+% which removes the old long curved arrow from features back to PCA.
 \begin{tikzpicture}[>=Stealth, font=\small,
-  box/.style={draw, rounded corners, align=center, minimum height=8mm, minimum width=20mm},
-  stage/.style={draw, rounded corners, align=center, minimum height=11mm, minimum width=24mm, fill=black!4},
-  ev/.style={->,>=Stealth}]
+  box/.style={draw, rounded corners, align=center, minimum height=8mm},
+  stage/.style={draw, rounded corners, align=center, minimum height=11mm, fill=black!4},
+  ev/.style={->,>=Stealth},
+  node distance=7mm and 9mm]
   % dialects (left, stacked)
-  \node[box] (otel) at (0,1.6) {OTel GenAI\\spans};
-  \node[box] (oinf) at (0,0)   {OpenInference\\spans};
-  \node[box] (lsm)  at (0,-1.6){LangSmith\\run trees};
-  % stages
-  \node[stage] (norm) at (3.6,0) {normalize\\one mapper per dialect};
-  \node[stage] (evts) at (7.0,0) {canonical events\\$\{t_{\mathrm{ms}}, \mathrm{kind}, \mathrm{name}\}$};
-  \node[stage] (walk) at (10.4,0) {state walk $\sigma$\\$q_0 \to \cdots \to \theta$, outcome, $D$};
-  \node[stage] (feat) at (13.8,0) {features\\grammar $|$ bigram};
-  \node[stage] (proj) at (7.0,-2.6) {PCA (2-D)\\fit on real set};
-  \node[stage] (grid) at (10.4,-2.6) {density grid\\Gaussian bumps + blur};
-  \node[stage] (cov)  at (13.8,-2.6) {coverage \%\\+ atlas + top-$K$};
+  \node[box] (otel) {OTel GenAI\\spans};
+  \node[box, below=7mm of otel] (oinf) {OpenInference\\spans};
+  \node[box, below=7mm of oinf] (lsm) {LangSmith\\run trees};
+  % top row, chained by borders (middle dialect anchors the entry stage)
+  \node[stage, right=16mm of oinf] (norm) {normalize\\one mapper per dialect};
+  \node[stage, right=of norm] (evts) {canonical events\\$\{t_{\mathrm{ms}},\ \mathrm{kind},\ \mathrm{name},\ \mathrm{attrs}\}$};
+  \node[stage, right=of evts] (walk) {state walk $\sigma$\\$q_0 \to \cdots \to \theta$, outcome, $D$};
+  \node[stage, right=of walk] (feat) {features\\grammar $|$ bigram};
+  % bottom row (snake, right to left)
+  \node[stage, below=11mm of feat] (proj) {PCA (2-D)\\fit on real set};
+  \node[stage, below=11mm of walk] (grid) {density grid\\Gaussian bumps + blur};
+  \node[stage, below=11mm of evts] (cov) {coverage \%\\+ atlas + top-$K$};
   % arrows
-  \draw[ev] (otel.east) -- (norm.west);
+  \draw[ev] (otel.east) -- ++(4mm,0) |- (norm.west);
   \draw[ev] (oinf.east) -- (norm.west);
-  \draw[ev] (lsm.east) -- (norm.west);
+  \draw[ev] (lsm.east) -- ++(4mm,0) |- (norm.west);
   \draw[ev] (norm) -- (evts) node[midway,above,font=\scriptsize]{dedupe};
   \draw[ev] (evts) -- (walk) node[midway,above,font=\scriptsize]{rule classifier};
   \draw[ev] (walk) -- (feat) node[midway,above,font=\scriptsize]{encode};
-  \draw[ev] (feat.south) .. controls (14.6,-1.2) and (8.0,-1.2) .. (proj.north east)
-    node[pos=0.4,right,font=\scriptsize]{real-set basis};
+  \draw[ev] (feat) -- (proj) node[midway,right,font=\scriptsize]{real-set basis};
   \draw[ev] (proj) -- (grid);
   \draw[ev] (grid) -- (cov);
 \end{tikzpicture}
