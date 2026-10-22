@@ -8,16 +8,17 @@ Figure~\ref{fig:coverage} shows the geometry.
 
 \begin{figure}[t]
 \centering
-\resizebox{0.98\textwidth}{!}{\input{figures/fig_coverage}}
-\caption{The coverage geometry.
-(a) Real (blue) and simulated (orange diamonds) walks in one 2-D behavior plane; the sim set
-reaches one real lobe and misses the other.
-(b) A density grid over the real cloud; cells are occupied when real density exceeds
-$\varepsilon \cdot \mathrm{core}$, where $\mathrm{core} = \max(\mathrm{p99},\ 0.5\cdot\mathrm{peak})$
+\includegraphics[width=0.98\textwidth]{fig_coverage}
+\caption{The coverage geometry, computed on the artifact's fixture set (2 real / 1 simulated
+walks; deterministic pipeline, $\rho{=}24$, $\beta{=}0.12$, $\varepsilon{=}0.05$).
+(a) The three fixture walks in the real-anchored 2-D behavior plane: at this scale the
+real cloud spans three outcome regions and the single simulated walk lands inside one.
+(b) The density grid over the real cloud; the 256 occupied cells are those with real density
+$d$ above $\varepsilon \cdot \mathrm{core}$, where $\mathrm{core} = \max(\mathrm{p99},\ 0.5\cdot\mathrm{peak})$
 of the smoothed real field, mirroring the threshold definition above.
-(c) Occupied cells split into covered (sim point inside, or sim kernel mass above threshold)
-and uncovered; each uncovered cell carries its nearest real exemplar --- the test you are not
-running.}
+(c) Occupied cells split into covered (103, sim point inside or sim kernel mass above
+threshold) and uncovered (153); each uncovered cell carries its nearest real exemplar ---
+the test you are not running.}
 \label{fig:coverage}
 \end{figure}
 

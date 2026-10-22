@@ -8,10 +8,12 @@ Figure~\ref{fig:atlas} shows the schema.
 
 \begin{figure}[t]
 \centering
-\resizebox{0.9\textwidth}{!}{\input{figures/fig_atlas}}
-\caption{The trajectory atlas schema.
-Two point clouds in one real-anchored behavior plane; red cells are occupied-but-uncovered
-regions; each carries its nearest real exemplar.
+\includegraphics[width=0.9\textwidth]{fig_atlas}
+\caption{The trajectory atlas, rendered from the artifact's coverage computation (same
+deterministic run as Figure~\ref{fig:coverage}: 2 real / 1 simulated fixture walks,
+rank-deficient basis at $n{=}2$ --- a smoke test of runnability, §\ref{sec:evaluation}).
+Red cells are the 153 occupied-but-uncovered regions (top-3 by local real density outlined);
+each carries its nearest real exemplar.
 A concentrated sim cloud with a small radius (over-cooperative collapse) and a scattered sim
 cloud with uncovered lobes is the typical deficient configuration.}
 \label{fig:atlas}
