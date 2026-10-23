@@ -54,6 +54,11 @@ $Q = \{q_{\mathrm{greet}}, q_{\mathrm{auth}}, q_{\mathrm{intent}}, q_{\mathrm{to
 $q_{\mathrm{clarify}}, q_{\mathrm{confirm}}, q_{\mathrm{close}}\}$ and terminals
 $\Theta = \{\theta_{\mathrm{cont}}, \theta_{\mathrm{aban}}, \theta_{\mathrm{hand}},$
 $\theta_{\mathrm{esc}}\}$ \citep{garcia2026grammar}.
+The seven states are not a domain model: they are the domain-independent phases of a
+tool-calling dialogue (opening, identity, intent, execution, repair, confirmation, closing).
+The set is a superset --- a walk uses the sub-sequence the deployment exhibits, so an agent
+without authentication simply never emits $q_{\mathrm{auth}}$ --- and what varies per vertical
+is which surface forms trigger each transition, never the phases themselves.
 The baseline classifier is deliberately rule-based: keyword and regex pattern tables
 (authentication tool names, handoff tool names, user clarification and confirmation phrases,
 assistant closing phrases, explicit terminal event names) plus sequencing rules (a user
