@@ -86,6 +86,48 @@ All numbers regenerate from the artifact's check suites (46 checks across extrac
 coverage, all passing at the time of writing) and the coverage CLI; the worked example is
 reproducible from the repository README.
 
+\subsection{Extraction on third-party data}
+\label{sec:multiwoz}
+Nothing in $\tau$ is tuned to the artifact's fixtures, and the mapping is defined on any
+structured dialogue stream --- so it must run, verbatim and untuned, on a public benchmark of
+conversations nobody in this paper recorded.
+The MultiWOZ 2.2 test split \citep{multiwoz2026,multiwoz2018} (1{,}000 human--human task-oriented dialogues,
+five primary domains: restaurant, attraction, train, taxi, hotel) is converted to the
+transcript dialect and mapped by the same \texttt{infer\_states()} used for the observability
+dialects, with the benchmark's own \texttt{services} annotation as the task label
+(Definition~\ref{def:instance} conditioning).
+Outcome decidability carries over: contained requires an explicit assistant closing phrase,
+abandoned is its absence at stream end.
+
+\begin{table}[t]
+\centering\small
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+\textbf{Domain} & \textbf{n} & \textbf{contained\%} & \textbf{abandoned\%} & \textbf{handoff\%} & \textbf{$D$ mean} & \textbf{$D$ max} & \textbf{close\%} \\
+\midrule
+restaurant & 443 & 56.7 & 43.3 & 0.0 & 0.0 & 0 & 56.7 \\
+attraction & 223 & 55.2 & 44.8 & 0.0 & 0.0 & 0 & 55.2 \\
+train      & 166 & 48.8 & 51.2 & 0.0 & 0.0 & 0 & 48.8 \\
+taxi       &  97 & 50.5 & 49.5 & 0.0 & 0.0 & 0 & 50.5 \\
+hotel      &  71 & 54.9 & 45.1 & 0.0 & 0.0 & 0 & 54.9 \\
+\bottomrule
+\end{tabular}
+\caption{$\tau$ over the MultiWOZ 2.2 test split, verbatim and untuned: the shipped
+transcript dialect and the shipped pattern tables, no MultiWOZ-specific edits. Outcomes by
+the same terminal rule as every dialect (close rate = contained\%).}
+\label{tab:multiwoz}
+\end{table}
+
+The result separates what belongs to the mapper from what belongs to the corpus.
+Extraction is total (1{,}000/1{,}000 dialogues mapped, no errors) and the per-domain close
+rates differ (restaurant 56.7\% vs.\ train 48.8\%): the domain label induces a distribution
+the mapper did not put there.
+The two zeros are corpus properties, not mapper failures, and they are themselves coverage
+statements: MultiWOZ contains no handoff concept and never exercises the clarify-reopen loop
+structure, so $D=0$ and handoff$=0$ across all five domains.
+A benchmark that never exercises a behavior cannot select simulators that produce it --- the
+same statement the atlas makes about simulator corpora, made here about a benchmark.
+
 \subsection{Relation to the simulator program}
 The atlas is where calibrated simulation is \emph{validated}.
 The calibrated-simulation agenda --- response-level gap closure
