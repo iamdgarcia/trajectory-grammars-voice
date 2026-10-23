@@ -1,0 +1,11 @@
+import re, subprocess, time
+t0 = time.time()
+r = subprocess.run(['pdflatex','-interaction=nonstopmode','main.tex'], capture_output=True, text=True, timeout=180)
+log = open('main.log', encoding='utf-8', errors='replace').read()
+errs = re.findall(r'^! .*', log, re.M)
+print('rc:', r.returncode, f'{time.time()-t0:.0f}s | errors:', errs[:6] if errs else 'NONE')
+print(re.findall(r'Output written on main.pdf \((\d+) pages', log))
+undef = re.findall(r'Reference `([a-zA-Z:]+)\' on page', log)
+print('undefined refs:', set(undef) if undef else 'NONE')
+miss = re.findall(r"File `([a-zA-Z0-9_.-]+)' not found", log)
+print('missing files:', set(miss) if miss else 'NONE')

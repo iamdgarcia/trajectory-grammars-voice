@@ -23,11 +23,15 @@ Coverage depends on three hyperparameters: grid resolution $\rho$, bandwidth fra
 $\beta$, and threshold $\varepsilon$.
 The protocol sweeps
 $\rho \in \{16, 24, 32, 48\}$,
-$\beta \in \{0.08, 0.12, 0.20\}$,
+$\beta \in \{0.02, 0.04, 0.08, 0.12, 0.20\}$,
 $\varepsilon \in \{0.02, 0.05, 0.10\}$
---- 36 configurations --- and reports the \emph{stability envelope}: the spread of overall
+--- 60 configurations --- and reports the \emph{stability envelope}: the spread of overall
 and per-class coverage across the grid, plus the rank stability of the top-$K$ uncovered
 regions (Jaccard overlap of the top-$K$ cell sets across configurations).
+The bandwidth ladder extends below the kernel-masking threshold ($\beta \le 0.04$,
+Section~\ref{sec:coverage}): the low-$\beta$ configurations are where region coverage
+discriminates simulators at all, and a collection whose coverage only agrees across the
+fat-kernel rungs has not measured its holes.
 Because the pipeline is deterministic, this sweep is exhaustive over its grid, not Monte
 Carlo; a coverage number that moves more than a few points across the envelope is reported as
 unstable rather than point-quoted.
@@ -43,6 +47,10 @@ At real-set sizes comparable to the fixture (two conversations), the centered re
 rank-deficient and the second principal axis is implementation-defined: deterministic, but
 geometrically arbitrary, which is why the worked-example number is a smoke test of runnability
 rather than evidence, and why the resampling rung exists before any field claim is made.
+Instance coverage (Definition~\ref{def:instance}) is reported beside region coverage at every
+sweep configuration; the two agree when the sim set's mass sits where the real mass is, and
+a region number far above its instance number is the kernel-masking signature — report the
+collection as blur-limited rather than point-quoted.
 Coverage is always reported together with the out-of-grid fraction --- the share of simulated
 points dropped rather than clamped --- so a scatter diagnostic cannot hide behind a coverage
 number.

@@ -1,6 +1,6 @@
 % §8 Discussion
 \paragraph{Limitations.}
-Four limitations are intrinsic to what this paper ships.
+Five limitations are intrinsic to what this paper ships.
 \emph{Rule-based extraction}: the baseline classifier misclassifies edge cases (mixed-order
 events, multilingual politeness formulas, out-of-band hangups); misclassification propagates
 to walks and therefore to coverage.
@@ -13,6 +13,13 @@ on the projection and is not claimed to be a property of the full behavior space
 The real-anchored basis is a design commitment (production defines the space), not a
 reconstruction guarantee, and the sensitivity sweep of Section~\ref{sec:evaluation} is the
 protocol for quantifying how much the 2-D commitment costs.
+\emph{Kernel masking}: the smoothed kernel that defines occupancy and coverage blurs mass
+across up to a quarter-grid per point, so at wide bandwidths region coverage cannot see
+interior holes; the shipped bandwidth sits in that regime (Section~\ref{sec:coverage}).
+The paper's answers are structural: the bandwidth ladder extended into the discriminating
+regime ($\beta \le 0.04$), the instance-coverage companion whose radius is read off the real
+collection, and the rule that a region number far above its instance number demotes the
+collection to blur-limited.
 \emph{Hyperparameter sensitivity}: grid resolution, bandwidth, and threshold are
 hyperparameters; the paper's answer is the stability envelope, not a default.
 \emph{Fixture scale}: the worked example runs on 3 conversations across 3 dialects.

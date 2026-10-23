@@ -73,6 +73,25 @@ plane and destroy the relative magnitudes that coverage compares.
 A single threshold then governs both clouds --- occupancy for real, coverage for sim --- which
 is what makes the two percentages commensurable.
 
+\paragraph{The kernel-masking failure mode.}
+The bandwidth that makes the kernel estimate smooth enough to define occupancy is also what
+hides interior holes: a sim point's Gaussian bump spreads over $\approx (2\sigma)^2$ cells,
+so at the shipped $\beta = 0.12$ ($\sigma = 2.88$ cells on a $24 \times 24$ grid) a single
+simulated region deposits above-threshold mass a quarter-grid away from itself.
+On the artifact's production-shaped sample set (500 conversations), a deliberately deficient
+simulator --- 28 conversations, \emph{all} contained, zero abandonment, zero handoff ---
+scores $96.3\%$ region coverage with per-class numbers of $100\%$ abandonment and $99\%$
+handoff: the blur fills the holes the metric exists to name, and uncovered cells survive
+only at the low-density fringe or under catastrophic collapse.
+The regime that discriminates simulators is $\beta \le 0.04$ ($\sigma \le 1$ cell): the same
+deficient simulator drops to $65\%$ overall and $41\%$ handoff, while a diverse simulated
+set holds $100\%$.
+Two structural consequences follow, and both are protocol requirements
+(Section~\ref{sec:evaluation}): the sensitivity sweep must extend its bandwidth ladder down
+into the discriminating regime instead of stopping at $0.08$, and region coverage must ship
+with an instance-level companion (Definition~\ref{def:instance}) whose verdict does not
+depend on the blur.
+
 \subsection{Coverage, per-class coverage, and edge handling}
 \begin{definition}[Region coverage]
 \label{def:coverage}
@@ -83,11 +102,25 @@ The coverage of a set $S$ is $c(S) = |C|/|O|$ with $C \subseteq O$ the covered c
 the \emph{class-conditional} coverage $c_\theta(S)$ restricts $O$ to cells whose nearest real
 exemplar has outcome class $\theta$.
 \end{definition}
+\begin{definition}[Instance coverage]
+\label{def:instance}
+With $r$ the median nearest-neighbor distance of the real set in the projection plane, the
+instance coverage of a simulated set $S$ is
+$i(S) = \frac{1}{|R|} |\{x \in R : \exists s \in S,\ \lVert x - s\rVert \le r\}|$.
+It is the probability that a real conversation has a simulated neighbor at the scale at
+which real conversations resemble each other; the kernel does not participate, so an
+interior hole cannot be blurred away.
+Its radius $r$ is not a free hyperparameter: it is read off the real collection itself,
+which keeps the real-anchored discipline of the projection.
+\end{definition}
 Simulated points outside the grid are dropped, not clamped: a sim point ten extents away must
 not masquerade as a corner point.
 Per-class coverage is what stops a majority class from hiding a failure --- a simulator can
 cover 90\% of contained regions while covering 0\% of abandonment regions, and only the
-class-conditional number exposes it.
+class-conditional number exposes it --- but Definition~\ref{def:coverage} computes classes
+from nearest-exemplar labels, and the kernel that blurs mass across the plane blurs class
+membership with it; $i_\theta(S)$, the instance coverage restricted to class-$\theta$ real
+conversations, is the number that resists both failure modes.
 
 \subsection{The recommendation loop: top-$K$ uncovered regions}
 Coverage percentages localize the deficit in aggregate; the actionable unit is the individual
