@@ -121,6 +121,16 @@ class-conditional number exposes it --- but Definition~\ref{def:coverage} comput
 from nearest-exemplar labels, and the kernel that blurs mass across the plane blurs class
 membership with it; $i_\theta(S)$, the instance coverage restricted to class-$\theta$ real
 conversations, is the number that resists both failure modes.
+Both conditionings ride the same definition at any label granularity. The outcome classes
+$\Theta$ are the \emph{shape} taxonomy of the conversation (how it ended); an \emph{operativa}
+label --- the business operation the call was about (appointment, dispute a charge, account
+access, \ldots), read off the domain tool names and the opening user utterance in the trace
+itself --- is the \emph{business} taxonomy (what it was for). The shape classifier deliberately
+collapses all intents into $q_{\mathrm{intent}}$; collapsing is not erasing, because the
+operativa stays a per-walk label, and the class-conditional and instance numbers above apply
+verbatim with $\theta$ ranging over operativas instead of outcomes. A simulator can then fail
+one operativa while passing another --- the per-operativa table, not the global number, is
+the actionable report.
 
 \subsection{The recommendation loop: top-$K$ uncovered regions}
 Coverage percentages localize the deficit in aggregate; the actionable unit is the individual
