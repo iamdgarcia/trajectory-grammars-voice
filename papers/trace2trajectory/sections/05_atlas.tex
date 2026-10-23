@@ -125,6 +125,11 @@ the mapper did not put there.
 The two zeros are corpus properties, not mapper failures, and they are themselves coverage
 statements: MultiWOZ contains no handoff concept and never exercises the clarify-reopen loop
 structure, so $D=0$ and handoff$=0$ across all five domains.
+A consistency check stress-tested exactly this claim: a generous dialogue-universal net over
+the test split (\emph{sorry?}, \emph{pardon}, \emph{say that again}, \emph{didn't catch},
+\emph{one more time}) finds 5/1{,}000 dialogues with a repeat-style request, and all five are
+task retries (\emph{check again please} = re-run a search), not user-side clarify metaprompts
+--- the corpus genuinely never re-opens a settled state.
 A benchmark that never exercises a behavior cannot select simulators that produce it --- the
 same statement the atlas makes about simulator corpora, made here about a benchmark.
 
