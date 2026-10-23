@@ -81,6 +81,7 @@ deterministic 2-D behavior plane anchored on production data, estimates where re
 conversations live with a density grid under a shared relative occupancy threshold, and
 reports coverage overall and per outcome class, together with the top-$K$ uncovered regions
 and their nearest real exemplars: the tests you are not running, made concrete.
+We also quantify the metric's own failure mode: at wide kernel bandwidths the density blur masks interior holes, so a kernel-free instance-coverage companion and a bandwidth ladder separate blur-limited from genuinely covered regimes.
 The result is the trajectory atlas, a visualization and metric layer for sim-versus-real
 transfer at the trajectory level.
 A worked example on shipped fixtures (2 real / 1 simulated fixture conversations, 3 dialects;
