@@ -149,13 +149,34 @@ the corpora the artifact was built from, and about 22 percentage points of the d
 are real assistant closings (\emph{have a wonderful day}, \emph{enjoy your concert}) the
 untuned tables do not recognize; recalibrating that vocabulary on the benchmark's own
 \emph{dev} split (2{,}482 dialogues; the test split is never used for calibration) and
-re-measuring on \emph{test} raises exact agreement to 83.2\%.
+re-measuring on \emph{test} raises exact agreement to 83.2\% --- though agreement itself
+is a degenerate metric on this corpus: truth is 99.8\% single-class (4{,}192 of 4{,}201
+test dialogues carry an effective call), so the constant always-contained predictor scores
+99.79\%, above every real detector, and the corpus's contribution is the verdict-vs-truth
+distance, not classifier score.
 The remainder is not uniformly behavioral: a manual audit of 60 sampled disagreements
 (stratified, seed-fixed) classifies 71.7\% as long-tail close vocabulary neither the default
 nor the dev-calibrated tables recognize (the calibration sampled the head of the dev
 distribution), 15\% as documented by-design exclusions (thank-you closes and user-side
 closings), 13.3\% as genuine construct distance (silent failures and multi-task dialogues),
 and 0 walker bugs.
+
+The long-tail share has a constructive answer that removes the coupling instead of
+recalibrating it: a semantic closing detector (frozen MiniLM-L6 sentence encoder, CPU;
+seed set built from the \emph{dev} split's delivered final lines only) rules on the last
+assistant line by similarity rather than by vocabulary.
+On the held-out test split it recovers 669 of the 700 delivered dialogues the
+dev-calibrated tables misclassify (95.6\%, with 2 regressions), raising delivered-closure
+recall from 83.3\% to 99.2\% (exact agreement 99.0\%), and it transfers zero-shot in both
+directions: MultiWOZ seeds score 98.4\% agreement on Schema-Guided Dialogue, and
+Schema-Guided seeds detect 923--933 closing dialogues in MultiWOZ against the default
+tables' 543.
+The detector is vocabulary-free at inference: closing is whatever the seed corpus's
+delivered endings are semantically close to, in any domain or language the encoder covers.
+The costs are stated, not hidden: it gives up abandonment discrimination on this corpus
+(all 9 structurally undelivered dialogues are flagged contained --- their in-text endings
+are indistinguishable at final-line granularity), and unrestricted mid-conversation
+application carries a 6.8\% false-close rate, so the shipped protocol is final-line-only.
 
 The second residue is the more interesting measurement.
 Five dialogues ($0.12\%$) end with a service call that formally succeeds but returns zero
@@ -249,6 +270,36 @@ covered); the same sim set touches 17 cells directly and instance coverage is 0\
 $r=0$.}
 \label{fig:atlas-tb}
 \end{figure}
+
+\subsubsection*{Two executed results the anchor returns for free}
+The reward-anchored collection also executes the two claims a coverage paper must
+eventually run, at the transcript-only granularity this artifact ships.
+
+\emph{Ablation: the walk carries outcome signal beyond surface text.} Delivered-outcome
+prediction (fail = positive; $n_{test}{=}984$ task-disjoint held-out episodes) across a
+predeclared feature ladder: a constant scores $\mathrm{AUROC}\,0.5$; TF--IDF over the user
+messages alone, $0.713$; the shipped rule vector ($D$, $D{\ge}2$, reached-close, length),
+$0.634$; rich walk features, $0.706$; and TF--IDF combined with walk features,
+\textbf{0.733}.
+The combined-minus-text margin is $+0.020$ with a paired-bootstrap 95\% CI of
+$[+0.008, +0.033]$, above the $+0.01$ margin predeclared as ``the walk adds nothing'';
+walk features also dominate the raw rule vector by $+0.072$.
+The walk is complementary to text, not redundant with it --- and per-model, it is the
+whole signal where text is weak (on claude-3.5-sonnet, walk-alone $0.726$ matches
+walk+text $0.724$).
+
+\emph{The turn-level risk curve: how early a transcript-only tracker flags the failure.}
+Running the verbatim walker on every prefix of every episode (14{,}011 prefixes, zero
+extraction errors; deterministic re-run identical) gives the first quantitative form of
+the tracking claim: turns 1--3 are chance (AUROC 0.50--0.54, stated as a negative);
+turn 4 shows the first real signal (the fixed two-failed-calls flag lifts the fail rate
+by $+13.4$pp, and a per-turn model reads $0.638$); turn 7 is the first stable
+${\ge}\,0.65$ ($0.651$, $n{=}566$; $0.690$ at turn 8); the best in-flight reading is
+$0.817$ at turn 11 (small cell, $n{=}83$, declared).
+A trained per-turn GBM beats the fixed rule on AUC at every turn (final-episode $0.648$
+vs $0.532$); the fixed rule keeps the interpretable, training-free lift quoted above.
+Both statements are true and the tracker reports both: outcome accounting computable per
+turn, from traces, in flight.
 
 \subsection{Relation to the simulator program}
 The atlas is where calibrated simulation is \emph{validated}.
