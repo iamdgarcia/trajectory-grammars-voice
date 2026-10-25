@@ -150,8 +150,12 @@ are real assistant closings (\emph{have a wonderful day}, \emph{enjoy your conce
 untuned tables do not recognize; recalibrating that vocabulary on the benchmark's own
 \emph{dev} split (2{,}482 dialogues; the test split is never used for calibration) and
 re-measuring on \emph{test} raises exact agreement to 83.2\%.
-The remainder is behavioral, not lexical: mid-conversation closings followed by re-entry, and
-closings with no delivered result.
+The remainder is not uniformly behavioral: a manual audit of 60 sampled disagreements
+(stratified, seed-fixed) classifies 71.7\% as long-tail close vocabulary neither the default
+nor the dev-calibrated tables recognize (the calibration sampled the head of the dev
+distribution), 15\% as documented by-design exclusions (thank-you closes and user-side
+closings), 13.3\% as genuine construct distance (silent failures and multi-task dialogues),
+and 0 walker bugs.
 
 The second residue is the more interesting measurement.
 Five dialogues ($0.12\%$) end with a service call that formally succeeds but returns zero
