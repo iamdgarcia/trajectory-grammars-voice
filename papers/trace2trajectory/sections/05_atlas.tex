@@ -182,21 +182,46 @@ The extraction is total (1{,}980/1{,}980 mapped verbatim, no errors), and the sh
 dialect is internally consistent with its reward injection in 1{,}980/1{,}980 episodes.
 
 Confronting the conversational verdict (terminal event stripped, so the walker decides on
-the dialogue alone, as in \S\ref{sec:sgd}) with the environment reward sharpens the
-construct separation on real agents:
-contained is given for 17.3\% of passing episodes and 21.7\% of failing ones, and a closing
-phrase appears in 66.8\% of passing and 76.4\% of failing episodes.
-The conversational close does not merely fail to predict the delivered outcome; its sign is
-inverted, so the close-rate proxy that separated human domains (Tables~\ref{tab:multiwoz})
-does not transfer to agent runs.
-A further asymmetry goes the other way: 628 of 1{,}980 real runs ($31.7\%$) re-enter a
-settled state ($D$ mean 0.47, max 9), while $D=0$ across all three human corpora.
-Real agents exercise the clarify-reopen loop that wizard benchmarks never do; a simulator
-selected on wizard corpora cannot be tested for the loop its target agents actually enter.
-And the silent-failure family is agent-specific too: the tool-ok/empty-result flag of
-\S\ref{sec:sgd} fires zero times here (tau-bench failures are policy violations caught by
-write checks, not empty result sets), so that signal captures one family of the mode, not
-the mode.
+the dialogue alone, as in \S\ref{sec:sgd}) with the environment reward yields three
+findings on real agents, the second of them operational.
+
+\emph{(i) A conversational close is not evidence of success.} The walker reads a contained
+shape in 17.3\% of passing episodes and 21.7\% of failing ones, and a closing phrase
+appears in 66.8\% of passing and 76.4\% of failing episodes: the close-rate proxy that
+separated human domains (Tables~\ref{tab:multiwoz}) does not transfer to agent runs, and
+conditioning on the close is mildly anti-informative. Among the 378 episodes that end in
+a contained conversational shape, 45.8\% have failed the task, against 39.0\% among
+episodes with no close (Fisher two-sided $p=0.017$): what the agent says at the end is a
+worse signal than whether it says anything at all.
+
+\emph{(ii) The walk's retry depth is a transcript-only early warning.} In this anchor the
+settled-state re-entries are tool-retry loops, not clarify re-opens: $D>0$ coincides with
+at least one failed tool call in 1{,}980/1{,}980 episodes ($D$ mean 0.47, max 9), while
+$D=0$ across all three human corpora, whose scripts never fail a tool call (a benchmark
+whose scenarios cannot fail a call cannot select simulators for the retry behavior its
+target agents actually produce). The signal is operationally usable mid-flight: with the
+threshold predeclared at two failed calls, the fail rate among flagged episodes is
+60.3\% on dev and 61.2\% on held-out test, against 35.9\% and 40.6\% for unflagged ones
+(+24.4pp and +20.7pp; Fisher two-sided $p=9\times10^{-5}$ and $4\times10^{-5}$;
+direction consistent in all four model$\times$split cells, individually significant in
+two). Two failed tool calls, readable from the transcript alone before the episode ends,
+raise the failure risk by roughly $1.5\times$ --- and the walk computes this for free from
+traces any production agent already emits.
+
+\emph{(iii) The confident-closing failure mode is common in real agents.} 173 of the 797
+failing episodes (21.7\%) end in a polite close with success claimed in the dialogue
+(the raw runs show the agent confirming the booking and the user thanking it under a
+wrong delivery): the mode \S\ref{sec:sgd} measured at 4.6\% of wizard dialogs exists in
+real LLM agents at 21.7\% of failures (8.7\% of all runs; 27 of them also carry two
+failed calls). The tool-ok/empty-result flag of \S\ref{sec:sgd} fires zero times here:
+it was built for missing delivery, and tau-bench failures are wrong delivery caught by
+write checks, so that signal captures one family of the mode, not the mode.
+
+One corpus property, for honesty: 82.7\% of \emph{passing} episodes carry the walker's
+abandoned shape, because the official harness ends episodes with a user cutout
+(\texttt{\#\#\#STOP\#\#\#}) instead of a conversational close. As with the zeros of
+\S\ref{sec:sgd}, a benchmark that ends episodes by truncation cannot exercise
+abandonment; the shape distribution here measures the harness, not the users.
 
 The two right panels of Figure~\ref{fig:atlas-tb} anchor the atlas itself on this real
 collection.
