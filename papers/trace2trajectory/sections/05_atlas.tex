@@ -133,6 +133,39 @@ task retries (\emph{check again please} = re-run a search), not user-side clarif
 A benchmark that never exercises a behavior cannot select simulators that produce it --- the
 same statement the atlas makes about simulator corpora, made here about a benchmark.
 
+\subsubsection*{Schema-Guided Dialogue: verdict vs.\ structural truth}
+The Schema-Guided Dialogue test split \citep{sgd2019,sgd2020} (4{,}201 human--human dialogues
+across 20 services) carries what MultiWOZ does not: a native record of every service call and
+its results, so the terminal-outcome verdict can be confronted with structural truth rather
+than only with domain labels.
+Extraction is again total (4{,}201/4{,}201 mapped verbatim, no errors), the wizard signature
+holds for a third corpus (handoff$=0$ and $D=0$ across all 20 services, structural abandonment
+9/4{,}201 $=0.2\%$), and per-service close rates separate (58.8\% to 88.2\%).
+
+The confrontation separates two constructs that the close rate conflates.
+Exact agreement between the walker's verdict and service-call truth is 55.3\% verbatim.
+The largest share of the gap is close vocabulary: the shipped closing phrases are coupled to
+the corpora the artifact was built from, and about 22 percentage points of the disagreement
+are real assistant closings (\emph{have a wonderful day}, \emph{enjoy your concert}) the
+untuned tables do not recognize; recalibrating that vocabulary on the benchmark's own
+\emph{dev} split (2{,}482 dialogues; the test split is never used for calibration) and
+re-measuring on \emph{test} raises exact agreement to 83.2\%.
+The remainder is behavioral, not lexical: mid-conversation closings followed by re-entry, and
+closings with no delivered result.
+
+The second residue is the more interesting measurement.
+Five dialogues ($0.12\%$) end with a service call that formally succeeds but returns zero
+results, an assistant that confirms the failure aloud, and a polite closing the walker reads
+as contained; a further 107 of 2{,}326 contained verdicts ($4.6\%$) carry the same
+tool-ok/empty-result signal as candidates.
+This is the confident-closing silent-failure mode measured in third-party data: conversational
+closure is observable from the transcript, delivered outcome is not, and a politeness signal
+is evidence of neither.
+Verdict and truth measure different things, and the distance between them, which this
+benchmark pins exactly, is the finding: any outcome accounting built from transcripts alone
+silently absorbs it.
+\label{sec:sgd}
+
 \subsection{Relation to the simulator program}
 The atlas is where calibrated simulation is \emph{validated}.
 The calibrated-simulation agenda --- response-level gap closure
