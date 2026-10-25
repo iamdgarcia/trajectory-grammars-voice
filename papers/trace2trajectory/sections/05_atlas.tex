@@ -166,6 +166,61 @@ benchmark pins exactly, is the finding: any outcome accounting built from transc
 silently absorbs it.
 \label{sec:sgd}
 
+\subsubsection*{tau-bench: anchoring the atlas on real agent runs}
+\label{sec:taubench}
+Wizard-of-oz corpora verify the extraction against human conversations; they cannot anchor
+the atlas on agent behavior, because they contain none.
+The official \texttt{historical\_trajectories} of tau-bench \citep{taubench2024} are exactly
+that anchor: 1{,}980 episodes of two production-grade LLM agents (gpt-4o, 660; claude-3.5-sonnet,
+1{,}320; airline and retail splits), each with the environment-verified reward as native
+outcome truth.
+The extraction is total (1{,}980/1{,}980 mapped verbatim, no errors), and the shipped taubench
+dialect is internally consistent with its reward injection in 1{,}980/1{,}980 episodes.
+
+Confronting the conversational verdict (terminal event stripped, so the walker decides on
+the dialogue alone, as in \S\ref{sec:sgd}) with the environment reward sharpens the
+construct separation on real agents:
+contained is given for 17.3\% of passing episodes and 21.7\% of failing ones, and a closing
+phrase appears in 66.8\% of passing and 76.4\% of failing episodes.
+The conversational close does not merely fail to predict the delivered outcome; its sign is
+inverted, so the close-rate proxy that separated human domains (Tables~\ref{tab:multiwoz})
+does not transfer to agent runs.
+A further asymmetry goes the other way: 628 of 1{,}980 real runs ($31.7\%$) re-enter a
+settled state ($D$ mean 0.47, max 9), while $D=0$ across all three human corpora.
+Real agents exercise the clarify-reopen loop that wizard benchmarks never do; a simulator
+selected on wizard corpora cannot be tested for the loop its target agents actually enter.
+And the silent-failure family is agent-specific too: the tool-ok/empty-result flag of
+\S\ref{sec:sgd} fires zero times here (tau-bench failures are policy violations caught by
+write checks, not empty result sets), so that signal captures one family of the mode, not
+the mode.
+
+The two right panels of Figure~\ref{fig:atlas-tb} anchor the atlas itself on this real
+collection.
+The 1{,}980 runs occupy 961 distinct feature positions (the grammar-shaped space is discrete
+and dense) and 243 grid cells at the shipped kernel 0.12.
+The artifact's 60 production-shaped sim compositions, projected into the same
+real-fitted plane, touch only 17 of those cells directly, and none lands exactly on a real
+position: instance coverage is 0\% (radius $r=0$, median real NN distance), while kernel
+coverage reads 100\% and stays 100\% across the full bandwidth ladder (101/130/243 cells
+occupied at 0.02/0.05/0.12).
+This is the kernel-masking separation of \S4 reproduced with a real anchor: the wide kernel
+claims the simulator set covers everything; the instance metric shows it covers nothing
+exactly.
+Both statements are data-true; they measure different things, and the atlas reports both.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\textwidth]{fig_atlas_taubench}
+\caption{The atlas anchored on real agent runs (data-true, parity-asserted against the
+recomputed coverage). Left: 1{,}980 official tau-bench eval episodes (gpt-4o and
+claude-3.5-sonnet; airline and retail) in the real-fitted PCA plane, colored by the
+conversational verdict; diamonds are the artifact's 60 production-shaped sim compositions
+(template-based, labeled as such). Right: region coverage at kernel 0.12 (243/243 cells
+covered); the same sim set touches 17 cells directly and instance coverage is 0\% at
+$r=0$.}
+\label{fig:atlas-tb}
+\end{figure}
+
 \subsection{Relation to the simulator program}
 The atlas is where calibrated simulation is \emph{validated}.
 The calibrated-simulation agenda --- response-level gap closure
