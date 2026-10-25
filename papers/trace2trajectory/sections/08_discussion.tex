@@ -40,6 +40,33 @@ scores the conversations a simulator produces, the latter names the ones it neve
 An evaluation owner who runs both knows what their simulator sounds like \emph{and} what it
 never says.
 
+\paragraph{Relation to process mining.}
+Section~\ref{sec:background} names process mining as the lineage of trace mining; the relation
+deserves an explicit accounting, because the shared shape is real.
+Process mining discovers process models from event logs and scores conformance: how well a log
+fits a model, with fitness and deviation marking the interesting cases
+\citep{vanDerAalst2012process,carmona2018conformance}; PM4Py is the standard implementation
+\citep{berti2019pm4py}.
+Our mapping shares that shape: $\tau$ is a deterministic event-log-to-state mapping, the walker
+is a finite-state machine over the mapped stream, and the cycle depth $D$ and the terminal
+outcome are deviation statistics in the process-mining sense.
+Four differences define what the model is and what it is used for here.
+First, the state space is conversational, not organizational: states are dialogue stages
+(authentication, clarification, tool execution, handoff) with transition semantics specific to
+service dialogue, not activities induced from a business log.
+Second, the outcome layer is terminal and conversational --- contained, abandoned, handoff
+under a terminal-event rule --- not case completion against a normative process model.
+Third, and decisive for this paper's use case, the model is not applied to conformance of the
+observed process: it defines a behavior space in which population-level coverage of a
+\emph{simulator} against a \emph{real} collection is measured, a question process mining does
+not pose, because its implicit population is the observed process itself.
+Fourth, the input contract is LLM-agent observability (OpenTelemetry GenAI, OpenInference,
+LangSmith), where process mining expects transactional event logs.
+For generic business logs the mature tool is process mining, and nothing here competes with
+it; the claims of this paper are scoped to tool-calling agent conversations and to evaluation
+questions --- simulator coverage, outcome accounting, drift --- that need the conversational
+state space.
+
 \paragraph{Scope.}
 The mapping is voice-agnostic by construction: any agent that emits the three dialects ---
 chat agents, multi-agent systems, tool-heavy pipelines --- extracts to the same canonical
