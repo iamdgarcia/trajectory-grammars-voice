@@ -90,6 +90,13 @@ a 1-conversation simulated set covers 40.2\% of the occupied real regions (conta
 handoff 35.2\%), and the top uncovered regions name their nearest real exemplars. The extraction itself transfers: it runs verbatim, with no table tuning, on three third-party corpora (1{,}000 MultiWOZ 2.2 test dialogues, 4{,}201 Schema-Guided Dialogue test dialogues across 20 services, and 1{,}980 official tau-bench episodes of two production-grade LLM agents), whose own labels induce per-domain outcome distributions; the latter two carry native outcome truth (service-call results; environment-verified reward), which separates conversational closure from delivered outcome: untuned exact agreement is 55.3\% on Schema-Guided Dialogue (83.2\% with a close vocabulary calibrated on its dev split) --- an accuracy that is base-rate degenerate, since 99.8\% of test dialogues carry an effective call and a constant predictor scores 99.79\%, which is why the corpus's contribution is the verdict-vs-truth distance, not classifier score; a vocabulary-free semantic closing detector seeded from the dev split recovers 99.2\% of delivered closures (heuristic: 83.3\%) and transfers zero-shot in both directions; on real agent runs a conversational close is not evidence of success (45.8\% of contained-shape episodes failed the task, against 39.0\% of close-less ones), the confident-closing failure mode is common (21.7\% of failures end in a polite close with success claimed), and the walk's tool-retry depth acts as a transcript-only early warning that raises failure risk by $1.5\times$ on held-out episodes (two failed calls: 61.2\% fail rate vs 40.6\%, $p=4\times10^{-5}$); 31.7\% of real runs re-enter settled tool states, a loop human wizard corpora never exercise.
 The extraction and coverage implementation ships as an open-source artifact with all checks
 passing.
+Third, a training-free trajectory-dynamics layer embeds each sampled window as a hybrid
+semantic-plus-role-bound state, aligns it with a per-conversation counterfactual goal, and
+exposes the confident-closing mode geometrically: on a 50-conversation pilot, abandoned
+Schema-Guided Dialogue conversations end more goal-aligned than contained ones ($+0.73$ vs
+$+0.48$), and four property tests measure why single-vector encodings cannot carry order
+(order-change moves them $4$--$6\times$ less than content change) while a role-bound
+sequential block recovers it.
 \end{abstract}
 
 \section{Introduction}

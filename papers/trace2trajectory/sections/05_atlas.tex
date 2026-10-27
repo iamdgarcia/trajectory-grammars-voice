@@ -311,3 +311,45 @@ The secondary instruments for that validation are Wasserstein divergence of gram
 statistics in the style of the Conversational Distribution Score \citep{cds2026} and the rank
 correlation of Section~\ref{sec:evaluation}; region coverage is the headline, because it is
 the only one of the three that returns actionable per-region output.
+
+\subsection{From atlas to orbit: trajectory dynamics}
+\label{sec:orbit}
+The atlas places each conversation at one point; the trajectory-dynamics layer places it on
+a path.
+Each sampled window $t$ of a conversation is embedded as a hybrid state vector
+$V_t = [\alpha \cdot V_{\mathrm{sem}}(t) \parallel (1-\alpha) \cdot V_{\mathrm{seq}}(t)]$
+with zero training.
+The semantic block $V_{\mathrm{sem}}$ is the frozen embedding of a fixed state schema ---
+phase, resolved requests, pending request, open loops, user stance --- annotated per window
+by an instruction-tuned LLM.
+The sequential block $V_{\mathrm{seq}}$ binds the same schema's slots to their roles
+(resolved-at-$k$, pending-at-$k$, open-loop) as role-bound symbolic coordinates, joined with
+one-hot phase/stance and the typed decision scores of the extraction layer's judge
+(Section~\ref{sec:extraction}).
+The goal is counterfactual and per-conversation: $V_{\mathrm{goal}}$ is the
+resolved-terminal rendering of that conversation's own requests (the schema with
+\emph{pending} swapped to \emph{resolved}), so alignment is task-respecting and requires no
+additional model.
+Three per-turn readouts follow: the progress vector $\vec P_t = V_t - V_{t-1}$; its alignment
+with the goal direction, $\cos\theta_t$; and the critical turn $t_{\mathrm{crit}}$, the
+first turn where $\cos\theta_t < 0$ holds for two consecutive samples.
+A near-repeat detector flags latent loops: same-conversation window pairs with turn gap
+$\ge 2$, both past the second turn, whose distance falls below the 5th percentile of a
+cross-conversation null.
+
+A 50-conversation pilot (30 Schema-Guided Dialogue, 10 MultiWOZ, 10 tau-bench episodes;
+$\le 8$ sampled windows each; every block frozen: a commercial sentence embedder, the
+annotating LLM, a typed decision-model judge) yields first measurements.
+34/49 conversations contain at least one goal-alignment reversal; 44 latent-loop candidates
+survive the null calibration; and the Schema-Guided final-window alignment is
+\emph{inverted} --- abandoned conversations end more goal-aligned than contained ones
+($+0.73$ vs $+0.48$): the geometric signature of confident closing, an ending aligned with a
+resolution that was never delivered.
+On tau-bench, where truth is programmatic, the direction corrects: 6 of the 7 measured
+failing episodes carry a reversal turn (one further failure's windows were lost to a
+degraded gateway and stays unmeasured), and the mean worst-window alignment separates
+failures from the single success ($-0.22$ vs $-0.07$); too few successes ship a bar, and
+the full corpus is the designated measurement.
+One silent-failure candidate is doubly flagged --- its close is vetoed by the confession
+head \emph{and} its walk contains a turn-7-to-16 near-repeat --- the two instruments
+converging on the same episode.

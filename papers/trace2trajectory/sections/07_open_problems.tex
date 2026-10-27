@@ -7,12 +7,19 @@ A learned state estimator --- trained on pattern-table labels, then corrected --
 replace \texttt{infer\_states()} with no downstream change; the open question is what its
 uncertainty does to coverage (a walk with a soft state distribution induces a coverage
 distribution, not a number).
+The training-free hybrid of Section~\ref{sec:orbit} is now the measured first rung: it
+quantifies how much geometry frozen components alone recover (phase separation 0.97,
+context-shift 0.95 of a content change) and what they cannot (order parity, 0.84 against
+the content-change reference); a learned estimator must beat that baseline, not a vacuum.
 
 \paragraph{Calibrated embeddings as features.}
 The embedding variant of Section~\ref{sec:evaluation} swaps the feature step; the stronger
 version conditions the projection itself on calibrated user embeddings \citep{cue2026}, so
 the behavior plane separates conversations by calibrated semantic distance rather than
 structural counts.
+Any such swap must pass the property suite of Section~\ref{sec:property_tests} first:
+the measured phase-blindness (0.56) and order-blindness (0.17--0.26) of single-vector
+encodings are exactly the failure modes the suite exists to catch before a swap ships.
 
 \paragraph{Coverage beyond two dimensions.}
 The 2-D projection is a visualization-driven commitment; the coverage \emph{definition} does

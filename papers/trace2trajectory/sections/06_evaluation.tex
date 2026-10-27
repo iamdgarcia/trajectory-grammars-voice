@@ -98,3 +98,33 @@ coverage delta, and treat a large delta as evidence that structural features und
 the collection's semantic spread.
 The interface was designed for exactly this swap; nothing downstream of the feature step
 changes.
+
+\subsection{Property tests for a latent trajectory space}
+\label{sec:property_tests}
+A learned or hybrid state space must demonstrate its geometry before any downstream claim
+uses it; with no training objective there is no loss curve, so four property tests are the
+arbiter.
+\emph{Separation}: same-phase windows (conversation openings) must sit closer together than
+cross-phase pairs (openings vs Schema-Guided finals); reported as a distance AUROC.
+\emph{Order}: two conversations composed from the same two requests in opposite orders
+($A\!\to\!B$ vs $B\!\to\!A$, built synthetically from Schema-Guided first exchanges) must
+be far; reported as the order-change distance over the content-change distance between the
+same requests asked cold.
+\emph{Cross-position}: asking $B$ after $A$ was resolved must differ from asking $B$ cold
+by as much as a same-structure content change, the fair baseline being two $A\!\to\!B$
+conversations built from different request pairs.
+\emph{Divergence geometry}: within-conversation distance from the first window must grow
+monotonically.
+
+On the same 354-point pilot cloud as Section~\ref{sec:orbit}, the tests fail and then
+recover.
+A frozen commercial sentence embedder over window text is phase-blind (AUROC $0.56$,
+chance) and order-blind (order ratio $0.21$): the shallow-encoding caveat is now a
+measurement, not a caveat.
+Embedding the LLM state description restores phase perception ($0.85$) but is the worst
+carrier of order (ratio $0.17$): slot-swapped descriptions share vocabulary, and the
+encoder bags them.
+The role-bound sequential block restores both: phase $0.97$, order $0.84$, context shift
+$0.95$ of a content change on the same-structure baseline.
+The design rule this pins: similarity lives in embeddings; order and context-position live
+in role-bound symbolic structure --- a single-vector encoding cannot carry both.

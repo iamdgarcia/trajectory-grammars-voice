@@ -60,7 +60,13 @@ Our contributions are:
         comparison at the trajectory level, with a worked example on shipped fixtures and an
         evaluation protocol --- sensitivity sweep, class-conditional coverage, and a baseline
         ladder --- for paper-grade results (Sections~\ref{sec:atlas}
-        and~\ref{sec:evaluation}).
+        and~\ref{sec:evaluation});
+  \item a training-free trajectory-dynamics layer and its acceptance suite: a hybrid state
+        embedding (frozen schema annotation + role-bound slots + typed decisions),
+        counterfactual per-conversation goals, per-turn goal alignment with critical-turn and
+        latent-loop readouts, and four property tests that measure why single-vector
+        encodings cannot carry order while role-bound blocks do
+        (Sections~\ref{sec:orbit} and~\ref{sec:property_tests}).
 \end{enumerate}
 
 The paper is organized as follows.
@@ -69,6 +75,7 @@ lineage, and the verified facts about observability formats.
 Section~\ref{sec:extraction} defines $\tau$.
 Section~\ref{sec:coverage} defines region coverage.
 Section~\ref{sec:atlas} presents the atlas and the worked example.
-Section~\ref{sec:evaluation} gives the evaluation protocol.
+Section~\ref{sec:orbit} adds the trajectory-dynamics layer; Section~\ref{sec:evaluation}
+gives the evaluation protocol and the property tests of the latent space.
 Sections~\ref{sec:open_problems}--\ref{sec:conclusion} discuss open problems, limitations,
 and conclusions.
